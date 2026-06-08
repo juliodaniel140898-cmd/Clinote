@@ -82,8 +82,16 @@ a{color:inherit;text-decoration:none}
 }
 .topbar-row1{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .brand{display:flex;flex-direction:column;min-width:0;flex:1}
-.brand h1{font-size:1.06em;font-weight:900;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand h1{font-size:1.06em;font-weight:900;letter-spacing:-.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:7px}
 .brand .sub{font-size:.7em;color:var(--muted);font-weight:600}
+/* Logo "C" de Clinote */
+.clinote-logo{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,#4f9cff,#2563eb);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:.95em;font-weight:900;color:#fff;letter-spacing:-.5px;
+  box-shadow:0 2px 8px rgba(79,156,255,.45);
+}
 .iconbtn{
   width:40px;height:40px;border-radius:var(--r-sm);background:var(--surface2);
   border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;
@@ -184,41 +192,55 @@ a{color:inherit;text-decoration:none}
 /* ── FOLDER CARD ── */
 .folder-card{
   position:relative;background:var(--surface);border:1.5px solid var(--border);
-  border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-sm);
-  transition:box-shadow var(--t-fast),border-color var(--t-fast);
+  border-radius:var(--r-xl);overflow:hidden;
+  box-shadow:0 2px 12px rgba(0,0,0,.28),0 0 0 0 transparent;
+  transition:box-shadow var(--t-base),border-color var(--t-fast),transform var(--t-fast);
   contain:layout style;
 }
-.folder-card:has(.topic-card:hover){box-shadow:var(--shadow)}
-.folder-strip{height:5px;background:var(--folder-color,var(--accent));width:100%}
+.folder-card:hover{
+  border-color:color-mix(in srgb,var(--folder-color,var(--accent)) 40%,var(--border));
+  box-shadow:0 6px 24px rgba(0,0,0,.38),0 0 0 1px color-mix(in srgb,var(--folder-color,var(--accent)) 20%,transparent);
+}
+.folder-strip{
+  height:4px;
+  background:linear-gradient(90deg,var(--folder-color,var(--accent)),color-mix(in srgb,var(--folder-color,var(--accent)) 60%,transparent));
+  width:100%;
+}
 .folder-head{
-  display:flex;align-items:center;gap:11px;padding:13px 14px;
+  display:flex;align-items:center;gap:11px;padding:14px 14px;
   cursor:pointer;user-select:none;
   transition:background var(--t-fast);
 }
-.folder-head:active{background:var(--surface2)}
-.folder-emoji{font-size:1.5em;line-height:1;flex-shrink:0;width:32px;text-align:center}
-.folder-emoji img.emoji{width:1.5em;height:1.5em;vertical-align:middle}
+.folder-head:active{background:rgba(255,255,255,.03)}
+.folder-emoji{
+  font-size:1.6em;line-height:1;flex-shrink:0;width:36px;text-align:center;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));
+}
+.folder-emoji img.emoji{width:1.6em;height:1.6em;vertical-align:middle}
 .folder-info{flex:1;min-width:0}
-.folder-name{font-size:.97em;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.folder-meta{font-size:.73em;color:var(--muted);font-weight:600;margin-top:1px}
+.folder-name{font-size:.97em;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
+.folder-meta{font-size:.72em;color:var(--muted);font-weight:600;margin-top:2px}
 .folder-arrow{
-  font-size:.8em;color:var(--muted);transition:transform var(--t-base) var(--ease-out);
+  font-size:.88em;color:var(--border2);transition:transform var(--t-base) var(--ease-out),color var(--t-fast);
   flex-shrink:0;
 }
-.folder-arrow.open{transform:rotate(90deg)}
-.folder-actions{display:flex;align-items:center;gap:5px}
+.folder-arrow.open{transform:rotate(90deg);color:var(--folder-color,var(--accent))}
+.folder-actions{display:flex;align-items:center;gap:4px}
 .folder-btn{
   width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;
   justify-content:center;font-size:.9em;transition:background var(--t-fast),transform var(--t-fast);
   color:var(--muted);
 }
-.folder-btn:active{background:var(--surface3);transform:scale(.9)}
-.folder-progress{height:3px;background:var(--surface3);margin:0 14px 0}
+.folder-btn:hover{color:var(--text2);background:var(--surface3)}
+.folder-btn:active{transform:scale(.88)}
+.folder-progress{height:3px;background:var(--surface2);margin:0 14px 2px}
 .folder-progress-bar{
-  height:100%;background:var(--folder-color,var(--accent));
-  border-radius:2px;transition:width .5s var(--ease-out);
+  height:100%;
+  background:linear-gradient(90deg,var(--folder-color,var(--accent)),color-mix(in srgb,var(--folder-color,var(--accent)) 70%,#fff));
+  border-radius:2px;transition:width .6s var(--ease-out);
+  box-shadow:0 0 6px var(--folder-color,var(--accent));
 }
-.folder-progress-label{font-size:.69em;color:var(--muted);font-weight:700;padding:2px 14px 8px;text-align:right}
+.folder-progress-label{font-size:.68em;color:var(--muted);font-weight:700;padding:0 14px 8px;text-align:right}
 
 /* ── SUBFOLDERS ── */
 .subfolder-list{padding:0 10px 6px;display:grid;gap:8px}
@@ -237,49 +259,62 @@ a{color:inherit;text-decoration:none}
   position:relative;border-radius:var(--r-lg);overflow:hidden;
   margin-bottom:7px;background:var(--surface2);
   border:1.5px solid var(--border);
-  transition:box-shadow var(--t-fast),border-color var(--t-fast);
+  transition:box-shadow var(--t-base),border-color var(--t-fast);
   contain:layout style;
 }
-.topic-card.open{border-color:var(--border2);box-shadow:var(--shadow)}
+.topic-card:hover{border-color:var(--border2)}
+.topic-card.open{
+  border-color:color-mix(in srgb,var(--topic-color,var(--accent)) 50%,var(--border));
+  box-shadow:0 4px 18px rgba(0,0,0,.32);
+}
 .swipe-delete-layer{
-  position:absolute;inset:0;background:linear-gradient(90deg,var(--danger),#c0392b);
-  display:flex;align-items:center;padding-left:20px;border-radius:var(--r-lg);
-  font-weight:800;color:#fff;font-size:.88em;
-  transition:opacity var(--t-fast);
+  position:absolute;inset:0;background:linear-gradient(90deg,var(--danger) 0%,#c0392b 100%);
+  display:flex;align-items:center;padding-left:22px;border-radius:var(--r-lg);
+  font-weight:800;color:#fff;font-size:.88em;gap:8px;
+  opacity:0;transition:opacity .12s;
 }
 .swipe-delete-layer.armed{opacity:1}
-.swipe-delete-layer:not(.armed){opacity:0}
 .topic-fg{
   position:relative;z-index:1;background:var(--surface2);border-radius:var(--r-lg);
-  transition:transform var(--t-fast),box-shadow var(--t-fast);
+  transition:transform .12s,box-shadow var(--t-fast);
   will-change:transform;
 }
 .topic-main{
   display:flex;align-items:center;gap:10px;
-  padding:11px 13px;cursor:pointer;user-select:none;
+  padding:12px 13px;cursor:pointer;user-select:none;
+  transition:background var(--t-fast);
+}
+.topic-main:active{background:rgba(255,255,255,.03)}
+/* Color accent strip on left edge when expanded */
+.topic-card.open .topic-fg::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--topic-color,var(--accent));
+  border-radius:var(--r-lg) 0 0 var(--r-lg);
 }
 .topic-color-dot{
-  width:9px;height:9px;border-radius:50%;background:var(--topic-color,var(--accent));
-  flex-shrink:0;box-shadow:0 0 6px var(--topic-color,var(--accent));
+  width:8px;height:8px;border-radius:50%;background:var(--topic-color,var(--accent));
+  flex-shrink:0;box-shadow:0 0 7px var(--topic-color,var(--accent));
 }
-.topic-icon{font-size:1.3em;flex-shrink:0;line-height:1}
-.topic-icon img.emoji{width:1.3em;height:1.3em;vertical-align:middle}
+.topic-icon{font-size:1.35em;flex-shrink:0;line-height:1}
+.topic-icon img.emoji{width:1.35em;height:1.35em;vertical-align:middle}
 .topic-details{flex:1;min-width:0}
-.topic-title{font-size:.91em;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.topic-session{font-size:.71em;color:var(--muted);font-weight:600;margin-top:1px}
+.topic-title{font-size:.92em;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.1px}
+.topic-session{
+  font-size:.7em;color:var(--muted);font-weight:600;margin-top:2px;
+  display:flex;align-items:center;gap:3px;
+}
 .topic-arrow{
-  font-size:.78em;color:var(--muted);
-  transition:transform var(--t-base) var(--ease-out);flex-shrink:0;
+  font-size:.8em;color:var(--border2);
+  transition:transform var(--t-base) var(--ease-out),color var(--t-fast);flex-shrink:0;
 }
-.topic-arrow.open{transform:rotate(90deg)}
+.topic-arrow.open{transform:rotate(90deg);color:var(--topic-color,var(--accent))}
 .studied-badge{
-  font-size:.65em;background:rgba(52,211,153,.15);color:var(--success);
-  border:1px solid rgba(52,211,153,.3);border-radius:999px;
-  padding:2px 7px;font-weight:800;flex-shrink:0;
+  font-size:.63em;
+  background:rgba(52,211,153,.12);color:var(--success);
+  border:1px solid rgba(52,211,153,.25);border-radius:999px;
+  padding:2px 8px;font-weight:800;flex-shrink:0;
 }
-.fav-badge{
-  font-size:.85em;flex-shrink:0;
-}
+.fav-badge{font-size:.82em;flex-shrink:0;}
 
 /* ── TOPIC EXPAND ── */
 .topic-collapse{display:none}
@@ -449,11 +484,25 @@ body.sortmode .topic-arrow{display:none}
 .emoji-btn:active{background:var(--surface3);transform:scale(.88)}
 .emoji-btn img.emoji{width:1.4em;height:1.4em}
 
-/* ── READER / PREVIEW ── */
+/* ── READER / PREVIEW  — verdadera pantalla completa ── */
+#reader-overlay,
+#preview-overlay{
+  align-items:stretch;justify-content:stretch;padding:0;
+}
 #reader-overlay .sheet,
-#preview-overlay .sheet{max-height:98vh}
+#preview-overlay .sheet{
+  max-height:100vh;height:100vh;max-width:100%;border-radius:0;
+  animation:fadeIn .22s var(--ease-out);
+}
+/* En desktop: máximo ancho cómodo */
+@media(min-width:769px){
+  #reader-overlay,#preview-overlay{align-items:center;justify-content:center;padding:20px}
+  #reader-overlay .sheet,#preview-overlay .sheet{
+    height:auto;max-height:96vh;border-radius:var(--r-xl);max-width:860px;
+  }
+}
 .reader-frame,.preview-frame{
-  width:100%;border:none;min-height:300px;
+  width:100%;border:none;min-height:60vh;flex:1;
   display:block;background:var(--surface3);border-radius:var(--r);
 }
 
@@ -642,7 +691,7 @@ body.sortmode .topic-arrow{display:none}
 <div class="topbar">
   <div class="topbar-row1">
     <div class="brand">
-      <h1>📋 Clinote</h1>
+      <h1><span class="clinote-logo">C</span>Clinote</h1>
       <div class="sub" id="brand-sub">Cargando…</div>
     </div>
     <button class="iconbtn dark-btn" id="dark-btn" onclick="toggleDarkMode()" title="Modo oscuro iframe">🌙</button>
@@ -857,12 +906,16 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
-<!-- ── READER ── -->
-<div class="overlay" id="reader-overlay" onclick="if(event.target===this)closeReader()">
-  <div class="sheet" style="max-height:98vh">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="reader-title">Lectura completa<button class="close-btn" onclick="closeReader()">✕</button></div>
-    <div class="sheet-body" id="reader-body"></div>
+<!-- ── READER — pantalla completa ── -->
+<div class="overlay" id="reader-overlay">
+  <div class="sheet" style="display:flex;flex-direction:column">
+    <div class="sheet-title" id="reader-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
+      Lectura completa
+      <div style="display:flex;gap:6px">
+        <button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button>
+      </div>
+    </div>
+    <div class="sheet-body" id="reader-body" style="flex:1;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -879,14 +932,18 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
-<!-- ── PREVIEW ── -->
-<div class="overlay" id="preview-overlay" onclick="if(event.target===this)closePreview()">
-  <div class="sheet" style="max-height:98vh">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="preview-title">Vista previa<button class="close-btn" onclick="closePreview()">✕</button></div>
-    <div class="sheet-body" style="padding:10px">
-      <button class="secondary-btn" style="margin-bottom:8px" onclick="openPreviewSource()">🔧 Ver fuente</button>
-      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups" style="min-height:70vh"></iframe>
+<!-- ── PREVIEW — pantalla completa ── -->
+<div class="overlay" id="preview-overlay">
+  <div class="sheet" style="display:flex;flex-direction:column">
+    <div class="sheet-title" id="preview-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
+      Vista previa
+      <div style="display:flex;gap:6px">
+        <button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button>
+        <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;overflow:hidden;padding:8px">
+      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:var(--r);display:block"></iframe>
     </div>
   </div>
 </div>
@@ -1442,7 +1499,7 @@ function renderSubfolderChip(folder){
 function renderTopic(topic,folderId){
   const open=!!expandedTopics[topic.id];
   const col=topic.color||'var(--accent)';
-  return `<div class="topic-card ${open?'open':''}" data-topic-id="${topic.id}">
+  return `<div class="topic-card ${open?'open':''}" data-topic-id="${topic.id}" style="--topic-color:${col}">
     <div class="swipe-delete-layer">🗑 Eliminar</div>
     <div class="topic-fg">
       <div class="topic-main" onclick="toggleTopicExpand('${topic.id}')">
@@ -1474,7 +1531,7 @@ function buildTopicInner(topic){
     inner+=`<div class="topic-inline-html">
       <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('${topic.id}')" title="Pantalla completa">⤢</button>
       <button class="preview-expand" style="right:52px;font-size:.9em" onclick="event.stopPropagation();toggleTopicExpand('${topic.id}')" title="Cerrar">✕</button>
-      <iframe class="inline-frame" srcdoc="${doc}" sandbox="allow-scripts allow-popups" data-html="${ha(topic.html)}" style="min-height:280px"></iframe>
+      <iframe class="inline-frame" srcdoc="${doc}" sandbox="allow-scripts allow-popups allow-same-origin" data-html="${ha(topic.html)}" style="min-height:280px"></iframe>
     </div>`;
   }
 
@@ -1926,12 +1983,12 @@ function openReader(topicId){
   const topic=activeTopics().find(t=>t.id===topicId);
   if(!topic) return;
   const el=document.getElementById('reader-title');
-  if(el) el.innerHTML=`${h(topic.icon||'📄')} ${h(topic.title)}<button class="close-btn" onclick="closeReader()">✕</button>`;
+  if(el) el.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(topic.icon||'📄')} ${h(topic.title)}</span><div style="display:flex;gap:6px;flex-shrink:0"><button class="close-btn" onclick="printTopic('${topicId}')" title="Imprimir" style="font-size:.85em">🖨️</button><button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button></div>`;
   const body=document.getElementById('reader-body');
   if(!body) return;
   let html='';
   if(topic.session) html+=`<p style="font-size:.78em;color:var(--muted);margin-bottom:10px;font-weight:700">Sesión: ${h(topic.session)}</p>`;
-  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups" srcdoc="${ha(buildEmbedDoc(topic.html))}" style="min-height:50vh;border-radius:var(--r);margin-bottom:10px"></iframe>`;}
+  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups allow-same-origin" srcdoc="${ha(buildEmbedDoc(topic.html))}" style="min-height:50vh;border-radius:var(--r);margin-bottom:10px"></iframe>`;}
   if(topic.sections?.length){topic.sections.forEach(s=>{html+=`<div class="section-block"><div class="section-title">${h(s.h)}</div><div class="section-body">${renderBullets(s.b,topic.color)}</div></div>`;})}
   if(topic.mnemo){html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;}
   if(topic.flashcards?.length){
@@ -1978,7 +2035,8 @@ function openTopicPreview(topicId){
   openPreview(t.html,t.title);
 }
 function openPreview(html,title='Vista previa'){
-  document.getElementById('preview-title').innerHTML=`${h(title)}<button class="close-btn" onclick="closePreview()">✕</button>`;
+  const titleEl=document.getElementById('preview-title');
+  if(titleEl) titleEl.innerHTML=`${h(title)}<div style="display:flex;gap:6px"><button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button><button class="close-btn" onclick="closePreview()">✕</button></div>`;
   const fr=document.getElementById('preview-frame');
   if(fr){fr.srcdoc=buildEmbedDoc(html);}
   openOverlay('preview-overlay');
@@ -2541,7 +2599,7 @@ function renderStudyMode(){
     ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:3px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
   </div>`;
   if(topic.html){
-    html+=`<div class="study-html-wrap"><iframe class="study-frame" srcdoc="${ha(buildEmbedDoc(topic.html))}" sandbox="allow-scripts allow-popups" style="min-height:240px"></iframe></div>`;
+    html+=`<div class="study-html-wrap"><iframe class="study-frame" srcdoc="${ha(buildEmbedDoc(topic.html))}" sandbox="allow-scripts allow-popups allow-same-origin" style="min-height:240px"></iframe></div>`;
   }
   if(topic.sections?.length){topic.sections.forEach(sec=>{
     html+=`<div class="study-section">`;
