@@ -716,8 +716,13 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
-<!-- ── BREADCRUMB (nested folders) ── -->
-<div class="breadcrumb" id="breadcrumb" style="display:none"></div>
+<!-- ── FOLDER NAV BAR (visible cuando estás dentro de una carpeta) ── -->
+<div id="folder-nav-bar" style="display:none;max-width:1140px;margin:0 auto;padding:8px 14px 0;align-items:center;gap:8px;flex-wrap:wrap">
+  <button class="toolbtn" id="folder-back-btn" onclick="navigateBack()" style="background:var(--surface3);border-color:var(--border2);font-weight:900;display:flex;align-items:center;gap:6px;padding:10px 14px">
+    ← Volver
+  </button>
+  <div class="breadcrumb" id="breadcrumb" style="display:flex;flex:1;padding:0;min-width:0"></div>
+</div>
 
 <!-- ── SEARCH ── -->
 <div class="searchwrap"><input class="searchbox" id="search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
@@ -1222,54 +1227,37 @@ function closeStudyMode(){closeOverlay('study-overlay')}
    DARK MODE (iframe content)
    ═══════════════════════════════════════════════════════ */
 const IFRAME_DARK_CSS=`<style>
-:root{color-scheme:dark}
-*{-webkit-font-smoothing:antialiased}
-/* Fondo y texto base */
-html,body{background:#0f1117!important;color:#e8eaed!important;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important}
-/* Forzar visibilidad de texto — evitar texto invisible */
-*:not(script):not(style){color:inherit}
-/* Headings */
-h1,h2,h3,h4,h5,h6{color:#f0f2f5!important}
-/* Párrafos y spans sin color explícito */
-p,li,span:not([style*="color"]),div:not([style*="background"]) p{color:#d8dce6!important}
-/* Links */
-a{color:#60a5fa!important}
-/* Tablas */
-table{border-collapse:collapse!important;border-color:#2c3444!important;width:100%}
-th{background:#1e2a3a!important;color:#f0f2f5!important;border:1px solid #3a4558!important;padding:8px 12px}
-td{border:1px solid #2c3444!important;color:#d8dce6!important;padding:7px 11px;background:transparent!important}
-tr:nth-child(even) td{background:#171b24!important}
-tr:hover td{background:#1e2330!important}
-/* Cards / boxes comunes en HTML de estudio */
-[class*="card"],[class*="box"],[class*="section"],[class*="block"],[class*="container"]:not(body){
-  background:#171b24!important;border-color:#2c3444!important;color:#d8dce6!important
+/*
+ * DARK MODE via CSS filter inversion
+ * Técnica usada por Chrome Auto Dark Mode y la extensión Dark Reader.
+ * Invierte matemáticamente TODOS los colores → cualquier texto claro
+ * sobre fondo claro se vuelve texto oscuro sobre fondo oscuro,
+ * preservando exactamente los mismos ratios de contraste.
+ */
+
+/* 1. Invertir todo el documento */
+html {
+  filter: invert(1) hue-rotate(180deg);
+  background: #fff;   /* punto de partida antes de invertir → queda #000 */
 }
-/* Callouts / alertas */
-[class*="alert"],[class*="warning"],[class*="info"],[class*="tip"],[class*="note"]{
-  background:#1e2a1e!important;border-left:3px solid #34d399!important;color:#b0f0d0!important
+
+/* 2. Contra-invertir imágenes, videos y SVGs para que no queden invertidos */
+img, video, canvas, svg, picture, figure img,
+[style*="background-image"] {
+  filter: invert(1) hue-rotate(180deg);
 }
-[class*="danger"],[class*="error"]{background:#2a1e1e!important;border-left:3px solid #f87171!important;color:#f9b0b0!important}
-/* Código */
-pre,code,kbd,samp{background:#1a1f2e!important;color:#79c0ff!important;border-color:#2c3444!important}
-/* Badges / chips */
-[class*="badge"],[class*="chip"],[class*="tag"],[class*="label"]{
-  background:#1e2a3a!important;color:#93c5fd!important;border-color:#3a4d6a!important
-}
-/* Inputs */
-input,select,textarea{background:#1e2330!important;color:#e8eaed!important;border-color:#3a4558!important}
-/* Imágenes — preservar visibilidad */
-img{filter:brightness(.92) contrast(1.05)}
-/* Fondo blanco explícito → oscuro */
-[style*="background:white"],[style*="background:#fff"],[style*="background: white"],[style*="background-color:white"],[style*="background-color:#fff"],[style*="background-color: white"]{background:#171b24!important}
-/* Texto negro explícito → claro */
-[style*="color:black"],[style*="color:#000"],[style*="color: black"],[style*="color:#111"],[style*="color: #111"]{color:#e8eaed!important}
-[style*="color:#333"],[style*="color: #333"],[style*="color:#444"],[style*="color:#555"],[style*="color:#666"]{color:#b0b8cc!important}
-/* Texto muy oscuro genérico */
-[style*="color:#1"],[style*="color:#2"],[style*="color:#3"],[style*="color:#4"]{color:#c8d0e0!important}
-/* Scrollbar oscura */
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:#0f1117}
-::-webkit-scrollbar-thumb{background:#2c3444;border-radius:4px}
+
+/* 3. iframes dentro del documento (si los hay) */
+iframe { filter: invert(1) hue-rotate(180deg); }
+
+/* 4. Scrollbar oscura */
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-track { background:#111; }
+::-webkit-scrollbar-thumb { background:#444; border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:#666; }
+
+/* 5. Transición suave al activar */
+html, html * { transition: none !important; }
 </style>`;
 function injectDarkMode(html){
   if(!iframeDark) return html;
@@ -1460,13 +1448,33 @@ function _doRender(){
 }
 
 function renderBreadcrumb(){
+  const navBar=document.getElementById('folder-nav-bar');
   const bc=document.getElementById('breadcrumb');
-  if(!bc) return;
-  if(!currentFolderPath.length){bc.style.display='none';return;}
-  bc.style.display='flex';
-  let html=`<div class="bc-item" onclick="navigateToRoot()">🏠 Inicio</div>`;
+  if(!bc||!navBar) return;
+
+  if(!currentFolderPath.length){
+    navBar.style.display='none';
+    bc.innerHTML='';
+    return;
+  }
+
+  navBar.style.display='flex';
+
+  /* update back button label */
+  const backBtn=document.getElementById('folder-back-btn');
+  if(backBtn){
+    if(currentFolderPath.length===1){
+      backBtn.innerHTML='← Inicio';
+    }else{
+      const parent=currentFolderPath[currentFolderPath.length-2];
+      backBtn.innerHTML=`← ${h(parent.emoji||'📁')} ${h(parent.name)}`;
+    }
+  }
+
+  /* breadcrumb trail */
+  let html='';
   currentFolderPath.forEach((f,i)=>{
-    html+=`<span class="bc-sep">›</span>`;
+    if(i>0) html+=`<span class="bc-sep">›</span>`;
     if(i<currentFolderPath.length-1){
       html+=`<div class="bc-item" onclick="navigateToLevel(${i})">${h(f.emoji||'📁')} ${h(f.name)}</div>`;
     }else{
@@ -1475,11 +1483,22 @@ function renderBreadcrumb(){
   });
   bc.innerHTML=html;
 }
+
+function navigateBack(){
+  if(currentFolderPath.length<=1){
+    currentFolderPath=[];
+  }else{
+    currentFolderPath=currentFolderPath.slice(0,-1);
+  }
+  render();
+}
 function navigateToRoot(){currentFolderPath=[];render()}
 function navigateToLevel(i){currentFolderPath=currentFolderPath.slice(0,i+1);render()}
 function navigateToFolder(folderId){
   const folder=getFolder(folderId);
   if(!folder) return;
+  /* avoid duplicate push if already at this folder */
+  if(currentFolderPath.length&&currentFolderPath[currentFolderPath.length-1].id===folderId) return;
   currentFolderPath.push(folder);
   render();
 }
