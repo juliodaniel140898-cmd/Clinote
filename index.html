@@ -1259,10 +1259,10 @@ function toggleDarkMode(){
   localStorage.setItem('clinote-dark',iframeDark?'1':'0');
   const btn=document.getElementById('dark-btn');
   if(btn){btn.textContent=iframeDark?'🌙':'☀️';btn.classList.toggle('active',iframeDark)}
-  document.querySelectorAll('.inline-frame,.study-frame,.preview-frame').forEach(fr=>{
+  document.querySelectorAll('.inline-frame[data-tid],.study-frame[data-tid]').forEach(fr=>{
     try{
-      const raw=fr.getAttribute('data-html');
-      if(raw) fr.srcdoc=buildEmbedDoc(raw);
+      const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
+      if(t?.html) fr.srcdoc=buildEmbedDoc(t.html);
     }catch(_){}
   });
   toast(iframeDark?'🌙 Modo oscuro activado':'☀️ Modo claro activado');
@@ -1541,25 +1541,30 @@ function renderFolder(folder,q,parentId){
   const pct=topics.length?Math.round(studied/topics.length*100):0;
   const col=folder.color||'var(--accent)';
   const favIcon=folder.favorite?'⭐ ':'';
-  /* Folder card — clicking navigates into the folder (Apple Files UX).
-     Action buttons use stopPropagation to prevent navigation. */
-  return `<div class="folder-card" style="--folder-color:${col};cursor:pointer" data-folder-id="${id}" onclick="navigateToFolder('${id}')">
+  return `<div class="folder-card" style="--folder-color:${col}" data-folder-id="${id}">
     <div class="folder-strip"></div>
-    <div class="folder-head">
-      <div class="drag-handle" onclick="event.stopPropagation()">⠿</div>
+    <div class="folder-head" onclick="toggleFolder('${id}')">
+      <div class="drag-handle">⠿</div>
       <div class="folder-emoji">${h(folder.emoji||'📁')}</div>
       <div class="folder-info">
         <div class="folder-name">${favIcon}${h(folder.name)}</div>
         <div class="folder-meta">${topics.length} tema${topics.length!==1?'s':''}${subfolders.length?` · ${subfolders.length} subcarpeta${subfolders.length!==1?'s':''}`:''}</div>
       </div>
       <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="navigateToFolder('${id}')" title="Abrir carpeta">⊞</button>
         <button class="folder-btn" onclick="openTopicEditor(null,'${id}')" title="+ Tema">+</button>
         <button class="folder-btn" onclick="openFolderEditor('${id}')" title="Editar">✎</button>
         ${subfolders.length===0&&topics.length===0?`<button class="folder-btn" style="color:var(--danger)" onclick="askDeleteFolder('${id}')" title="Eliminar">🗑</button>`:''}
       </div>
-      <div class="folder-arrow">›</div>
+      <div class="folder-arrow ${open?'open':''}">›</div>
     </div>
     ${pct>0?`<div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="${id}" style="width:${pct}%"></div></div><div class="folder-progress-label" data-folder-progress-label="${id}">${studied}/${topics.length}</div>`:''}
+    ${open?`
+    <div class="folder-body" data-folder-body="${id}">
+      ${subfolders.length?`<div class="subfolder-list">${subfolders.map(sf=>renderSubfolderChip(sf)).join('')}</div>`:''}
+      ${topics.map(t=>renderTopic(t,id)).join('')}
+      ${!topics.length&&!subfolders.length?`<div style="padding:14px;text-align:center;color:var(--muted);font-size:.82em">Carpeta vacía — <button style="color:var(--accent);font-weight:700" onclick="openTopicEditor(null,'${id}')">+ Añadir tema</button></div>`:''}
+    </div>`:''}
   </div>`;
 }
 
@@ -1609,13 +1614,11 @@ function buildTopicInner(topic){
   const col=topic.color||'var(--accent)';
   let inner='';
 
-  /* HTML embed — srcdoc is injected via JS after innerHTML to avoid
-     double-encoding and iOS Safari blank-frame bugs */
   if(topic.html){
     inner+=`<div class="topic-inline-html">
       <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('${topic.id}')" title="Pantalla completa">⤢</button>
       <button class="preview-expand" style="right:52px;font-size:.9em" onclick="event.stopPropagation();toggleTopicExpand('${topic.id}')" title="Cerrar">✕</button>
-      <iframe class="inline-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-html="${ha(topic.html)}" style="min-height:280px"></iframe>
+      <iframe class="inline-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:280px"></iframe>
     </div>`;
   }
 
@@ -1688,11 +1691,13 @@ function toggleTopicExpand(id){
   if(collapseEl){
     if(isOpen){
       collapseEl.innerHTML=buildTopicInner(topic);
-      /* Inject srcdoc via JS property — avoids HTML double-encoding and
-         iOS Safari blank-frame bug that occurs with srcdoc in innerHTML */
-      collapseEl.querySelectorAll('.inline-frame[data-html]').forEach(fr=>{
-        fr.srcdoc=buildEmbedDoc(fr.getAttribute('data-html'));
-      });
+      /* Set srcdoc directly from the topic object in memory — no HTML
+         attribute encoding roundtrip, no double-encoding, works on all
+         browsers including iOS Safari */
+      if(topic.html){
+        const fr=collapseEl.querySelector('.inline-frame');
+        if(fr) fr.srcdoc=buildEmbedDoc(topic.html);
+      }
       collapseEl.classList.add('open');
       sizeInlineFrames(card);
       parseEmoji(card);
@@ -2077,7 +2082,7 @@ function openReader(topicId){
   if(!body) return;
   let html='';
   if(topic.session) html+=`<p style="font-size:.78em;color:var(--muted);margin-bottom:10px;font-weight:700">Sesión: ${h(topic.session)}</p>`;
-  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-html="${ha(topic.html)}" style="min-height:calc(100dvh - 120px);height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block;margin-bottom:10px"></iframe>`;}
+  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="min-height:calc(100dvh - 120px);height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block;margin-bottom:10px"></iframe>`;}
   if(topic.sections?.length){topic.sections.forEach(s=>{html+=`<div class="section-block"><div class="section-title">${h(s.h)}</div><div class="section-body">${renderBullets(s.b,topic.color)}</div></div>`;})}
   if(topic.mnemo){html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;}
   if(topic.flashcards?.length){
@@ -2087,9 +2092,8 @@ function openReader(topicId){
   }
   if(topic.tags?.length){html+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">${topic.tags.map(tag=>`<span style="font-size:.72em;background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-weight:700">#${h(tag)}</span>`).join('')}</div>`;}
   body.innerHTML=html;
-  /* Inject reader frame srcdoc via JS to avoid double-encoding */
-  const readerFr=body.querySelector('.reader-frame[data-html]');
-  if(readerFr) readerFr.srcdoc=buildEmbedDoc(readerFr.getAttribute('data-html'));
+  /* Set srcdoc from topic object directly — no encoding roundtrip */
+  if(topic.html){const rf=body.querySelector('.reader-frame');if(rf) rf.srcdoc=buildEmbedDoc(topic.html);}
   sizeInlineFrames(body);
   openOverlay('reader-overlay');
 }
@@ -2691,7 +2695,7 @@ function renderStudyMode(){
     ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:3px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
   </div>`;
   if(topic.html){
-    html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-html="${ha(topic.html)}" style="min-height:240px"></iframe></div>`;
+    html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
   }
   if(topic.sections?.length){topic.sections.forEach(sec=>{
     html+=`<div class="study-section">`;
@@ -2701,10 +2705,10 @@ function renderStudyMode(){
   });}
   if(topic.mnemo) html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;
   container.innerHTML=html;
-  /* Inject srcdoc via JS to avoid double-encoding / iOS Safari blank-frame */
-  container.querySelectorAll('.study-frame[data-html]').forEach(fr=>{
-    fr.srcdoc=buildEmbedDoc(fr.getAttribute('data-html'));
-  });
+  if(topic.html){
+    const sf=container.querySelector('.study-frame');
+    if(sf) sf.srcdoc=buildEmbedDoc(topic.html);
+  }
   sizeInlineFrames(container);
   /* update nav buttons */
   const prev=document.getElementById('study-prev');
