@@ -717,16 +717,8 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
-<!-- ── FOLDER NAV BAR (visible cuando estás dentro de una carpeta) ── -->
-<div id="folder-nav-bar" style="display:none;max-width:1140px;margin:0 auto;padding:8px 14px 0;align-items:center;gap:8px;flex-wrap:wrap">
-  <button class="toolbtn" id="folder-back-btn" onclick="navigateBack()" style="background:var(--surface3);border-color:var(--border2);font-weight:900;display:flex;align-items:center;gap:6px;padding:10px 14px">
-    ← Volver
-  </button>
-  <div class="breadcrumb" id="breadcrumb" style="display:flex;flex:1;padding:0;min-width:0"></div>
-</div>
-
 <!-- ── SEARCH ── -->
-<div class="searchwrap"><input class="searchbox" id="search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="off" autocorrect="off" spellcheck="false"></div>
+<div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox"></div>
 
 <!-- ── FOLDER FILTERS ── -->
 <div class="folder-filters" id="folder-filters"></div>
@@ -739,8 +731,6 @@ body.sortmode .topic-arrow{display:none}
   <button class="toolbtn" onclick="openFolderEditor(null)">📁 + Carpeta</button>
   <button class="toolbtn" onclick="openTopicEditor(null)">📄 + Tema</button>
   <button class="toolbtn" id="sort-btn" onclick="toggleSortMode()">⇅ Ordenar</button>
-  <button class="toolbtn" onclick="expandAllFolders(true)">⊞ Expandir</button>
-  <button class="toolbtn" onclick="expandAllFolders(false)">⊟ Colapsar</button>
   <button class="toolbtn" onclick="openTrash()" id="trash-btn">🗑️ Papelera</button>
   <button class="toolbtn" onclick="openActionsOverlay()">⋯ Más</button>
 </div>
@@ -791,6 +781,8 @@ body.sortmode .topic-arrow{display:none}
     <div class="action-list">
       <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)"><span class="action-icon">📁</span>Nueva carpeta</button>
       <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)"><span class="action-icon">📄</span>Nuevo tema</button>
+      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)"><span class="action-icon">⊞</span>Expandir todo</button>
+      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)"><span class="action-icon">⊟</span>Colapsar todo</button>
       <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()"><span class="action-icon">📎</span>Importar HTML</button>
       <button class="action-item" onclick="closeActionsOverlay();importJSON()"><span class="action-icon">📥</span>Importar backup JSON</button>
       <button class="action-item" onclick="closeActionsOverlay();exportJSON()"><span class="action-icon">💾</span>Exportar backup JSON</button>
@@ -914,7 +906,12 @@ body.sortmode .topic-arrow{display:none}
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="sheet-title" id="reader-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
       Lectura completa
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        <button class="close-btn" onclick="changeZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
+        <span id="reader-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
+        <button class="close-btn" onclick="changeZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
+        <button class="close-btn" onclick="toggleDarkMode()" id="reader-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
+        <button class="close-btn" onclick="printTopic(currentReaderTopicId)" id="reader-print-btn" title="Imprimir" style="font-size:.85em">🖨️</button>
         <button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button>
       </div>
     </div>
@@ -940,7 +937,8 @@ body.sortmode .topic-arrow{display:none}
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="sheet-title" id="preview-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
       Vista previa
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        <button class="close-btn" onclick="toggleDarkMode()" id="preview-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
         <button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button>
         <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
       </div>
@@ -1024,7 +1022,7 @@ const INITIAL_STATE=()=>({version:2,folders:[],topics:[],settings:{zoom:100,them
 let STATE=INITIAL_STATE();
 let expandedTopics={};
 let folderFilter=null;
-let currentFolderPath=[]; // for nested folder navigation
+/* folder navigation removed — always renders root level */
 let iframeDark=true;
 let SORT_MODE=false;
 let _sbClient=null;
@@ -1179,8 +1177,7 @@ function folderSearchString(folder){
 function updateZoomDisplay(){
   const z=STATE.settings?.zoom||100;
   document.documentElement.style.setProperty('--base-font',z+'%');
-  const el=document.getElementById('zoom-val');
-  if(el) el.textContent=z+'%';
+  ['zoom-val','reader-zoom-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=z+'%';});
 }
 function changeZoom(dir){
   const z=Math.max(70,Math.min(180,(STATE.settings?.zoom||100)+dir*10));
@@ -1195,13 +1192,16 @@ function changeZoom(dir){
    ═══════════════════════════════════════════════════════ */
 function openOverlay(id){
   const el=document.getElementById(id);
-  if(el){el.classList.add('open');el.style.display='';}
-  // Twemoji parse on open
-  setTimeout(()=>{if(typeof twemoji!=='undefined'&&el)twemoji.parse(el,{folder:'svg',ext:'.svg'})},50);
+  if(!el) return;
+  el.style.display='flex';
+  requestAnimationFrame(()=>el.classList.add('open'));
+  setTimeout(()=>{if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})},60);
 }
 function closeOverlay(id){
   const el=document.getElementById(id);
-  if(el){el.classList.remove('open');el.style.display='';}
+  if(!el) return;
+  el.classList.remove('open');
+  setTimeout(()=>{el.style.display='none';},280);
 }
 function openActionsOverlay(){
   document.getElementById('actions-overlay').style.display='flex';
@@ -1228,39 +1228,57 @@ function closeStudyMode(){closeOverlay('study-overlay')}
 /* ═══════════════════════════════════════════════════════
    DARK MODE (iframe content)
    ═══════════════════════════════════════════════════════ */
+/* Light-content dark mode: filter inversion on body (NOT html — iOS Safari bug) */
 const IFRAME_DARK_CSS=`<style>
-/*
- * DARK MODE — CSS filter inversion aplicado al BODY (no al html root).
- * Aplicarlo a html causa bugs de rendering en iOS Safari donde el iframe
- * queda completamente en blanco. Aplicarlo a body es equivalente pero
- * compatible con todos los navegadores incluyendo Safari iOS.
- */
-body {
-  filter: invert(1) hue-rotate(180deg);
-  background: #fff;
-}
-/* Contra-invertir imágenes y medios para que no queden negativos */
-img, video, canvas, svg, picture, figure img,
-[style*="background-image"] {
-  filter: invert(1) hue-rotate(180deg);
-}
-iframe { filter: invert(1) hue-rotate(180deg); }
-::-webkit-scrollbar { width:8px; height:8px; }
-::-webkit-scrollbar-track { background:#111; }
-::-webkit-scrollbar-thumb { background:#444; border-radius:4px; }
-::-webkit-scrollbar-thumb:hover { background:#666; }
-*, *::before, *::after { transition: none !important; }
+body{filter:invert(1) hue-rotate(180deg) contrast(1.05);background:#fff}
+img,video,canvas,svg,picture,figure img,[style*="background-image"]{filter:invert(1) hue-rotate(180deg)}
+iframe{filter:invert(1) hue-rotate(180deg)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#111}
+::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
+*,*::before,*::after{transition:none!important}
 </style>`;
+
+/* Dark-content: content already has dark backgrounds — only add scrollbar styles */
+const IFRAME_DARK_MIN=`<style>
+html,body{background:#111}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:#111}
+::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
+</style>`;
+
+/* Detect if HTML content already has a dark color theme.
+   Counts hex colors with luminance < 40 (very dark: #0f0c29, #1a1a2e, etc.)
+   If 3+ found, the content already has a dark theme — don't invert. */
+function isAlreadyDark(html){
+  let n=0;
+  const re=/#([0-9a-f]{6})\b/gi;
+  let m;
+  while((m=re.exec(html))!==null){
+    const h=m[1];
+    const r=parseInt(h.substr(0,2),16);
+    const g=parseInt(h.substr(2,2),16);
+    const b=parseInt(h.substr(4,2),16);
+    const lum=(r*299+g*587+b*114)/1000;
+    if(lum<40&&!(r===0&&g===0&&b===0)) n++;
+    if(n>=3) return true;
+  }
+  return false;
+}
+
 function injectDarkMode(html){
   if(!iframeDark) return html;
-  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${IFRAME_DARK_CSS}`);
-  return IFRAME_DARK_CSS+html;
+  const css=isAlreadyDark(html)?IFRAME_DARK_MIN:IFRAME_DARK_CSS;
+  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${css}`);
+  return css+html;
 }
 function toggleDarkMode(){
   iframeDark=!iframeDark;
   localStorage.setItem('clinote-dark',iframeDark?'1':'0');
-  const btn=document.getElementById('dark-btn');
-  if(btn){btn.textContent=iframeDark?'🌙':'☀️';btn.classList.toggle('active',iframeDark)}
+  ['dark-btn','reader-dark-btn','preview-dark-btn'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn){btn.textContent=iframeDark?'🌙':'☀️';btn.classList.toggle('active',iframeDark);}
+  });
   document.querySelectorAll('.inline-frame[data-tid],.study-frame[data-tid]').forEach(fr=>{
     try{
       const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
@@ -1365,16 +1383,13 @@ function _doRender(){
   const container=document.getElementById('folder-list');
   if(!container) return;
 
-  /* render breadcrumb */
-  renderBreadcrumb();
   /* render filters */
   renderFolderFilters();
   /* render stats */
   renderStats();
 
-  /* determine which folders to show at current path level */
-  const currentParentId=currentFolderPath.length>0?currentFolderPath[currentFolderPath.length-1].id:null;
-  const foldersAtLevel=getFolderChildren(currentParentId).filter(f=>!f.deleted);
+  /* always show root-level folders */
+  const foldersAtLevel=getFolderChildren(null).filter(f=>!f.deleted);
 
   /* filter by search and active filter */
   const visible=foldersAtLevel.filter(folder=>{
@@ -1382,9 +1397,6 @@ function _doRender(){
     if(!q) return true;
     return folderSearchString(folder).includes(q);
   });
-
-  /* topics at current level without a folder (only at root) */
-  const showRootTopics=currentParentId===null;
 
   let html='';
 
@@ -1402,44 +1414,13 @@ function _doRender(){
     </div>`;
   }
 
-  /* render each folder (sub-folders at this level) */
+  /* render each folder (root-level) */
   visible.forEach(folder=>{
-    html+=renderFolder(folder,q,currentParentId);
+    html+=renderFolder(folder,q,null);
   });
 
-  /* render topics IN the current folder (when navigated inside one) */
-  if(currentParentId!==null){
-    const folderTopics=getTopicsInFolder(currentParentId).filter(t=>{
-      if(!q) return true;
-      return topicSearchString(t).includes(q);
-    });
-    if(folderTopics.length){
-      /* show all topics directly, auto-expanded since we're inside the folder */
-      html+=`<div class="folder-card" style="--folder-color:${getFolder(currentParentId)?.color||'var(--accent)'}">
-        <div class="folder-strip"></div>
-        <div class="folder-head" style="cursor:default;padding:10px 14px 8px">
-          <div class="folder-emoji">${h(getFolder(currentParentId)?.emoji||'📄')}</div>
-          <div class="folder-info">
-            <div class="folder-name">${h(getFolder(currentParentId)?.name||'')} — Temas</div>
-            <div class="folder-meta">${folderTopics.length} tema${folderTopics.length!==1?'s':''}</div>
-          </div>
-          <button class="toolbtn" style="font-size:.78em;padding:6px 10px" onclick="openTopicEditor(null,'${currentParentId}')">+ Tema</button>
-        </div>
-        <div class="folder-body" data-folder-body="${currentParentId}">
-          ${folderTopics.map(t=>renderTopic(t,currentParentId)).join('')}
-        </div>
-      </div>`;
-    }else if(!visible.length){
-      html+=`<div style="text-align:center;padding:40px 20px;color:var(--muted)">
-        <div style="font-size:2.5em;margin-bottom:10px">📄</div>
-        <div style="font-weight:800;margin-bottom:6px">Carpeta vacía</div>
-        <button class="primary-btn" style="max-width:220px;margin:10px auto" onclick="openTopicEditor(null,'${currentParentId}')">+ Añadir tema</button>
-      </div>`;
-    }
-  }
-
   /* render orphan topics (no folder, at root level) */
-  if(showRootTopics){
+  {
     const orphans=getTopicsInFolder(null).filter(t=>{
       if(!q) return true;
       return topicSearchString(t).includes(q);
@@ -1472,61 +1453,6 @@ function _doRender(){
   parseEmojiDebounced();
 }
 
-function renderBreadcrumb(){
-  const navBar=document.getElementById('folder-nav-bar');
-  const bc=document.getElementById('breadcrumb');
-  if(!bc||!navBar) return;
-
-  if(!currentFolderPath.length){
-    navBar.style.display='none';
-    bc.innerHTML='';
-    return;
-  }
-
-  navBar.style.display='flex';
-
-  /* update back button label */
-  const backBtn=document.getElementById('folder-back-btn');
-  if(backBtn){
-    if(currentFolderPath.length===1){
-      backBtn.innerHTML='← Inicio';
-    }else{
-      const parent=currentFolderPath[currentFolderPath.length-2];
-      backBtn.innerHTML=`← ${h(parent.emoji||'📁')} ${h(parent.name)}`;
-    }
-  }
-
-  /* breadcrumb trail */
-  let html='';
-  currentFolderPath.forEach((f,i)=>{
-    if(i>0) html+=`<span class="bc-sep">›</span>`;
-    if(i<currentFolderPath.length-1){
-      html+=`<div class="bc-item" onclick="navigateToLevel(${i})">${h(f.emoji||'📁')} ${h(f.name)}</div>`;
-    }else{
-      html+=`<div class="bc-current">${h(f.emoji||'📁')} ${h(f.name)}</div>`;
-    }
-  });
-  bc.innerHTML=html;
-}
-
-function navigateBack(){
-  if(currentFolderPath.length<=1){
-    currentFolderPath=[];
-  }else{
-    currentFolderPath=currentFolderPath.slice(0,-1);
-  }
-  render();
-}
-function navigateToRoot(){currentFolderPath=[];render()}
-function navigateToLevel(i){currentFolderPath=currentFolderPath.slice(0,i+1);render()}
-function navigateToFolder(folderId){
-  const folder=getFolder(folderId);
-  if(!folder) return;
-  /* avoid duplicate push if already at this folder */
-  if(currentFolderPath.length&&currentFolderPath[currentFolderPath.length-1].id===folderId) return;
-  currentFolderPath.push(folder);
-  render();
-}
 
 function renderStats(){
   const el=document.getElementById('stats');
@@ -1547,7 +1473,7 @@ function renderStats(){
 function renderFolderFilters(){
   const el=document.getElementById('folder-filters');
   if(!el) return;
-  const foldersHere=currentFolderPath.length>0?getFolderChildren(currentFolderPath[currentFolderPath.length-1].id):getFolderChildren(null);
+  const foldersHere=getFolderChildren(null);
   if(foldersHere.length<3){el.innerHTML='';return;}
   let html=`<button class="filter-chip ${folderFilter===null?'active':''}" onclick="setFolderFilter(null)">Todas</button>`;
   foldersHere.forEach(f=>{
@@ -1583,7 +1509,6 @@ function renderFolder(folder,q,parentId){
         <div class="folder-meta">${topics.length} tema${topics.length!==1?'s':''}${subfolders.length?` · ${subfolders.length} subcarpeta${subfolders.length!==1?'s':''}`:''}</div>
       </div>
       <div class="folder-actions" onclick="event.stopPropagation()">
-        <button class="folder-btn" onclick="navigateToFolder('${id}')" title="Abrir carpeta">⊞</button>
         <button class="folder-btn" onclick="openTopicEditor(null,'${id}')" title="+ Tema">+</button>
         <button class="folder-btn" onclick="openFolderEditor('${id}')" title="Editar">✎</button>
         ${subfolders.length===0&&topics.length===0?`<button class="folder-btn" style="color:var(--danger)" onclick="askDeleteFolder('${id}')" title="Eliminar">🗑</button>`:''}
@@ -2116,6 +2041,7 @@ function confirmMoveTopic(){
 function openReader(topicId){
   const topic=activeTopics().find(t=>t.id===topicId);
   if(!topic) return;
+  window.currentReaderTopicId=topicId;
   const el=document.getElementById('reader-title');
   if(el) el.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(topic.icon||'📄')} ${h(topic.title)}</span><div style="display:flex;gap:6px;flex-shrink:0"><button class="close-btn" onclick="printTopic('${topicId}')" title="Imprimir" style="font-size:.85em">🖨️</button><button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button></div>`;
   const body=document.getElementById('reader-body');
@@ -2364,7 +2290,7 @@ function extractTitle(text,fileName){
 }
 function createTopicFromFile(fileName,text){
   const title=extractTitle(text,fileName);
-  const folder=currentFolderPath.length>0?currentFolderPath[currentFolderPath.length-1].id:null;
+  const folder=null;
   STATE.topics.push({
     id:uid('t'),title,html:text,icon:'📄',color:'#4f9cff',
     folderId:folder,sections:[],flashcards:[],studied:false,
