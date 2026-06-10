@@ -718,7 +718,9 @@ body.sortmode .topic-arrow{display:none}
 </div>
 
 <!-- ── SEARCH ── -->
-<div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox"></div>
+<!-- readonly hasta que el usuario lo toque: los navegadores no autorellenan
+     inputs readonly, así Chrome no puede meter el correo guardado aquí -->
+<div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
 
 <!-- ── FOLDER FILTERS ── -->
 <div class="folder-filters" id="folder-filters"></div>
@@ -905,11 +907,11 @@ body.sortmode .topic-arrow{display:none}
 <div class="overlay" id="reader-overlay">
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="sheet-title" id="reader-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
-      Lectura completa
+      <span id="reader-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Lectura completa</span>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-        <button class="close-btn" onclick="changeZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
+        <button class="close-btn" onclick="readerZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
         <span id="reader-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
-        <button class="close-btn" onclick="changeZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
+        <button class="close-btn" onclick="readerZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
         <button class="close-btn" onclick="toggleDarkMode()" id="reader-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
         <button class="close-btn" onclick="printTopic(currentReaderTopicId)" id="reader-print-btn" title="Imprimir" style="font-size:.85em">🖨️</button>
         <button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button>
@@ -936,7 +938,7 @@ body.sortmode .topic-arrow{display:none}
 <div class="overlay" id="preview-overlay">
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="sheet-title" id="preview-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
-      Vista previa
+      <span id="preview-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vista previa</span>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
         <button class="close-btn" onclick="toggleDarkMode()" id="preview-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
         <button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button>
@@ -1012,6 +1014,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
+const APP_VERSION='v4.1';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1177,7 +1180,8 @@ function folderSearchString(folder){
 function updateZoomDisplay(){
   const z=STATE.settings?.zoom||100;
   document.documentElement.style.setProperty('--base-font',z+'%');
-  ['zoom-val','reader-zoom-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=z+'%';});
+  const el=document.getElementById('zoom-val');
+  if(el) el.textContent=z+'%';
 }
 function changeZoom(dir){
   const z=Math.max(70,Math.min(180,(STATE.settings?.zoom||100)+dir*10));
@@ -1193,6 +1197,9 @@ function changeZoom(dir){
 function openOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
+  /* cancelar un cierre pendiente: sin esto, el setTimeout de closeOverlay
+     puede ocultar una ventana recién abierta (display:none gana al class) */
+  if(el._hideTimer){clearTimeout(el._hideTimer);el._hideTimer=null;}
   el.style.display='flex';
   requestAnimationFrame(()=>el.classList.add('open'));
   setTimeout(()=>{if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})},60);
@@ -1201,7 +1208,11 @@ function closeOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
   el.classList.remove('open');
-  setTimeout(()=>{el.style.display='none';},280);
+  if(el._hideTimer) clearTimeout(el._hideTimer);
+  el._hideTimer=setTimeout(()=>{
+    if(!el.classList.contains('open')) el.style.display='none';
+    el._hideTimer=null;
+  },280);
 }
 function openActionsOverlay(){
   document.getElementById('actions-overlay').style.display='flex';
@@ -1285,6 +1296,16 @@ function toggleDarkMode(){
       if(t?.html) fr.srcdoc=buildEmbedDoc(t.html);
     }catch(_){}
   });
+  /* refrescar también el iframe del lector y del previsualizador */
+  try{
+    const rf=document.querySelector('#reader-body .reader-frame');
+    const rt=activeTopics().find(t=>t.id===window.currentReaderTopicId);
+    if(rf&&rt?.html) rf.srcdoc=buildEmbedDoc(rt.html);
+  }catch(_){}
+  try{
+    const pf=document.getElementById('preview-frame');
+    if(pf&&window.currentPreviewHtml) pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
+  }catch(_){}
   toast(iframeDark?'🌙 Modo oscuro activado':'☀️ Modo claro activado');
 }
 
@@ -2042,8 +2063,13 @@ function openReader(topicId){
   const topic=activeTopics().find(t=>t.id===topicId);
   if(!topic) return;
   window.currentReaderTopicId=topicId;
-  const el=document.getElementById('reader-title');
-  if(el) el.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(topic.icon||'📄')} ${h(topic.title)}</span><div style="display:flex;gap:6px;flex-shrink:0"><button class="close-btn" onclick="printTopic('${topicId}')" title="Imprimir" style="font-size:.85em">🖨️</button><button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button></div>`;
+  /* Solo actualizar el texto del título — NO tocar reader-title completo,
+     porque ahí viven los botones de zoom/oscuro/imprimir/cerrar */
+  const el=document.getElementById('reader-title-text');
+  if(el) el.innerHTML=`${h(topic.icon||'📄')} ${h(topic.title)}`;
+  readerZoomPct=100;
+  const zv=document.getElementById('reader-zoom-val');
+  if(zv) zv.textContent='100%';
   const body=document.getElementById('reader-body');
   if(!body) return;
   let html='';
@@ -2058,10 +2084,24 @@ function openReader(topicId){
   }
   if(topic.tags?.length){html+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">${topic.tags.map(tag=>`<span style="font-size:.72em;background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-weight:700">#${h(tag)}</span>`).join('')}</div>`;}
   body.innerHTML=html;
+  body.style.fontSize='';
   /* Set srcdoc from topic object directly — no encoding roundtrip */
   if(topic.html){const rf=body.querySelector('.reader-frame');if(rf) rf.srcdoc=buildEmbedDoc(topic.html);}
   sizeInlineFrames(body);
   openOverlay('reader-overlay');
+}
+/* Zoom propio del lector: escala el texto del cuerpo Y el contenido del iframe
+   (el zoom global de la app no alcanza al contenido dentro de iframes) */
+let readerZoomPct=100;
+function readerZoom(d){
+  readerZoomPct=Math.min(200,Math.max(60,readerZoomPct+d*10));
+  const zv=document.getElementById('reader-zoom-val');
+  if(zv) zv.textContent=readerZoomPct+'%';
+  const body=document.getElementById('reader-body');
+  if(!body) return;
+  body.style.fontSize=readerZoomPct+'%';
+  const rf=body.querySelector('.reader-frame');
+  if(rf){try{rf.contentDocument.body.style.zoom=readerZoomPct+'%';}catch(_){}}
 }
 function flipCard(id){
   const a=document.getElementById('fc_'+id);
@@ -2097,8 +2137,10 @@ function openTopicPreview(topicId){
   openPreview(t.html,t.title);
 }
 function openPreview(html,title='Vista previa'){
-  const titleEl=document.getElementById('preview-title');
-  if(titleEl) titleEl.innerHTML=`${h(title)}<div style="display:flex;gap:6px"><button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button><button class="close-btn" onclick="closePreview()">✕</button></div>`;
+  /* Solo el texto del título — los botones (oscuro/fuente/cerrar) viven en el HTML estático */
+  const titleEl=document.getElementById('preview-title-text');
+  if(titleEl) titleEl.textContent=title;
+  window.currentPreviewHtml=html;
   const fr=document.getElementById('preview-frame');
   if(fr){fr.srcdoc=buildEmbedDoc(html);}
   openOverlay('preview-overlay');
@@ -2793,11 +2835,19 @@ async function init(){
   /* Dark mode preference */
   const dm=localStorage.getItem('clinote-dark');
   iframeDark=(dm===null||dm==='1');
-  const darkBtn=document.getElementById('dark-btn');
-  if(darkBtn){darkBtn.textContent=iframeDark?'🌙':'☀️';darkBtn.classList.toggle('active',iframeDark);}
+  ['dark-btn','reader-dark-btn','preview-dark-btn'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.textContent=iframeDark?'🌙':'☀️';b.classList.toggle('active',iframeDark);}
+  });
   /* Update brand */
   const sub=document.getElementById('brand-sub');
-  if(sub) sub.textContent=`${activeTopics().length} temas`;
+  if(sub) sub.textContent=`${activeTopics().length} temas · ${APP_VERSION}`;
+  /* Guardia anti-autofill: mientras el buscador sigue readonly (el usuario
+     no lo ha tocado), cualquier valor que aparezca es autofill del navegador */
+  const sb=document.getElementById('search');
+  if(sb) setInterval(()=>{
+    if(sb.hasAttribute('readonly')&&sb.value){sb.value='';onSearch();}
+  },600);
   /* Render */
   render();
   /* Recovery check */
