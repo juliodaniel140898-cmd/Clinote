@@ -722,11 +722,11 @@ body.sortmode .topic-arrow{display:none}
      inputs readonly, así Chrome no puede meter el correo guardado aquí -->
 <div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
 
-<!-- ── FOLDER FILTERS ── -->
-<div class="folder-filters" id="folder-filters"></div>
-
-<!-- ── STATS ── -->
-<div class="stats" id="stats"></div>
+<!-- ── STATS + FOLDER FILTERS (combined) ── -->
+<div id="stats-filters-wrap" style="max-width:1140px;margin:0 auto;padding:8px 14px 0">
+  <div id="stats-line" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 0 6px;font-size:.78em;font-weight:700;color:var(--muted)"></div>
+  <div class="folder-filters" id="folder-filters"></div>
+</div>
 
 <!-- ── TOOLBAR ── -->
 <div class="toolbar">
@@ -1014,7 +1014,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v4.1';
+const APP_VERSION='v4.2';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1476,19 +1476,19 @@ function _doRender(){
 
 
 function renderStats(){
-  const el=document.getElementById('stats');
+  const el=document.getElementById('stats-line');
   if(!el) return;
   const total=activeTopics().length;
   const studied=activeTopics().filter(t=>t.studied).length;
   const folders=activeFolders().length;
   const pct=total?Math.round(studied/total*100):0;
   const trash=STATE.topics.filter(t=>t.deleted).length+STATE.folders.filter(f=>f.deleted).length;
-  el.innerHTML=`
-    <div class="chip">📄 ${total} temas</div>
-    <div class="chip">📁 ${folders} carpetas</div>
-    <div class="chip">✅ ${studied}/${total} (${pct}%)</div>
-    ${trash?`<div class="chip" style="cursor:pointer" onclick="openTrash()"><span class="trash-badge">🗑 ${trash}</span></div>`:''}
-  `;
+  el.innerHTML=`<span>📄 ${total} temas</span>
+    <span style="color:var(--border2)">·</span>
+    <span>📁 ${folders} carpetas</span>
+    <span style="color:var(--border2)">·</span>
+    <span style="color:var(--accent)">✅ ${studied}/${total} · ${pct}%</span>
+    ${trash?`<span style="color:var(--border2)">·</span><span style="cursor:pointer;color:var(--danger)" onclick="openTrash()">🗑 ${trash} en papelera</span>`:''}`;
 }
 
 function renderFolderFilters(){
@@ -1530,6 +1530,7 @@ function renderFolder(folder,q,parentId){
         <div class="folder-meta">${topics.length} tema${topics.length!==1?'s':''}${subfolders.length?` · ${subfolders.length} subcarpeta${subfolders.length!==1?'s':''}`:''}</div>
       </div>
       <div class="folder-actions" onclick="event.stopPropagation()">
+        ${topics.length?`<button class="folder-btn" onclick="openStudyMode('${id}')" title="Estudiar">📖</button>`:''}
         <button class="folder-btn" onclick="openTopicEditor(null,'${id}')" title="+ Tema">+</button>
         <button class="folder-btn" onclick="openFolderEditor('${id}')" title="Editar">✎</button>
         ${subfolders.length===0&&topics.length===0?`<button class="folder-btn" style="color:var(--danger)" onclick="askDeleteFolder('${id}')" title="Eliminar">🗑</button>`:''}
@@ -1539,26 +1540,13 @@ function renderFolder(folder,q,parentId){
     ${pct>0?`<div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="${id}" style="width:${pct}%"></div></div><div class="folder-progress-label" data-folder-progress-label="${id}">${studied}/${topics.length}</div>`:''}
     ${open?`
     <div class="folder-body" data-folder-body="${id}">
-      ${subfolders.length?`<div class="subfolder-list">${subfolders.map(sf=>renderSubfolderChip(sf)).join('')}</div>`:''}
+      ${subfolders.length?`<div class="subfolder-list">${subfolders.map(sf=>renderFolder(sf,q,id)).join('')}</div>`:''}
       ${topics.map(t=>renderTopic(t,id)).join('')}
       ${!topics.length&&!subfolders.length?`<div style="padding:14px;text-align:center;color:var(--muted);font-size:.82em">Carpeta vacía — <button style="color:var(--accent);font-weight:700" onclick="openTopicEditor(null,'${id}')">+ Añadir tema</button></div>`:''}
     </div>`:''}
   </div>`;
 }
 
-function renderSubfolderChip(folder){
-  const topics=getTopicsInFolder(folder.id);
-  const subs=getFolderChildren(folder.id);
-  const col=folder.color||'var(--accent)';
-  return `<div class="subfolder-card" style="--folder-color:${col}" onclick="navigateToFolder('${folder.id}')">
-    <div style="height:3px;background:${col}"></div>
-    <div class="folder-head" style="padding:10px 13px">
-      <div class="folder-emoji" style="font-size:1.2em">${h(folder.emoji||'📁')}</div>
-      <div class="folder-info"><div class="folder-name" style="font-size:.9em">${h(folder.name)}</div>
-      <div class="folder-meta">${topics.length} tema${topics.length!==1?'s':''}${subs.length?` · ${subs.length} sub`:''}  ›</div></div>
-    </div>
-  </div>`;
-}
 
 /* ─────────────────────────────────────────────────────
    TOPIC CARD
@@ -2084,9 +2072,16 @@ function openReader(topicId){
   }
   if(topic.tags?.length){html+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">${topic.tags.map(tag=>`<span style="font-size:.72em;background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-weight:700">#${h(tag)}</span>`).join('')}</div>`;}
   body.innerHTML=html;
-  body.style.fontSize='';
+  body.style.fontSize=readerZoomPct+'%';
   /* Set srcdoc from topic object directly — no encoding roundtrip */
-  if(topic.html){const rf=body.querySelector('.reader-frame');if(rf) rf.srcdoc=buildEmbedDoc(topic.html);}
+  if(topic.html){
+    const rf=body.querySelector('.reader-frame');
+    if(rf){
+      rf.srcdoc=buildEmbedDoc(topic.html);
+      rf.style.zoom=readerZoomPct+'%';
+      rf.style.width=(100/(readerZoomPct/100))+'%';
+    }
+  }
   sizeInlineFrames(body);
   openOverlay('reader-overlay');
 }
@@ -2099,9 +2094,15 @@ function readerZoom(d){
   if(zv) zv.textContent=readerZoomPct+'%';
   const body=document.getElementById('reader-body');
   if(!body) return;
+  /* Escalar texto fuera del iframe */
   body.style.fontSize=readerZoomPct+'%';
+  /* Escalar el iframe completo con zoom CSS (no requiere acceso cross-origin) */
   const rf=body.querySelector('.reader-frame');
-  if(rf){try{rf.contentDocument.body.style.zoom=readerZoomPct+'%';}catch(_){}}
+  if(rf){
+    rf.style.zoom=readerZoomPct+'%';
+    /* compensar el ancho ya que zoom encoge el elemento */
+    rf.style.width=(100/(readerZoomPct/100))+'%';
+  }
 }
 function flipCard(id){
   const a=document.getElementById('fc_'+id);
