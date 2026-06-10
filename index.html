@@ -495,12 +495,13 @@ body.sortmode .topic-arrow{display:none}
 }
 #reader-overlay .sheet,
 #preview-overlay .sheet{
-  max-height:100vh;height:100dvh;width:100vw;max-width:100vw;
+  max-height:100dvh;height:100dvh;width:100vw;max-width:none;
   border-radius:0;animation:fadeIn .2s var(--ease-out);
+  padding:0;margin:0;
 }
 .reader-frame,.preview-frame{
   width:100%;border:none;min-height:70vh;height:calc(100dvh - 60px);
-  display:block;background:var(--surface3);
+  display:block;background:var(--surface3);border-radius:0;
 }
 
 /* ── AUTH CARD ── */
@@ -944,8 +945,8 @@ body.sortmode .topic-arrow{display:none}
         <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
       </div>
     </div>
-    <div style="flex:1;overflow:hidden;padding:8px">
-      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:var(--r);display:block"></iframe>
+    <div style="flex:1;overflow:hidden;padding:0">
+      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:0;display:block"></iframe>
     </div>
   </div>
 </div>
@@ -1071,6 +1072,7 @@ function toast(msg,dur=2200){
 function saveState(){
   try{
     _searchCache.clear(); // invalidate search cache on state change
+    STATE.updatedAt=Date.now();
     localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));
   }catch(e){
     console.warn('localStorage full, trying to clear old keys',e);
@@ -1271,14 +1273,44 @@ function toggleDarkMode(){
 /* ═══════════════════════════════════════════════════════
    IFRAME CONTENT BUILDER
    ═══════════════════════════════════════════════════════ */
+/* Prepara código React/JSX pegado desde editores externos:
+   Babel standalone NO soporta import/export (ES modules) en un script
+   clásico — un "import { useState } from 'react'" causa SyntaxError
+   y el iframe queda en blanco. Se eliminan imports, se captura el
+   nombre del componente exportado y se limpian los exports. */
+function prepareReactBody(src){
+  let body=src.replace(/<\/?(html|head|body)[^>]*>/gi,'').trim();
+  body=body.replace(/^\s*import\s+[\s\S]*?from\s*['"][^'"]*['"]\s*;?\s*$/gm,'');
+  body=body.replace(/^\s*import\s*['"][^'"]*['"]\s*;?\s*$/gm,'');
+  let comp=null;
+  const m1=body.match(/export\s+default\s+function\s+([A-Za-z_$][\w$]*)/);
+  if(m1){
+    comp=m1[1];
+    body=body.replace(/export\s+default\s+function/,'function');
+  }else{
+    const m2=body.match(/export\s+default\s+([A-Za-z_$][\w$]*)\s*;?/);
+    if(m2&&!/^(function|class|async)$/.test(m2[1])){
+      comp=m2[1];
+      body=body.replace(/export\s+default\s+[A-Za-z_$][\w$]*\s*;?/,'');
+    }else if(/export\s+default\s+/.test(body)){
+      comp='__Default';
+      body=body.replace(/export\s+default\s+/,'const __Default=');
+    }
+  }
+  body=body.replace(/export\s+(const|let|var|function|class)\s+/g,'$1 ');
+  return {body,comp};
+}
+
 function buildEmbedDoc(rawHtml){
   const c=rawHtml||'';
   /* React/JSX detection */
   const isReact=c.includes('useState')||c.includes('useEffect')||c.includes('React.')||c.includes('jsx')||c.includes('TSX');
   const hasFullDoc=/<!DOCTYPE|<html/i.test(c);
   if(isReact&&!hasFullDoc){
-    const body=c.replace(/<\/?(html|head|body)[^>]*>/gi,'').trim();
-    return injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:#0f0c29;color:#fff}#root{min-height:100vh}</style></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback}=React;${body}try{const Comp=(typeof App!=='undefined')?App:(typeof __Default!=='undefined'?__Default:null);if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`);
+    const{body,comp}=prepareReactBody(c);
+    const lookup=comp||'App';
+    return injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:#0f0c29;color:#fff}#root{min-height:100vh}</style><script>window.addEventListener('error',function(e){var r=document.getElementById('root');if(r&&!r.childElementCount){r.innerHTML='<pre style="padding:20px;color:#ff8a8a;white-space:pre-wrap;font-size:12px">⚠️ Error: '+(e.message||'desconocido')+'</pre>';}});<\/script></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,useLayoutEffect}=React;${body}
+try{const Comp=(typeof ${lookup}!=='undefined')?${lookup}:((typeof App!=='undefined')?App:((typeof __Default!=='undefined')?__Default:null));if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`);
   }
   if(hasFullDoc) return injectDarkMode(c);
   return injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:14px;font-family:-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}</style></head><body>${c}</body></html>`);
@@ -1870,6 +1902,7 @@ function openTrash(){
           <div style="font-size:.71em;color:var(--muted)">${item._type==='folder'?'Carpeta':'Tema'} · ${item.deletedAt?new Date(item.deletedAt).toLocaleDateString():''}</div>
         </div>
         <button class="toolbtn" style="font-size:.8em" onclick="restoreItem('${item.id}','${item._type}')">↩ Restaurar</button>
+        <button class="toolbtn" style="font-size:.8em;color:var(--danger)" onclick="purgeItem('${item.id}','${item._type}')" title="Eliminar permanentemente">🗑</button>
       </div>`).join('');
   }
   openOverlay('trash-overlay');
@@ -1879,6 +1912,13 @@ function restoreItem(id,type){
   else{const t=STATE.topics.find(t=>t.id===id);if(t){t.deleted=false;delete t.deletedAt;}}
   saveState();render();openTrash();
   toast('↩️ Restaurado');
+}
+function purgeItem(id,type){
+  if(!confirm('¿Eliminar este elemento de forma permanente? No se puede deshacer.')) return;
+  if(type==='folder'){STATE.folders=STATE.folders.filter(f=>f.id!==id);}
+  else{STATE.topics=STATE.topics.filter(t=>t.id!==id);}
+  saveState();render();openTrash();
+  toast('🗑️ Eliminado permanentemente');
 }
 function emptyTrash(){
   if(!confirm('¿Eliminar permanentemente todos los elementos de la papelera?')) return;
@@ -2587,9 +2627,14 @@ async function sbPullSilent(){
   if(!user) return;
   const{data}=await getSB().from('study_backup').select('data').eq('user_id',user.id).single();
   if(!data?.data?.topics?.length) return;
-  const remote=data.data.topics.length;
-  const local=activeTopics().length;
-  if(remote>local){STATE=data.data;saveState();render();}
+  /* Comparar por timestamp, NO por conteo de temas: comparar conteos
+     resucitaba elementos borrados — al borrar, el conteo local bajaba
+     y la nube (desactualizada) "ganaba" en cada inicio de sesión. */
+  const remoteTime=data.data.updatedAt||0;
+  const localTime=STATE.updatedAt||0;
+  const localEmpty=!activeTopics().length&&!activeFolders().length;
+  if(localEmpty||remoteTime>localTime){STATE=data.data;saveState();render();}
+  else if(localTime>remoteTime){sbPush(true);} /* la nube está atrasada → actualizarla */
   /* no toast — content appears silently */
 }
 const triggerSbSync=debounce(()=>sbPush(true),5000);
