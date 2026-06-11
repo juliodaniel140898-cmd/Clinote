@@ -940,6 +940,9 @@ body.sortmode .topic-arrow{display:none}
     <div class="sheet-title" id="preview-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
       <span id="preview-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vista previa</span>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
+        <button class="close-btn" onclick="previewZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
+        <span id="preview-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
+        <button class="close-btn" onclick="previewZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
         <button class="close-btn" onclick="toggleDarkMode()" id="preview-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
         <button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button>
         <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
@@ -1304,7 +1307,13 @@ function toggleDarkMode(){
   }catch(_){}
   try{
     const pf=document.getElementById('preview-frame');
-    if(pf&&window.currentPreviewHtml) pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
+    if(pf&&window.currentPreviewHtml){
+      const pct=previewZoomPct||100;
+      pf.addEventListener('load',()=>{
+        try{const bd=pf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
+      },{once:true});
+      pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
+    }
   }catch(_){}
   toast(iframeDark?'🌙 Modo oscuro activado':'☀️ Modo claro activado');
 }
@@ -2073,13 +2082,14 @@ function openReader(topicId){
   if(topic.tags?.length){html+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">${topic.tags.map(tag=>`<span style="font-size:.72em;background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-weight:700">#${h(tag)}</span>`).join('')}</div>`;}
   body.innerHTML=html;
   body.style.fontSize=readerZoomPct+'%';
-  /* Set srcdoc from topic object directly — no encoding roundtrip */
   if(topic.html){
     const rf=body.querySelector('.reader-frame');
     if(rf){
+      const pct=readerZoomPct;
+      rf.addEventListener('load',()=>{
+        try{const bd=rf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
+      },{once:true});
       rf.srcdoc=buildEmbedDoc(topic.html);
-      rf.style.zoom=readerZoomPct+'%';
-      rf.style.width=(100/(readerZoomPct/100))+'%';
     }
   }
   sizeInlineFrames(body);
@@ -2088,21 +2098,37 @@ function openReader(topicId){
 /* Zoom propio del lector: escala el texto del cuerpo Y el contenido del iframe
    (el zoom global de la app no alcanza al contenido dentro de iframes) */
 let readerZoomPct=100;
+let previewZoomPct=100;
+
+function _applyZoomToFrame(fr,pct){
+  /* srcdoc iframes con allow-same-origin son accesibles desde el padre */
+  try{
+    const bd=fr.contentDocument?.body;
+    if(bd){bd.style.zoom=pct+'%';return;}
+  }catch(_){}
+  /* fallback si aún no cargó: esperar onload */
+  fr.addEventListener('load',()=>{
+    try{const bd=fr.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
+  },{once:true});
+}
+
 function readerZoom(d){
   readerZoomPct=Math.min(200,Math.max(60,readerZoomPct+d*10));
   const zv=document.getElementById('reader-zoom-val');
   if(zv) zv.textContent=readerZoomPct+'%';
   const body=document.getElementById('reader-body');
   if(!body) return;
-  /* Escalar texto fuera del iframe */
   body.style.fontSize=readerZoomPct+'%';
-  /* Escalar el iframe completo con zoom CSS (no requiere acceso cross-origin) */
   const rf=body.querySelector('.reader-frame');
-  if(rf){
-    rf.style.zoom=readerZoomPct+'%';
-    /* compensar el ancho ya que zoom encoge el elemento */
-    rf.style.width=(100/(readerZoomPct/100))+'%';
-  }
+  if(rf) _applyZoomToFrame(rf,readerZoomPct);
+}
+
+function previewZoom(d){
+  previewZoomPct=Math.min(200,Math.max(60,previewZoomPct+d*10));
+  const zv=document.getElementById('preview-zoom-val');
+  if(zv) zv.textContent=previewZoomPct+'%';
+  const pf=document.getElementById('preview-frame');
+  if(pf) _applyZoomToFrame(pf,previewZoomPct);
 }
 function flipCard(id){
   const a=document.getElementById('fc_'+id);
@@ -2138,12 +2164,19 @@ function openTopicPreview(topicId){
   openPreview(t.html,t.title);
 }
 function openPreview(html,title='Vista previa'){
-  /* Solo el texto del título — los botones (oscuro/fuente/cerrar) viven en el HTML estático */
   const titleEl=document.getElementById('preview-title-text');
   if(titleEl) titleEl.textContent=title;
   window.currentPreviewHtml=html;
+  previewZoomPct=100;
+  const pzv=document.getElementById('preview-zoom-val');
+  if(pzv) pzv.textContent='100%';
   const fr=document.getElementById('preview-frame');
-  if(fr){fr.srcdoc=buildEmbedDoc(html);}
+  if(fr){
+    fr.addEventListener('load',()=>{
+      try{const bd=fr.contentDocument?.body;if(bd)bd.style.zoom='100%';}catch(_){}
+    },{once:true});
+    fr.srcdoc=buildEmbedDoc(html);
+  }
   openOverlay('preview-overlay');
 }
 function previewTopicHTML(){
