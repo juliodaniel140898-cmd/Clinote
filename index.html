@@ -56,6 +56,7 @@
   --bg-glass-low:rgba(15,17,23,.8);
   --bg-glass2:rgba(30,35,48,.95);
   --bg-metric:rgba(30,35,48,.74);
+  --bg-press:rgba(255,255,255,.05);
 }
 /* ── APP THEME OVERRIDES ── */
 [data-app-theme="light"]{
@@ -68,7 +69,7 @@
   --border2:#c9cdd8;
   --text:#1a1d23;
   --text2:#4b5563;
-  --muted:#8a92a2;
+  --muted:#5e6778;
   --accent:#2563eb;
   --accent2:#1d4ed8;
   --shadow-sm:0 2px 8px rgba(0,0,0,.08);
@@ -78,6 +79,7 @@
   --bg-glass-low:rgba(245,247,250,.8);
   --bg-glass2:rgba(255,255,255,.96);
   --bg-metric:rgba(255,255,255,.74);
+  --bg-press:rgba(0,0,0,.05);
 }
 [data-app-theme="amoled"]{
   --bg:#000000;
@@ -97,6 +99,7 @@
   --bg-glass-low:rgba(0,0,0,.8);
   --bg-glass2:rgba(12,12,14,.96);
   --bg-metric:rgba(12,12,14,.74);
+  --bg-press:rgba(255,255,255,.07);
 }
 [data-app-theme="sepia"]{
   --bg:#f5ece0;
@@ -122,7 +125,13 @@
   --bg-glass-low:rgba(245,236,224,.8);
   --bg-glass2:rgba(240,230,212,.96);
   --bg-metric:rgba(240,230,212,.74);
+  --bg-press:rgba(80,40,0,.07);
 }
+/* Folder/topic card definition in light themes */
+[data-app-theme="light"] .folder-card,
+[data-app-theme="light"] .topic-card{box-shadow:0 1px 4px rgba(0,0,0,.07)}
+[data-app-theme="sepia"] .folder-card,
+[data-app-theme="sepia"] .topic-card{box-shadow:0 1px 4px rgba(80,40,0,.1)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{
@@ -280,7 +289,7 @@ a{color:inherit;text-decoration:none}
   cursor:pointer;user-select:none;
   transition:background var(--t-fast);
 }
-.folder-head:active{background:rgba(255,255,255,.03)}
+.folder-head:active{background:var(--bg-press)}
 .folder-emoji{
   font-size:1.6em;line-height:1;flex-shrink:0;width:36px;text-align:center;
   filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));
@@ -353,7 +362,7 @@ a{color:inherit;text-decoration:none}
   padding:12px 13px;cursor:pointer;user-select:none;
   transition:background var(--t-fast);
 }
-.topic-main:active{background:rgba(255,255,255,.03)}
+.topic-main:active{background:var(--bg-press)}
 /* Color accent strip on left edge when expanded */
 .topic-card.open .topic-fg::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
@@ -830,7 +839,7 @@ body.sortmode .topic-arrow{display:none}
 }
 .theme-seg-btn .seg-icon{font-size:1.12em;line-height:1}
 .theme-seg-btn .seg-label{font-size:.65em;font-weight:900;letter-spacing:.15px;white-space:nowrap}
-.theme-seg-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.theme-seg-btn:hover{color:var(--text);background:var(--bg-press)}
 .theme-seg-btn:active{transform:scale(.93)}
 .theme-seg-btn.active{
   background:linear-gradient(135deg,var(--accent),var(--accent2));
@@ -851,8 +860,8 @@ body.sortmode .topic-arrow{display:none}
 .theme-swatch{
   width:38px;height:38px;border-radius:11px;flex-shrink:0;
   display:grid;place-items:center;
-  border:1px solid rgba(255,255,255,.08);
-  box-shadow:0 2px 8px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.05) inset;
+  border:1px solid var(--border);
+  box-shadow:0 2px 8px rgba(0,0,0,.22);
 }
 .theme-swatch-dot{
   width:13px;height:13px;border-radius:50%;
@@ -965,13 +974,13 @@ body.sortmode .topic-arrow{display:none}
 .home-action.primary:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 28px rgba(79,156,255,.32)}
 .home-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;position:relative;z-index:1}
 .home-metric{
-  background:var(--bg-metric);border:1px solid rgba(255,255,255,.075);border-radius:13px;
+  background:var(--bg-metric);border:1px solid var(--border);border-radius:13px;
   padding:8px 10px;display:flex;align-items:center;gap:9px;
-  box-shadow:0 1px 0 rgba(255,255,255,.04) inset;text-align:left;
+  text-align:left;
 }
 .home-metric-icon{
   width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;
-  font-size:.95em;background:rgba(255,255,255,.07);
+  font-size:.95em;background:var(--surface3);
 }
 .home-metric-body{flex:1;min-width:0}
 .home-metric-value{font-size:1.04em;font-weight:950;line-height:1;color:var(--text);display:block}
@@ -981,7 +990,7 @@ body.sortmode .topic-arrow{display:none}
 .home-metric.success .home-metric-value{color:var(--success)}
 .home-metric.success .home-metric-icon{background:rgba(52,211,153,.12);color:var(--success)}
 .home-metric-trash{cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),background var(--t-fast)}
-.home-metric-trash:hover{border-color:var(--border2);background:rgba(40,46,60,.82)}
+.home-metric-trash:hover{border-color:var(--border2);background:var(--surface3)}
 .home-metric-trash:active{transform:scale(.96)}
 .home-metric-trash.has-items{border-color:color-mix(in srgb,var(--danger) 35%,var(--border))}
 .home-metric-trash.has-items .home-metric-value{color:var(--danger)}
@@ -1013,8 +1022,8 @@ body.sortmode .topic-arrow{display:none}
   border:1px solid color-mix(in srgb,var(--folder-color,var(--accent)) 22%,var(--border));font-size:1.45em;
 }
 .folder-name{font-size:1.02em;font-weight:950;letter-spacing:0}.folder-meta{font-size:.75em;margin-top:4px;color:var(--text2)}
-.folder-progress{height:5px;margin:0 16px 4px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.05)}.folder-progress-label{padding:0 16px 10px}
-.folder-actions{gap:6px}.folder-btn{background:rgba(255,255,255,.035);border:1px solid transparent}.folder-btn:hover{border-color:var(--border2)}
+.folder-progress{height:5px;margin:0 16px 4px;border-radius:999px;overflow:hidden;background:var(--surface3)}.folder-progress-label{padding:0 16px 10px}
+.folder-actions{gap:6px}.folder-btn{background:var(--bg-press);border:1px solid transparent}.folder-btn:hover{border-color:var(--border2)}
 .subfolder-list{padding:2px 12px 8px}.subfolder-card{border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.01)),var(--surface2)}
 .folder-body{padding:8px 12px 12px}.topic-card{border-radius:18px;margin-bottom:8px;background:var(--surface2)}.topic-fg{border-radius:18px}.topic-main{padding:13px 14px}.topic-card:hover{box-shadow:0 8px 22px rgba(0,0,0,.18)}
 .topic-color-dot{width:8px;height:34px;border-radius:999px}.topic-icon{width:34px;height:34px;border-radius:12px;background:var(--surface3);display:grid;place-items:center;font-size:1.12em}.topic-title{font-size:.95em;font-weight:900}.topic-session{font-size:.72em}.studied-badge{padding:3px 9px}
@@ -1611,7 +1620,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.0';
+const APP_VERSION='v8.1';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1724,7 +1733,7 @@ function uid(prefix='id'){return prefix+'_'+Math.random().toString(36).slice(2,1
 function normalizeText(t){return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase()}
 function stripHtml(s){return String(s||'').replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ')}
 function truncateText(t,n=160){const s=String(t||'');return s.length>n?s.slice(0,n)+'…':s}
-function debounce(fn,ms){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+function debounce(fn,ms){let t,la;const f=(...a)=>{la=a;clearTimeout(t);t=setTimeout(()=>{fn(...la);t=null;la=null;},ms)};f.flush=()=>{if(t!=null){clearTimeout(t);t=null;fn(...(la||[]));la=null;}};return f;}
 
 let _toastTimer=null;
 function toast(msg,dur=2200){
@@ -2084,12 +2093,15 @@ function setReadingTheme(theme,silent){
   const label=theme==='app'?'Contenido: Seguir app':'Tema: '+(READING_PALETTES[theme]?.name||theme);
   if(!silent) toast(label);
 }
+const APP_THEME_BG={dark:'#0f1117',light:'#f5f7fa',amoled:'#000000',sepia:'#f5ece0'};
 function setAppTheme(theme,silent){
   if(!READING_PALETTES[theme]) return;
   APP_THEME=theme;
   localStorage.setItem('clinote-app-theme',theme);
   if(theme==='dark') document.documentElement.removeAttribute('data-app-theme');
   else document.documentElement.setAttribute('data-app-theme',theme);
+  const metaTC=document.querySelector('meta[name="theme-color"]');
+  if(metaTC) metaTC.setAttribute('content',APP_THEME_BG[theme]||'#0f1117');
   if(!STATE.settings) STATE.settings={};
   STATE.settings.appTheme=theme;
   try{saveState();}catch(_){}
@@ -3656,7 +3668,14 @@ async function sbPullSilent(){
   const remoteTime=data.data.updatedAt||0;
   const localTime=STATE.updatedAt||0;
   const localEmpty=!activeTopics().length&&!activeFolders().length;
-  if(localEmpty||remoteTime>localTime){STATE=data.data;saveState();render();}
+  if(localEmpty||remoteTime>localTime){
+    STATE=data.data;
+    /* Write to localStorage preserving the remote updatedAt — do NOT call saveState()
+       because it would stamp STATE.updatedAt=Date.now(), making the local copy look
+       newer than the cloud and causing an immediate push of stale data next startup. */
+    try{_searchCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){}
+    render();
+  }
   else if(localTime>remoteTime){sbPush(true);} /* la nube está atrasada → actualizarla */
   /* no toast — content appears silently */
 }
@@ -3665,7 +3684,11 @@ function updateSbStatus(user){
   const dot=document.getElementById('sb-dot');
   if(dot) dot.className='sb-dot'+(user?' ok':'');
   const sub=document.getElementById('brand-sub');
-  if(sub) sub.textContent=user?`Sincronizado · ${activeTopics().length} temas`:`${activeTopics().length} temas`;
+  if(!sub) return;
+  const n=activeTopics().length;
+  sub.textContent=user
+    ?`Sincronizado · ${n} temas · ${APP_VERSION}`
+    :`${n} temas · ${APP_VERSION}`;
 }
 async function initAuth(){
   const sb=getSB();
@@ -3981,12 +4004,13 @@ async function init(){
   checkRecoveryBanner();
   /* Auth */
   await initAuth();
-  /* beforeunload emergency save */
+  /* beforeunload: save locally + flush any pending cloud sync */
   window.addEventListener('beforeunload',()=>{
     try{
       localStorage.setItem(EMERGENCY_KEY,JSON.stringify(STATE));
       localStorage.setItem('medstudy_emergency_ts',Date.now());
     }catch(_){}
+    try{ triggerSbSync.flush(); }catch(_){}
   });
   /* Parse all emojis */
   parseEmojiDebounced();
