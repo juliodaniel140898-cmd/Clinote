@@ -1528,7 +1528,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v7.0';
+const APP_VERSION='v7.1';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1592,6 +1592,7 @@ const ICONS={
   'arrow-down-az':'<path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M20 8h-5"/><path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10"/><path d="M15 14h5l-5 6h5"/>',
   'check-circle':'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
   'maximize':'<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  'minimize':'<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>',
   'x':'<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
   'plus':'<path d="M5 12h14"/><path d="M12 5v14"/>',
   'minus':'<path d="M5 12h14"/>',
@@ -1800,12 +1801,36 @@ function closeOverlay(id){
     el._hideTimer=null;
   },280);
 }
+/* Escape key closes the topmost open overlay */
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape') return;
+  const OVERLAY_CLOSE_ORDER=[
+    'emoji-overlay','confirm-overlay','move-overlay',
+    'theme-overlay','quiz-overlay','study-overlay',
+    'trash-overlay','source-overlay','preview-overlay',
+    'reader-overlay','sb-overlay','topic-overlay',
+    'folder-overlay','actions-overlay'
+  ];
+  for(const id of OVERLAY_CLOSE_ORDER){
+    const el=document.getElementById(id);
+    if(el&&el.classList.contains('open')){
+      closeOverlay(id);
+      if(id==='actions-overlay') document.getElementById('fab')?.classList.remove('open');
+      e.preventDefault();
+      return;
+    }
+  }
+  /* also close auth screen on Escape */
+  const auth=document.getElementById('auth-overlay');
+  if(auth&&auth.classList.contains('open')) skipAuth();
+});
+
 function openActionsOverlay(){
   document.getElementById('actions-overlay').style.display='flex';
   document.getElementById('actions-overlay').classList.add('open');
   document.getElementById('fab').classList.add('open');
   const tn=document.getElementById('actions-theme-name');
-  if(tn){const p=getReadingPalette();tn.textContent=p.icon+' '+p.name;}
+  if(tn) tn.textContent=getReadingPalette().name;
 }
 function closeActionsOverlay(){
   document.getElementById('actions-overlay').classList.remove('open');
@@ -1958,7 +1983,7 @@ function setReadingTheme(theme,silent){
   updateThemeButtons();
   renderThemePicker();
   refreshAllFrames();
-  if(!silent) toast(getReadingPalette().icon+' Tema: '+getReadingPalette().name);
+  if(!silent) toast('Tema: '+getReadingPalette().name);
 }
 
 const THEME_ICON={light:'sun',dark:'moon',amoled:'contrast',sepia:'coffee'};
@@ -2141,7 +2166,7 @@ function _doRender(){
       <div class="folder-head" onclick="toggleFolder('__fav__')">
         <div class="folder-emoji">⭐</div>
         <div class="folder-info"><div class="folder-name">Favoritos</div><div class="folder-meta">${favTopics.length} tema${favTopics.length!==1?'s':''}</div></div>
-        <div class="folder-arrow ${expandedTopics['__fav__']?'open':''}">›</div>
+        <div class="folder-arrow ${expandedTopics['__fav__']?'open':''}">${icon('chevron-right')}</div>
       </div>
       ${expandedTopics['__fav__']?`<div class="folder-body">${favTopics.map(t=>renderTopic(t,'__fav__')).join('')}</div>`:''}
     </div>`;
@@ -2164,7 +2189,7 @@ function _doRender(){
         <div class="folder-head" onclick="toggleFolder('null')">
           <div class="folder-emoji">📋</div>
           <div class="folder-info"><div class="folder-name">Sin carpeta</div><div class="folder-meta">${orphans.length} tema${orphans.length!==1?'s':''}</div></div>
-          <div class="folder-arrow ${expandedTopics['null']?'open':''}">›</div>
+          <div class="folder-arrow ${expandedTopics['null']?'open':''}">${icon('chevron-right')}</div>
         </div>
         ${expandedTopics['null']?`<div class="folder-body">${orphans.map(t=>renderTopic(t,null)).join('')}</div>`:''}
       </div>`;
@@ -3628,12 +3653,12 @@ function _applyStudyLayout(){
     sheet.style.maxHeight='100dvh';sheet.style.height='100dvh';
     sheet.style.maxWidth='100%';sheet.style.borderRadius='0';
     if(handle) handle.style.display='none';
-    if(fsBtn){fsBtn.textContent='⤡';fsBtn.title='Salir de pantalla completa';}
+    if(fsBtn){fsBtn.innerHTML=icon('minimize');fsBtn.title='Salir de pantalla completa';}
   }else{
     sheet.style.maxHeight='97vh';sheet.style.height='';
     sheet.style.maxWidth='';sheet.style.borderRadius='';
     if(handle) handle.style.display='';
-    if(fsBtn){fsBtn.textContent='⤢';fsBtn.title='Pantalla completa';}
+    if(fsBtn){fsBtn.innerHTML=icon('maximize');fsBtn.title='Pantalla completa';}
   }
 }
 function toggleStudyFullscreen(){_studyFullscreen=!_studyFullscreen;_applyStudyLayout()}
