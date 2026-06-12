@@ -634,15 +634,56 @@ body.sortmode .topic-arrow{display:none}
 
 /* ── ACTIONS OVERLAY ── */
 #actions-overlay .sheet{padding-bottom:calc(18px + env(safe-area-inset-bottom,0))}
-.action-list{display:grid;gap:7px;padding:6px 18px 10px}
+.actions-sheet{overflow-y:auto;max-height:94dvh}
+.actions-sheet-title{border-bottom:1px solid var(--border)}
+.actions-zoom-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 18px;background:linear-gradient(135deg,rgba(79,156,255,.055),rgba(79,156,255,.02));
+  border-bottom:1px solid var(--border);
+}
+.actions-zoom-label{display:flex;align-items:center;gap:10px;font-size:.88em;font-weight:700}
+.actions-section-label{
+  font-size:.68em;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;
+  padding:10px 18px 3px;
+}
+.actions-section-icon{
+  width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:1em;flex-shrink:0;
+}
+.action-list{display:grid;gap:5px;padding:0 18px 4px}
 .action-item{
-  display:flex;align-items:center;gap:12px;padding:13px 14px;
-  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);
+  display:flex;align-items:center;gap:11px;padding:11px 13px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);
   font-size:.88em;font-weight:700;transition:all var(--t-fast);
 }
+.action-item:hover{background:var(--surface3);border-color:var(--border2)}
 .action-item:active{transform:scale(.98);background:var(--surface3)}
 .action-item.danger{color:var(--danger)}
 .action-icon{font-size:1.3em;width:28px;text-align:center;flex-shrink:0}
+/* ── SYNC PANEL ── */
+.sb-status-card{
+  border-radius:var(--r);margin-bottom:14px;padding:12px 14px;
+  background:var(--surface2);border:1.5px solid var(--border);font-size:.84em;
+}
+.sb-actions{display:grid;gap:8px}
+.sb-action-btn{
+  display:flex;align-items:center;gap:12px;padding:13px 14px;width:100%;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);
+  text-align:left;transition:all var(--t-fast);
+}
+.sb-action-btn:hover{background:var(--surface3);border-color:var(--border2);transform:translateY(-1px)}
+.sb-action-btn:active{transform:scale(.98)}
+.sb-push-btn:hover{border-color:rgba(79,156,255,.3)}
+.sb-pull-btn:hover{border-color:rgba(52,211,153,.25)}
+.sb-signout-btn:hover{border-color:rgba(248,113,113,.25)}
+.sb-action-icon{
+  width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+  font-size:1.1em;flex-shrink:0;
+}
+.sb-action-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sb-action-title{font-size:.88em;font-weight:800;color:var(--text)}
+.sb-action-sub{font-size:.72em;color:var(--muted);font-weight:700}
+.sb-panel-cloud-icon{font-size:1.1em}
 
 /* ── QUIZ ── */
 .quiz-progress{text-align:center;font-size:.8em;font-weight:800;color:var(--muted);margin-bottom:14px}
@@ -684,8 +725,14 @@ body.sortmode .topic-arrow{display:none}
 .study-navgroup .close-btn:disabled{opacity:.28;pointer-events:none}
 #study-counter{font-size:.72em;color:var(--muted);font-weight:800;min-width:44px;text-align:center}
 #study-title-hdr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92em;font-weight:800}
-.study-actgroup{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.study-actgroup{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .study-actgroup .close-btn{font-size:.95em}
+.study-zoom-ctrl{
+  display:flex;align-items:center;background:var(--surface2);
+  border:1px solid var(--border);border-radius:999px;padding:1px;gap:0;
+}
+.study-zoom-btn{width:26px;height:26px;font-size:1em;font-weight:900;background:transparent}
+.study-zoom-pct{font-size:.65em;color:var(--muted);font-weight:800;min-width:36px;text-align:center}
 
 /* ── TRASH INDICATOR ── */
 .trash-badge{
@@ -785,21 +832,30 @@ body.sortmode .topic-arrow{display:none}
 .home-action.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(79,156,255,.25)}
 .home-action:hover{transform:translateY(-1px);border-color:var(--border2);background:var(--surface3)}
 .home-action.primary:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 28px rgba(79,156,255,.32)}
-.home-metrics{display:grid;grid-template-columns:repeat(2,minmax(84px,1fr));gap:8px;position:relative;z-index:1;align-content:start}
+.home-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;position:relative;z-index:1}
 .home-metric{
-  background:rgba(30,35,48,.74);border:1px solid rgba(255,255,255,.08);border-radius:14px;
-  padding:9px 11px;min-height:0;display:flex;flex-direction:column;gap:1px;text-align:left;
-  box-shadow:0 1px 0 rgba(255,255,255,.045) inset;
+  background:rgba(30,35,48,.74);border:1px solid rgba(255,255,255,.075);border-radius:13px;
+  padding:8px 10px;display:flex;align-items:center;gap:9px;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset;text-align:left;
 }
-.home-metric-value{font-size:1.12em;font-weight:950;line-height:1.05;color:var(--text)}
-.home-metric-label{font-size:.66em;color:var(--muted);font-weight:800;margin-top:3px;white-space:nowrap}
+.home-metric-icon{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex-shrink:0;
+  font-size:.95em;background:rgba(255,255,255,.07);
+}
+.home-metric-body{flex:1;min-width:0}
+.home-metric-value{font-size:1.04em;font-weight:950;line-height:1;color:var(--text);display:block}
+.home-metric-label{font-size:.61em;color:var(--muted);font-weight:800;margin-top:2px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .home-metric.accent .home-metric-value{color:var(--accent)}
+.home-metric.accent .home-metric-icon{background:rgba(79,156,255,.14);color:var(--accent)}
 .home-metric.success .home-metric-value{color:var(--success)}
+.home-metric.success .home-metric-icon{background:rgba(52,211,153,.12);color:var(--success)}
 .home-metric-trash{cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),background var(--t-fast)}
 .home-metric-trash:hover{border-color:var(--border2);background:rgba(40,46,60,.82)}
 .home-metric-trash:active{transform:scale(.96)}
 .home-metric-trash.has-items{border-color:color-mix(in srgb,var(--danger) 35%,var(--border))}
 .home-metric-trash.has-items .home-metric-value{color:var(--danger)}
+.home-metric-trash .home-metric-icon{background:rgba(248,113,113,.1);color:var(--muted)}
+.home-metric-trash.has-items .home-metric-icon{color:var(--danger)}
 .searchwrap{padding-top:12px}
 .searchbox{
   min-height:48px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015)),var(--surface2);
@@ -837,7 +893,7 @@ body.sortmode .topic-arrow{display:none}
 @keyframes homeSheen{0%,55%{transform:translateX(-120%)}72%,100%{transform:translateX(120%)}}
 @keyframes itemIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 @media(max-width:760px){
-  .home-hero{grid-template-columns:1fr;padding:16px}.home-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.toolbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.toolbar::-webkit-scrollbar{display:none}.toolbtn{flex-shrink:0}.folder-head{align-items:flex-start}.folder-actions{max-width:118px;flex-wrap:wrap;justify-content:flex-end}.folder-emoji{width:40px;height:40px;border-radius:14px}.home-title{font-size:1.24em}
+  .home-hero{grid-template-columns:1fr;padding:16px}.home-metrics{grid-template-columns:repeat(2,1fr)}.toolbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.toolbar::-webkit-scrollbar{display:none}.toolbtn{flex-shrink:0}.folder-head{align-items:flex-start}.folder-actions{max-width:118px;flex-wrap:wrap;justify-content:flex-end}.folder-emoji{width:40px;height:40px;border-radius:14px}.home-title{font-size:1.24em}
 }
 @media(max-width:420px){
   .home-shell{padding:12px 12px 0}.home-hero{border-radius:22px}.home-metrics{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}.home-metric{padding:8px 9px}.home-metric-value{font-size:1.05em}.home-metric-label{font-size:.62em}.container{padding-left:12px;padding-right:12px}.folder-actions{max-width:82px}.folder-btn{width:32px;height:32px}.topic-main{gap:8px}.studied-badge{display:none!important}
@@ -914,10 +970,22 @@ body.sortmode .topic-arrow{display:none}
       </div>
     </div>
     <div class="home-metrics" aria-label="Resumen">
-      <div class="home-metric accent"><div class="home-metric-value" id="home-topic-count">0</div><div class="home-metric-label">Temas</div></div>
-      <div class="home-metric"><div class="home-metric-value" id="home-folder-count">0</div><div class="home-metric-label">Carpetas</div></div>
-      <div class="home-metric success"><div class="home-metric-value" id="home-progress-count">0%</div><div class="home-metric-label">Avance</div></div>
-      <button class="home-metric home-metric-trash" id="home-trash-btn" onclick="openTrash()" title="Papelera"><div class="home-metric-value" id="home-trash-count">0</div><div class="home-metric-label">🗑️ Papelera</div></button>
+      <div class="home-metric accent">
+        <div class="home-metric-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M14 4.5V14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h5.5zm-3 0A1.5 1.5 0 0 1 9.5 3V1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4.5zM8 7a.5.5 0 0 1 .5.5V9H10a.5.5 0 0 1 0 1H8.5v1.5a.5.5 0 0 1-1 0V10H6a.5.5 0 0 1 0-1h1.5V7.5A.5.5 0 0 1 8 7"/></svg></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-topic-count">0</span><span class="home-metric-label">Temas</span></div>
+      </div>
+      <div class="home-metric">
+        <div class="home-metric-icon"><svg width="15" height="13" viewBox="0 0 20 17" fill="currentColor"><path d="M9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7A1.99 1.99 0 0 1 .5 5v-.886A2 2 0 0 1 2.5 2H4a2 2 0 0 1 1.572.765L6.5 4h2.414zM2 6v.5l.637 7h10.726L14 6.5V6H2zm5.171-2-.195-.293A1 1 0 0 0 6.134 3H2.5a1 1 0 0 0-1 1v1h12.5a1 1 0 0 0-1-1H9.828L8.879 3H7.171z"/></svg></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-folder-count">0</span><span class="home-metric-label">Carpetas</span></div>
+      </div>
+      <div class="home-metric success">
+        <div class="home-metric-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0"/></svg></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-progress-count">0%</span><span class="home-metric-label">Avance</span></div>
+      </div>
+      <button class="home-metric home-metric-trash" id="home-trash-btn" onclick="openTrash()" title="Papelera">
+        <div class="home-metric-icon"><svg width="13" height="14" viewBox="0 0 14 16" fill="currentColor"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0zM14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/></svg></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-trash-count">0</span><span class="home-metric-label">Papelera</span></div>
+      </button>
     </div>
   </section>
 </div>
@@ -1001,29 +1069,68 @@ body.sortmode .topic-arrow{display:none}
 
 <!-- ── ACTIONS ── -->
 <div class="overlay" id="actions-overlay" onclick="if(event.target===this)closeActionsOverlay()">
-  <div class="sheet">
+  <div class="sheet actions-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Acciones <button class="close-btn" onclick="closeActionsOverlay()">✕</button></div>
+    <div class="sheet-title actions-sheet-title">
+      <span>Acciones</span>
+      <button class="close-btn" onclick="closeActionsOverlay()">✕</button>
+    </div>
+    <!-- Zoom row pinned at top -->
+    <div class="actions-zoom-row">
+      <span class="actions-zoom-label">
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)">Aa</span>
+        Tamaño de fuente
+      </span>
+      <span class="zoom-stepper">
+        <button type="button" onclick="changeZoom(-1)" aria-label="Reducir texto">−</button>
+        <span class="zval" id="zoom-val">100%</span>
+        <button type="button" onclick="changeZoom(1)" aria-label="Aumentar texto">+</button>
+      </span>
+    </div>
+    <!-- Sección Contenido -->
+    <div class="actions-section-label">Contenido</div>
     <div class="action-list">
-      <div class="action-item zoom-action" style="cursor:default;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:12px"><span class="action-icon">🔤</span>Tamaño de fuente</span>
-        <span class="zoom-stepper">
-          <button type="button" onclick="changeZoom(-1)" title="Reducir texto" aria-label="Reducir texto">−</button>
-          <span class="zval" id="zoom-val">100%</span>
-          <button type="button" onclick="changeZoom(1)" title="Aumentar texto" aria-label="Aumentar texto">+</button>
-        </span>
-      </div>
-      <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)"><span class="action-icon">📁</span>Nueva carpeta</button>
-      <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)"><span class="action-icon">📄</span>Nuevo tema</button>
-      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)"><span class="action-icon">⊞</span>Expandir todo</button>
-      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)"><span class="action-icon">⊟</span>Colapsar todo</button>
-      <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()"><span class="action-icon">📎</span>Importar HTML</button>
-      <button class="action-item" onclick="closeActionsOverlay();importJSON()"><span class="action-icon">📥</span>Importar backup JSON</button>
-      <button class="action-item" onclick="closeActionsOverlay();exportJSON()"><span class="action-icon">💾</span>Exportar backup JSON</button>
-      <button class="action-item" onclick="closeActionsOverlay();openSupabasePanel()"><span class="action-icon">☁️</span>Sincronización nube</button>
-      <button class="action-item" onclick="closeActionsOverlay();openAppSource()"><span class="action-icon">🔧</span>Ver código fuente</button>
-      <button class="action-item" onclick="closeActionsOverlay();downloadAppHTML()"><span class="action-icon">⬇️</span>Descargar app</button>
-      <button class="action-item danger" onclick="closeActionsOverlay();askClearAll()"><span class="action-icon">🗑️</span>Borrar todo</button>
+      <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)">
+        <span class="actions-section-icon" style="background:rgba(251,191,36,.1);color:var(--warning)">📁</span>Nueva carpeta
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)">
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)">📄</span>Nuevo tema
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)">
+        <span class="actions-section-icon" style="background:rgba(52,211,153,.08);color:var(--success)">⊞</span>Expandir todo
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)">
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)">⊟</span>Colapsar todo
+      </button>
+    </div>
+    <!-- Sección Datos -->
+    <div class="actions-section-label">Datos</div>
+    <div class="action-list">
+      <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()">
+        <span class="actions-section-icon" style="background:rgba(45,212,191,.1);color:var(--teal)">📎</span>Importar HTML
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();importJSON()">
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)">📥</span>Importar JSON
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();exportJSON()">
+        <span class="actions-section-icon" style="background:rgba(52,211,153,.1);color:var(--success)">💾</span>Exportar JSON
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();openSupabasePanel()">
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)">☁️</span>Sincronización
+      </button>
+    </div>
+    <!-- Sección App -->
+    <div class="actions-section-label">App</div>
+    <div class="action-list" style="margin-bottom:4px">
+      <button class="action-item" onclick="closeActionsOverlay();downloadAppHTML()">
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)">⬇️</span>Descargar app
+      </button>
+      <button class="action-item" onclick="closeActionsOverlay();openAppSource()">
+        <span class="actions-section-icon" style="background:rgba(122,131,153,.12);color:var(--muted)">🔧</span>Ver código fuente
+      </button>
+      <button class="action-item" style="color:var(--danger)" onclick="closeActionsOverlay();askClearAll()">
+        <span class="actions-section-icon" style="background:rgba(248,113,113,.1);color:var(--danger)">🗑️</span>Borrar todo
+      </button>
     </div>
     <input type="file" id="file-inp" accept=".html,.htm" multiple style="display:none" onchange="dzFile(event)">
   </div>
@@ -1206,7 +1313,7 @@ body.sortmode .topic-arrow{display:none}
         <span id="preview-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
         <button class="close-btn" onclick="previewZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
         <button class="close-btn" onclick="toggleDarkMode()" id="preview-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
-        <button class="close-btn" onclick="openPreviewSource()" title="Ver fuente" style="font-size:.8em;width:auto;padding:0 10px;border-radius:8px">🔧</button>
+        <button class="close-btn" id="preview-edit-btn" onclick="editPreviewTopic()" title="Editar tema" style="font-size:.88em">✏️</button>
         <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
       </div>
     </div>
@@ -1220,12 +1327,38 @@ body.sortmode .topic-arrow{display:none}
 <div class="overlay" id="sb-overlay" onclick="if(event.target===this)closeSbPanel()">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Sincronización ☁️<button class="close-btn" onclick="closeSbPanel()">✕</button></div>
-    <div class="sheet-body">
-      <div id="sb-status-msg" style="font-size:.84em;color:var(--muted);margin-bottom:14px;padding:10px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border)"></div>
-      <button class="primary-btn" onclick="sbPush()">⬆️ Subir datos a la nube</button>
-      <button class="secondary-btn" onclick="sbPull()">⬇️ Descargar datos de la nube</button>
-      <button class="secondary-btn" onclick="signOut()">🚪 Cerrar sesión</button>
+    <div class="sheet-title">
+      <span style="display:flex;align-items:center;gap:9px">
+        <span class="sb-panel-cloud-icon">☁️</span>
+        Sincronización
+      </span>
+      <button class="close-btn" onclick="closeSbPanel()">✕</button>
+    </div>
+    <div class="sheet-body" style="padding-top:8px">
+      <div id="sb-status-msg" class="sb-status-card"></div>
+      <div class="sb-actions">
+        <button class="sb-action-btn sb-push-btn" onclick="sbPush()">
+          <span class="sb-action-icon" style="background:rgba(79,156,255,.15);color:var(--accent)">⬆️</span>
+          <span class="sb-action-body">
+            <span class="sb-action-title">Subir a la nube</span>
+            <span class="sb-action-sub">Guarda tus datos actuales</span>
+          </span>
+        </button>
+        <button class="sb-action-btn sb-pull-btn" onclick="sbPull()">
+          <span class="sb-action-icon" style="background:rgba(52,211,153,.1);color:var(--success)">⬇️</span>
+          <span class="sb-action-body">
+            <span class="sb-action-title">Descargar de la nube</span>
+            <span class="sb-action-sub">Restaura tu última copia guardada</span>
+          </span>
+        </button>
+        <button class="sb-action-btn sb-signout-btn" onclick="signOut()">
+          <span class="sb-action-icon" style="background:rgba(248,113,113,.1);color:var(--danger)">🚪</span>
+          <span class="sb-action-body">
+            <span class="sb-action-title" style="color:var(--danger)">Cerrar sesión</span>
+            <span class="sb-action-sub">Desconectar esta cuenta</span>
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -1265,6 +1398,11 @@ body.sortmode .topic-arrow{display:none}
       <span id="study-title-hdr">📖 Modo estudio</span>
       <div class="study-actgroup">
         <button class="close-btn" id="study-studied-btn" onclick="studyMarkStudied()" title="Marcar como estudiado">✅</button>
+        <span class="study-zoom-ctrl" id="study-zoom-ctrl">
+          <button class="close-btn study-zoom-btn" onclick="studyZoom(-1)" title="Reducir texto">−</button>
+          <span id="study-zoom-val" class="study-zoom-pct">100%</span>
+          <button class="close-btn study-zoom-btn" onclick="studyZoom(1)" title="Aumentar texto">+</button>
+        </span>
         <button class="close-btn" id="study-fs-btn" onclick="toggleStudyFullscreen()" title="Pantalla completa">⤢</button>
         <button class="close-btn" onclick="closeStudyMode()" title="Cerrar">✕</button>
       </div>
@@ -1620,6 +1758,16 @@ function prepareReactBody(src){
   return {body,comp};
 }
 
+/* Anchor-intercept: prevent #hash links from navigating the parent frame;
+   instead scroll to the target element smoothly within the iframe */
+const IFRAME_ANCHOR_FIX=`<script>(function(){document.addEventListener('click',function(e){var a=e.target.closest?e.target.closest('a'):null;if(!a)return;var href=a.getAttribute('href')||'';if(!href)return;if(href==='#'){e.preventDefault();return;}if(href.charAt(0)==='#'){e.preventDefault();e.stopPropagation();var el=document.getElementById(href.slice(1));if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}return;}if(/^https?:|^\/\//.test(href)){e.preventDefault();e.stopPropagation();window.open(href,'_blank','noopener');}},true);}());<\/script>`;
+
+function _injectAnchorFix(html){
+  if(html.includes('</head>')) return html.replace('</head>',IFRAME_ANCHOR_FIX+'</head>');
+  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${IFRAME_ANCHOR_FIX}`);
+  return IFRAME_ANCHOR_FIX+html;
+}
+
 function buildEmbedDoc(rawHtml){
   const c=rawHtml||'';
   /* React/JSX detection */
@@ -1628,11 +1776,11 @@ function buildEmbedDoc(rawHtml){
   if(isReact&&!hasFullDoc){
     const{body,comp}=prepareReactBody(c);
     const lookup=comp||'App';
-    return injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:#0f0c29;color:#fff}#root{min-height:100vh}</style><script>window.addEventListener('error',function(e){var r=document.getElementById('root');if(r&&!r.childElementCount){r.innerHTML='<pre style="padding:20px;color:#ff8a8a;white-space:pre-wrap;font-size:12px">⚠️ Error: '+(e.message||'desconocido')+'</pre>';}});<\/script></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,useLayoutEffect}=React;${body}
-try{const Comp=(typeof ${lookup}!=='undefined')?${lookup}:((typeof App!=='undefined')?App:((typeof __Default!=='undefined')?__Default:null));if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`);
+    return _injectAnchorFix(injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:#0f0c29;color:#fff}#root{min-height:100vh}</style><script>window.addEventListener('error',function(e){var r=document.getElementById('root');if(r&&!r.childElementCount){r.innerHTML='<pre style="padding:20px;color:#ff8a8a;white-space:pre-wrap;font-size:12px">⚠️ Error: '+(e.message||'desconocido')+'</pre>';}});<\/script></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,useLayoutEffect}=React;${body}
+try{const Comp=(typeof ${lookup}!=='undefined')?${lookup}:((typeof App!=='undefined')?App:((typeof __Default!=='undefined')?__Default:null));if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`));
   }
-  if(hasFullDoc) return injectDarkMode(c);
-  return injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:14px;font-family:-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}</style></head><body>${c}</body></html>`);
+  if(hasFullDoc) return _injectAnchorFix(injectDarkMode(c));
+  return _injectAnchorFix(injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:14px;font-family:-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}</style></head><body>${c}</body></html>`));
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2488,6 +2636,9 @@ function downloadSource(){
 function openTopicPreview(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
   if(!t||!t.html) return;
+  window.currentPreviewTopicId=topicId;
+  const editBtn=document.getElementById('preview-edit-btn');
+  if(editBtn){editBtn.style.display='';editBtn.title='Editar tema';}
   openPreview(t.html,t.title);
 }
 function openPreview(html,title='Vista previa'){
@@ -2506,9 +2657,19 @@ function openPreview(html,title='Vista previa'){
   }
   openOverlay('preview-overlay');
 }
+function editPreviewTopic(){
+  const id=window.currentPreviewTopicId;
+  if(!id){toast('Abre el tema desde una carpeta para editarlo');return;}
+  closePreview();
+  setTimeout(()=>openTopicEditor(id),280);
+}
 function previewTopicHTML(){
   const html=document.getElementById('topic-html')?.value;
   if(!html){toast('No hay HTML para previsualizar');return;}
+  /* reset topicId — preview from editor has no standalone topic context */
+  window.currentPreviewTopicId=null;
+  const editBtn=document.getElementById('preview-edit-btn');
+  if(editBtn) editBtn.style.display='none';
   openPreview(html,'Vista previa');
 }
 function openPreviewSource(){
@@ -3012,14 +3173,33 @@ function updateUserChip(user){
 function openSupabasePanel(){
   const sb=getSB();
   sb.auth.getUser().then(({data:{user}})=>{
+    const el=document.getElementById('sb-status-msg');
+    if(!el) return;
     if(user){
-      document.getElementById('sb-status-msg').innerHTML=`
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><div class="sb-dot ok"></div><strong>Conectado</strong></div>
-        <div style="font-size:.82em;color:var(--muted)">${h(user.email)}</div>
-        <div id="sb-sync-status" style="font-size:.78em;margin-top:6px;color:var(--muted)"></div>
+      const initials=(user.email||'?').slice(0,2).toUpperCase();
+      el.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:.88em;font-weight:900;color:#fff;flex-shrink:0">${h(initials)}</div>
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div class="sb-dot ok"></div><strong style="font-size:.84em">Conectado</strong></div>
+            <div style="font-size:.76em;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(user.email)}</div>
+          </div>
+        </div>
+        <div id="sb-sync-status" style="font-size:.74em;margin-top:8px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)"></div>
       `;
+      el.style.background='linear-gradient(135deg,rgba(79,156,255,.06),rgba(79,156,255,.02))';
+      el.style.borderColor='rgba(79,156,255,.2)';
     }else{
-      document.getElementById('sb-status-msg').innerHTML=`<div style="display:flex;align-items:center;gap:8px"><div class="sb-dot err"></div>No conectado</div>`;
+      el.innerHTML=`
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;flex-shrink:0;font-size:1.2em">👤</div>
+          <div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div class="sb-dot err"></div><strong style="font-size:.84em">Sin cuenta</strong></div>
+            <div style="font-size:.76em;color:var(--muted)">Datos guardados solo localmente</div>
+          </div>
+        </div>
+      `;
+      el.style.background='';el.style.borderColor='';
     }
   });
   openOverlay('sb-overlay');
@@ -3149,12 +3329,27 @@ function quizAnswer(correct){
    ═══════════════════════════════════════════════════════ */
 let STUDY={topics:[],idx:0,folderId:null};
 let _studyFullscreen=false;
+let _studyZoomPct=100;
+function studyZoom(dir){
+  _studyZoomPct=Math.max(70,Math.min(200,_studyZoomPct+dir*10));
+  const zv=document.getElementById('study-zoom-val');
+  if(zv) zv.textContent=_studyZoomPct+'%';
+  const body=document.getElementById('study-body');
+  if(body) body.style.fontSize=_studyZoomPct+'%';
+  const fr=body?.querySelector('.study-frame');
+  if(fr) _applyZoomToFrame(fr,_studyZoomPct);
+}
 function openStudyMode(folderId){
   const realId=folderId==='null'?null:folderId;
   const pool=getTopicsInFolder(realId);
   if(!pool.length){toast('Esta carpeta no tiene temas');return;}
   STUDY={topics:pool,idx:0,folderId:realId};
   _studyFullscreen=false;
+  _studyZoomPct=100;
+  const sb=document.getElementById('study-body');
+  if(sb) sb.style.fontSize='';
+  const szv=document.getElementById('study-zoom-val');
+  if(szv) szv.textContent='100%';
   _applyStudyLayout();
   renderStudyMode();openOverlay('study-overlay');
 }
