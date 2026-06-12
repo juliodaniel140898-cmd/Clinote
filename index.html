@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Clinote">
+<meta name="apple-mobile-web-app-title" content="Clinotes">
 <meta name="theme-color" content="#0f1117">
-<title>Clinote</title>
+<title>Clinotes</title>
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <!-- Twemoji — emojis consistentes en todas las plataformas -->
@@ -99,13 +99,13 @@ a{color:inherit;text-decoration:none}
   font-size:1em;
 }
 .iconbtn:active{transform:scale(.9);background:var(--surface3)}
-.zoombar{
-  display:flex;align-items:center;gap:5px;background:var(--surface2);
-  border:1.5px solid var(--border);border-radius:var(--r-sm);padding:4px;flex-shrink:0;
+.zoom-stepper{
+  display:inline-flex;align-items:center;gap:4px;background:var(--surface3);
+  border:1.5px solid var(--border);border-radius:999px;padding:3px;flex-shrink:0;
 }
-.zoombar button{width:30px;height:30px;border-radius:8px;font-size:1em;font-weight:900;display:flex;align-items:center;justify-content:center;transition:background var(--t-fast)}
-.zoombar button:active{background:var(--border)}
-.zoombar .zval{min-width:44px;text-align:center;font-size:.73em;color:var(--muted);font-weight:800}
+.zoom-stepper button{width:30px;height:30px;border-radius:999px;font-size:1.05em;font-weight:900;display:flex;align-items:center;justify-content:center;transition:background var(--t-fast),transform var(--t-fast);color:var(--text)}
+.zoom-stepper button:active{background:var(--border);transform:scale(.9)}
+.zoom-stepper .zval{min-width:44px;text-align:center;font-size:.74em;color:var(--text2);font-weight:800}
 .user-chip{
   display:flex;align-items:center;gap:7px;background:var(--surface2);
   border:1.5px solid var(--border);border-radius:999px;padding:6px 10px 6px 7px;
@@ -118,13 +118,11 @@ a{color:inherit;text-decoration:none}
 /* ── RESPONSIVE TOPBAR (iPhone) ── */
 @media(max-width:540px){
   .topbar{padding:8px 12px;gap:6px}
-  .zoombar{order:5;flex-basis:100%;justify-content:center;margin-top:0}
   .brand h1{font-size:.94em}
   #user-chip-label{max-width:60px}
   .iconbtn{width:36px;height:36px;border-radius:var(--r-sm)}
 }
 @media(max-width:380px){
-  .zoombar button{width:26px;height:26px}
   .iconbtn{width:34px;height:34px}
 }
 
@@ -505,26 +503,110 @@ body.sortmode .topic-arrow{display:none}
 }
 
 /* ── AUTH CARD ── */
-.auth-card{
-  background:var(--surface);border:1.5px solid var(--border);
-  border-radius:var(--r-xl);padding:28px 24px;width:100%;max-width:420px;
-  box-shadow:var(--shadow-lg);animation:sheetUp .3s var(--ease-out);
+#auth-overlay{
+  display:none;position:fixed;inset:0;z-index:300;overflow-x:hidden;overflow-y:auto;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(79,156,255,.28),transparent 34%),
+    linear-gradient(135deg,rgba(9,13,22,.94),rgba(20,27,42,.9) 45%,rgba(7,10,18,.96));
+  backdrop-filter:blur(18px) saturate(1.35);
+  -webkit-backdrop-filter:blur(18px) saturate(1.35);
+  align-items:center;justify-content:center;padding:18px;
 }
-#auth-overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:16px}
+#auth-overlay::before{
+  content:"";position:absolute;inset:-35%;pointer-events:none;
+  background:conic-gradient(from 180deg at 50% 50%,rgba(79,156,255,.16),rgba(45,212,191,.08),rgba(167,139,250,.14),rgba(79,156,255,.16));
+  filter:blur(42px);opacity:.72;animation:authAura 14s linear infinite;
+}
+#auth-overlay::after{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
+  background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px);
+  background-size:42px 42px;mask-image:linear-gradient(to bottom,transparent,black 18%,black 72%,transparent);
+}
 #auth-overlay.open{display:flex}
-.auth-logo{font-size:2.2em;text-align:center;margin-bottom:4px}
-.auth-title{font-size:1.18em;font-weight:900;text-align:center;margin-bottom:4px}
-.auth-sub{font-size:.82em;color:var(--muted);text-align:center;margin-bottom:20px}
-.auth-tabs{display:flex;background:var(--surface2);border-radius:var(--r-sm);padding:3px;margin-bottom:16px}
-.auth-tab{
-  flex:1;padding:9px;border-radius:var(--r-sm);font-size:.84em;font-weight:800;
-  transition:background var(--t-fast),color var(--t-fast);color:var(--muted);text-align:center;
+#auth-card-wrap{position:relative;z-index:1;width:min(100%,940px)!important;max-width:940px!important;padding:0!important}
+.auth-card{
+  position:relative;display:grid;grid-template-columns:minmax(260px,.92fr) minmax(300px,1fr);gap:0;
+  background:linear-gradient(145deg,rgba(23,27,36,.96),rgba(18,23,34,.94));
+  border:1px solid rgba(255,255,255,.12);border-radius:28px;width:100%;max-width:none;
+  box-shadow:0 30px 90px rgba(0,0,0,.52),0 0 0 1px rgba(79,156,255,.08) inset;
+  overflow:hidden;animation:authCardIn .58s var(--ease-out);
 }
-.auth-tab.active{background:var(--surface3);color:var(--text)}
-.auth-err{font-size:.8em;padding:9px 12px;border-radius:var(--r-sm);margin-bottom:10px;font-weight:700;display:none}
+.auth-card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.08) 24%,transparent 42%);
+  transform:translateX(-120%);animation:authSheen 5.8s ease-in-out infinite;
+}
+.auth-hero{
+  position:relative;min-height:520px;padding:32px;display:flex;flex-direction:column;justify-content:space-between;
+  background:
+    linear-gradient(160deg,rgba(79,156,255,.26),rgba(45,212,191,.1) 44%,rgba(167,139,250,.18)),
+    linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  border-right:1px solid rgba(255,255,255,.1);
+}
+.auth-hero::after{
+  content:"";position:absolute;left:28px;right:28px;bottom:28px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.44),transparent);
+}
+.auth-brand-row{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.auth-brand-logo{
+  width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:1.55em;font-weight:950;letter-spacing:-1px;
+  background:linear-gradient(135deg,#62b0ff,#2563eb 58%,#2dd4bf);box-shadow:0 16px 40px rgba(79,156,255,.36),0 0 0 1px rgba(255,255,255,.2) inset;
+  animation:logoFloat 4.4s ease-in-out infinite;
+}
+.auth-wordmark{font-weight:950;font-size:1.18em;letter-spacing:-.3px}
+.auth-tagline{color:rgba(232,234,237,.7);font-size:.82em;font-weight:700;margin-top:1px}
+.auth-hero-copy{position:relative;z-index:1;margin-top:48px}
+.auth-hero-copy h2{font-size:clamp(1.85rem,4vw,3.2rem);line-height:1.02;letter-spacing:0;font-weight:950;margin-bottom:16px}
+.auth-hero-copy p{color:rgba(232,234,237,.76);font-size:1em;max-width:330px;font-weight:650}
+.auth-feature-list{position:relative;z-index:1;display:grid;gap:12px;margin-top:34px}
+.auth-feature{display:flex;align-items:center;gap:10px;color:rgba(232,234,237,.84);font-size:.88em;font-weight:750}
+.auth-feature i{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.12);font-style:normal;color:#9eeadf}
+.auth-form-panel{padding:34px;display:flex;flex-direction:column;justify-content:center;min-height:520px}
+.auth-logo{display:none}
+.auth-title{font-size:1.62em;font-weight:950;letter-spacing:0;margin-bottom:6px;text-align:left}
+.auth-sub{font-size:.9em;color:var(--text2);text-align:left;margin-bottom:22px;font-weight:650}
+.auth-tabs{display:flex;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:4px;margin-bottom:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
+.auth-tab{flex:1;padding:11px 12px;border-radius:12px;font-size:.86em;font-weight:900;transition:background var(--t-base),color var(--t-base),transform var(--t-fast),box-shadow var(--t-base);color:var(--muted);text-align:center}
+.auth-tab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.auth-tab.active{background:linear-gradient(135deg,rgba(79,156,255,.95),rgba(37,99,235,.95));color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28)}
+.auth-card .label{color:var(--text2);font-size:.72em;margin-top:14px;margin-bottom:7px;letter-spacing:.5px}
+.auth-card input{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.11);border-radius:16px;padding:13px 15px;box-shadow:0 1px 0 rgba(255,255,255,.05) inset;transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast),transform var(--t-fast)}
+.auth-card input:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18)}
+.auth-card input:focus{border-color:rgba(79,156,255,.9);box-shadow:0 0 0 4px rgba(79,156,255,.14);transform:translateY(-1px)}
+.auth-card .primary-btn{margin-top:18px;padding:14px;border-radius:16px;font-size:.96em;box-shadow:0 15px 32px rgba(37,99,235,.34);position:relative;overflow:hidden}
+.auth-card .primary-btn:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(37,99,235,.42)}
+.auth-card .secondary-btn{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);border-radius:16px;color:var(--text2)}
+.auth-card .secondary-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(79,156,255,.26);color:var(--text)}
+.auth-err{font-size:.82em;padding:10px 12px;border-radius:14px;margin-bottom:12px;font-weight:800;display:none;animation:authMessage .22s var(--ease-out)}
 .auth-err.show{display:block}
-.auth-err.ok{background:rgba(52,211,153,.12);color:var(--success);border:1px solid rgba(52,211,153,.3)}
-.auth-err.err{background:rgba(248,113,113,.12);color:var(--danger);border:1px solid rgba(248,113,113,.3)}
+.auth-err.ok{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.32)}
+.auth-err.err{background:rgba(248,113,113,.12);color:#fca5a5;border:1px solid rgba(248,113,113,.32)}
+@keyframes authAura{to{transform:rotate(360deg)}}
+@keyframes authCardIn{from{opacity:0;transform:translateY(28px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes authSheen{0%,58%{transform:translateX(-120%)}72%,100%{transform:translateX(120%)}}
+@keyframes logoFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes authMessage{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  #auth-overlay{padding:12px;align-items:flex-start;overflow-x:hidden;overflow-y:auto}
+  #auth-card-wrap{width:100%!important;margin:auto 0}
+  .auth-card{grid-template-columns:1fr;border-radius:24px}
+  .auth-hero{min-height:auto;padding:24px;border-right:0;border-bottom:1px solid rgba(255,255,255,.1)}
+  .auth-hero-copy{margin-top:34px}
+  .auth-hero-copy h2{font-size:2rem}
+  .auth-feature-list{grid-template-columns:1fr;gap:10px;margin-top:24px}
+  .auth-form-panel{min-height:auto;padding:24px}
+}
+@media(max-width:420px){
+  .auth-hero,.auth-form-panel{padding:20px}
+  .auth-brand-logo{width:48px;height:48px;border-radius:15px}
+  .auth-hero-copy h2{font-size:1.72rem}
+  .auth-tabs{border-radius:14px}
+  .auth-tab{padding:10px 8px;font-size:.8em}
+}
+@media(prefers-reduced-motion:reduce){
+  #auth-overlay::before,.auth-card::before,.auth-brand-logo{animation:none}
+  .auth-card{animation:none}
+}
 
 /* ── RECOVERY BANNER ── */
 .recovery-banner{
@@ -590,20 +672,20 @@ body.sortmode .topic-arrow{display:none}
 
 /* ── STUDY MODE ── */
 .study-header{padding:0 0 12px;border-bottom:1px solid var(--border);margin-bottom:12px}
-.study-progress{font-size:.75em;font-weight:800;color:var(--muted);display:block;margin-bottom:4px}
-.study-header h2{font-size:1.1em;font-weight:900}
+.study-header h2{font-size:1.15em;font-weight:900;line-height:1.2}
 .study-section{margin:10px 0;padding:10px 0;border-top:1px solid var(--border)}
 .study-section h3{font-size:.9em;font-weight:800;margin-bottom:5px;color:var(--text2)}
 .study-html-wrap{border-radius:var(--r);overflow:hidden;margin:8px 0}
 .study-frame{width:100%;border:none;min-height:200px;display:block}
-.study-nav{display:flex;gap:10px;margin-top:14px}
-.study-nav button{
-  flex:1;padding:12px;border-radius:var(--r);font-size:.88em;font-weight:800;
-  background:var(--surface2);border:1.5px solid var(--border);
-  transition:all var(--t-fast);
-}
-.study-nav button:disabled{opacity:.35}
-.study-nav button:active:not(:disabled){transform:scale(.97)}
+/* sticky study top bar (prev / counter / next · title · studied / fullscreen / close) */
+#study-header{flex-wrap:nowrap}
+.study-navgroup{display:flex;align-items:center;gap:1px;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px}
+.study-navgroup .close-btn{width:30px;height:30px;font-size:1.45em;background:transparent;color:var(--text)}
+.study-navgroup .close-btn:disabled{opacity:.28;pointer-events:none}
+#study-counter{font-size:.72em;color:var(--muted);font-weight:800;min-width:44px;text-align:center}
+#study-title-hdr{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.92em;font-weight:800}
+.study-actgroup{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.study-actgroup .close-btn{font-size:.95em}
 
 /* ── TRASH INDICATOR ── */
 .trash-badge{
@@ -678,6 +760,113 @@ body.sortmode .topic-arrow{display:none}
 }
 .dropzone.over{border-color:var(--accent);background:rgba(79,156,255,.06);color:var(--accent)}
 
+
+/* ── HOME DASHBOARD REDESIGN ── */
+.home-shell{max-width:1140px;margin:0 auto;padding:14px 14px 0}
+.home-hero{
+  position:relative;overflow:hidden;border:1px solid var(--border);border-radius:var(--r-xl);
+  background:linear-gradient(135deg,rgba(79,156,255,.12),rgba(45,212,191,.055) 48%,rgba(167,139,250,.1)),var(--surface);
+  box-shadow:var(--shadow);padding:18px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:stretch;
+}
+.home-hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.075),transparent);
+  transform:translateX(-120%);animation:homeSheen 7s ease-in-out infinite;
+}
+.home-kicker{font-size:.72em;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);font-weight:900;margin-bottom:6px}
+.home-title{font-size:1.42em;line-height:1.08;font-weight:950;letter-spacing:0;margin-bottom:8px}
+.home-copy{color:var(--text2);font-size:.9em;font-weight:650;max-width:620px}
+.home-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.home-action{
+  border-radius:14px;padding:10px 13px;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--text);font-size:.82em;font-weight:900;display:inline-flex;align-items:center;gap:7px;
+  transition:transform var(--t-fast),background var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast);
+}
+.home-action.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 8px 20px rgba(79,156,255,.25)}
+.home-action:hover{transform:translateY(-1px);border-color:var(--border2);background:var(--surface3)}
+.home-action.primary:hover{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 28px rgba(79,156,255,.32)}
+.home-metrics{display:grid;grid-template-columns:repeat(2,minmax(84px,1fr));gap:8px;position:relative;z-index:1;align-content:start}
+.home-metric{
+  background:rgba(30,35,48,.74);border:1px solid rgba(255,255,255,.08);border-radius:14px;
+  padding:9px 11px;min-height:0;display:flex;flex-direction:column;gap:1px;text-align:left;
+  box-shadow:0 1px 0 rgba(255,255,255,.045) inset;
+}
+.home-metric-value{font-size:1.12em;font-weight:950;line-height:1.05;color:var(--text)}
+.home-metric-label{font-size:.66em;color:var(--muted);font-weight:800;margin-top:3px;white-space:nowrap}
+.home-metric.accent .home-metric-value{color:var(--accent)}
+.home-metric.success .home-metric-value{color:var(--success)}
+.home-metric-trash{cursor:pointer;transition:transform var(--t-fast),border-color var(--t-fast),background var(--t-fast)}
+.home-metric-trash:hover{border-color:var(--border2);background:rgba(40,46,60,.82)}
+.home-metric-trash:active{transform:scale(.96)}
+.home-metric-trash.has-items{border-color:color-mix(in srgb,var(--danger) 35%,var(--border))}
+.home-metric-trash.has-items .home-metric-value{color:var(--danger)}
+.searchwrap{padding-top:12px}
+.searchbox{
+  min-height:48px;border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015)),var(--surface2);
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 24px rgba(0,0,0,.16);
+}
+.home-panel{max-width:1140px;margin:0 auto;padding:10px 14px 0}
+#stats-filters-wrap{padding:0 14px!important}
+.folder-filters{padding:10px 0 0;margin:0;max-width:none}
+.folder-filters:empty{display:none}
+.filter-chip{border-radius:14px;background:var(--surface2);box-shadow:0 1px 0 rgba(255,255,255,.035) inset}
+.toolbar{padding-top:12px;gap:8px}.toolbtn{border-radius:14px;padding:10px 13px;background:var(--surface2);box-shadow:0 1px 0 rgba(255,255,255,.035) inset}.toolbtn:hover{background:var(--surface3);border-color:var(--border2);transform:translateY(-1px)}
+.container{padding-top:14px}.folder-list{gap:14px}
+.folder-card{
+  border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.012)),var(--surface);
+  box-shadow:0 12px 32px rgba(0,0,0,.2),0 1px 0 rgba(255,255,255,.035) inset;
+  animation:itemIn .34s var(--ease-out) both;
+}
+.folder-card:hover{transform:translateY(-2px)}
+.folder-strip{height:5px}.folder-head{padding:16px;gap:13px}
+.folder-emoji{
+  width:44px;height:44px;border-radius:16px;display:grid;place-items:center;text-align:center;background:color-mix(in srgb,var(--folder-color,var(--accent)) 16%,var(--surface2));
+  border:1px solid color-mix(in srgb,var(--folder-color,var(--accent)) 22%,var(--border));font-size:1.45em;
+}
+.folder-name{font-size:1.02em;font-weight:950;letter-spacing:0}.folder-meta{font-size:.75em;margin-top:4px;color:var(--text2)}
+.folder-progress{height:5px;margin:0 16px 4px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.05)}.folder-progress-label{padding:0 16px 10px}
+.folder-actions{gap:6px}.folder-btn{background:rgba(255,255,255,.035);border:1px solid transparent}.folder-btn:hover{border-color:var(--border2)}
+.subfolder-list{padding:2px 12px 8px}.subfolder-card{border-radius:18px;background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.01)),var(--surface2)}
+.folder-body{padding:8px 12px 12px}.topic-card{border-radius:18px;margin-bottom:8px;background:var(--surface2)}.topic-fg{border-radius:18px}.topic-main{padding:13px 14px}.topic-card:hover{box-shadow:0 8px 22px rgba(0,0,0,.18)}
+.topic-color-dot{width:8px;height:34px;border-radius:999px}.topic-icon{width:34px;height:34px;border-radius:12px;background:var(--surface3);display:grid;place-items:center;font-size:1.12em}.topic-title{font-size:.95em;font-weight:900}.topic-session{font-size:.72em}.studied-badge{padding:3px 9px}
+.empty-state{
+  text-align:center;padding:58px 22px;color:var(--muted);border:1.5px dashed var(--border);border-radius:24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01)),var(--surface);
+}
+.empty-state-icon{font-size:2.6em;margin-bottom:12px}.empty-state-title{font-weight:950;font-size:1.05em;color:var(--text);margin-bottom:6px}.empty-state-copy{font-size:.84em;margin-bottom:16px}.empty-state-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+@keyframes homeSheen{0%,55%{transform:translateX(-120%)}72%,100%{transform:translateX(120%)}}
+@keyframes itemIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  .home-hero{grid-template-columns:1fr;padding:16px}.home-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.toolbar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}.toolbar::-webkit-scrollbar{display:none}.toolbtn{flex-shrink:0}.folder-head{align-items:flex-start}.folder-actions{max-width:118px;flex-wrap:wrap;justify-content:flex-end}.folder-emoji{width:40px;height:40px;border-radius:14px}.home-title{font-size:1.24em}
+}
+@media(max-width:420px){
+  .home-shell{padding:12px 12px 0}.home-hero{border-radius:22px}.home-metrics{gap:6px;grid-template-columns:repeat(2,minmax(0,1fr))}.home-metric{padding:8px 9px}.home-metric-value{font-size:1.05em}.home-metric-label{font-size:.62em}.container{padding-left:12px;padding-right:12px}.folder-actions{max-width:82px}.folder-btn{width:32px;height:32px}.topic-main{gap:8px}.studied-badge{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.home-hero::before,.folder-card{animation:none}.home-action:hover,.toolbtn:hover,.folder-card:hover{transform:none}}
+
+/* ── EDITOR / PICKER POLISH ── */
+.editor-section{
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012)),var(--surface2);
+  border:1.5px solid var(--border);border-radius:18px;padding:14px;margin:12px 0;
+}
+.editor-section-title{font-size:.78em;text-transform:uppercase;letter-spacing:.55px;color:var(--text2);font-weight:950;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.editor-hint{font-size:.76em;color:var(--muted);font-weight:650;margin-top:7px;line-height:1.5}
+.editor-row{display:flex;gap:8px;align-items:center}.editor-row input{flex:1}.editor-row .secondary-btn{width:auto;margin:0;white-space:nowrap}
+.location-picker{display:grid;gap:8px;max-height:220px;overflow-y:auto;padding:2px}
+.folder-pick-item{
+  display:flex;align-items:center;gap:9px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:14px;padding:10px 12px;color:var(--text2);font-size:.86em;font-weight:800;cursor:pointer;
+  transition:background var(--t-fast),border-color var(--t-fast),transform var(--t-fast),color var(--t-fast);
+}
+.folder-pick-item:hover{background:var(--surface3);color:var(--text)}
+.folder-pick-item.selected{border-color:var(--accent);background:rgba(79,156,255,.12);color:var(--text);box-shadow:0 0 0 3px rgba(79,156,255,.08)}
+.folder-pick-item:active{transform:scale(.985)}
+.color-choices{gap:8px}.color-chip{width:34px;height:34px;border-radius:12px;box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 8px 18px rgba(0,0,0,.14)}.color-chip.selected{border-color:#fff;transform:scale(1.08);box-shadow:0 0 0 3px rgba(255,255,255,.08),0 12px 24px rgba(0,0,0,.22)}
+.tag-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.tag-suggestion{border:1px solid var(--border);background:var(--surface3);border-radius:999px;padding:6px 9px;font-size:.74em;font-weight:800;color:var(--text2);transition:all var(--t-fast)}.tag-suggestion:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
+.mnemo-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.mnemo-tools .secondary-btn{width:auto;margin:0;white-space:nowrap}.mnemo-preview{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);font-size:.82em;font-weight:800;display:none}.mnemo-preview.show{display:block}
+.emoji-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:2px 4px 10px}.emoji-style-btn{border:1.5px solid var(--border);background:var(--surface2);border-radius:999px;padding:8px 11px;font-size:.78em;font-weight:900;color:var(--text2)}.emoji-style-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}.emoji-note{font-size:.74em;color:var(--muted);font-weight:700;line-height:1.45;padding:0 4px 10px}.emoji-grid{grid-template-columns:repeat(9,1fr);max-height:310px;gap:5px}.emoji-btn{background:rgba(255,255,255,.025);border:1px solid transparent}.emoji-btn:hover{background:var(--surface3);border-color:var(--border2)}
+.sort-name-btn{color:var(--accent)}
+@media(max-width:520px){.editor-row,.mnemo-tools{grid-template-columns:1fr;display:grid}.editor-row .secondary-btn,.mnemo-tools .secondary-btn{width:100%}.emoji-grid{grid-template-columns:repeat(6,1fr)}}
 /* ── IFRAME DARK MODE CSS (injected into iframes) ── */
 </style>
 <body style="--base-font:16px">
@@ -689,7 +878,7 @@ body.sortmode .topic-arrow{display:none}
 <div class="topbar">
   <div class="topbar-row1">
     <div class="brand">
-      <h1><span class="clinote-logo">C</span>Clinote</h1>
+      <h1><span class="clinote-logo">C</span>Clinotes</h1>
       <div class="sub" id="brand-sub">Cargando…</div>
     </div>
     <button class="iconbtn dark-btn" id="dark-btn" onclick="toggleDarkMode()" title="Modo oscuro iframe">🌙</button>
@@ -712,14 +901,34 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
+<!-- ── HOME DASHBOARD ── -->
+<div class="home-shell">
+  <section class="home-hero" aria-label="Inicio de Clinotes">
+    <div>
+      <div class="home-kicker">Panel de estudio</div>
+      <div class="home-title">Organiza tus apuntes médicos con claridad.</div>
+      <div class="home-copy">Carpetas, temas, repasos y contenido clínico listos para estudiar sin perder tiempo buscando.</div>
+      <div class="home-actions">
+        <button class="home-action primary" onclick="openTopicEditor(null)">📄 Nuevo tema</button>
+        <button class="home-action" onclick="openFolderEditor(null)">📁 Nueva carpeta</button>
+      </div>
+    </div>
+    <div class="home-metrics" aria-label="Resumen">
+      <div class="home-metric accent"><div class="home-metric-value" id="home-topic-count">0</div><div class="home-metric-label">Temas</div></div>
+      <div class="home-metric"><div class="home-metric-value" id="home-folder-count">0</div><div class="home-metric-label">Carpetas</div></div>
+      <div class="home-metric success"><div class="home-metric-value" id="home-progress-count">0%</div><div class="home-metric-label">Avance</div></div>
+      <button class="home-metric home-metric-trash" id="home-trash-btn" onclick="openTrash()" title="Papelera"><div class="home-metric-value" id="home-trash-count">0</div><div class="home-metric-label">🗑️ Papelera</div></button>
+    </div>
+  </section>
+</div>
+
 <!-- ── SEARCH ── -->
 <!-- readonly hasta que el usuario lo toque: los navegadores no autorellenan
      inputs readonly, así Chrome no puede meter el correo guardado aquí -->
 <div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
 
-<!-- ── MINI STATS + FOLDER FILTERS ── -->
-<div id="stats-filters-wrap" style="max-width:1140px;margin:0 auto;padding:6px 14px 0">
-  <div id="stats-line" style="display:flex;align-items:center;gap:0;padding:0 0 5px"></div>
+<!-- ── FOLDER FILTERS ── -->
+<div id="stats-filters-wrap" class="home-panel">
   <div class="folder-filters" id="folder-filters"></div>
 </div>
 
@@ -728,6 +937,7 @@ body.sortmode .topic-arrow{display:none}
   <button class="toolbtn" onclick="openFolderEditor(null)">📁 + Carpeta</button>
   <button class="toolbtn" onclick="openTopicEditor(null)">📄 + Tema</button>
   <button class="toolbtn" id="sort-btn" onclick="toggleSortMode()">⇅ Ordenar</button>
+  <button class="toolbtn sort-name-btn" onclick="sortTopicsByName(null)">A-Z Temas</button>
   <button class="toolbtn" onclick="openActionsOverlay()">⋯ Más</button>
 </div>
 
@@ -748,23 +958,43 @@ body.sortmode .topic-arrow{display:none}
 
 <!-- ── AUTH ── -->
 <div class="overlay" id="auth-overlay" style="display:none">
-  <div id="auth-card-wrap" style="width:100%;max-width:420px;padding:16px">
+  <div id="auth-card-wrap">
     <div class="auth-card" id="auth-card">
-      <div class="auth-logo">📋</div>
-      <div class="auth-title">Clinote</div>
-      <div class="auth-sub">Sincroniza tus apuntes en la nube</div>
-      <div class="auth-tabs">
-        <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Iniciar sesión</button>
-        <button class="auth-tab" id="tab-register" onclick="authTab('register')">Registrarse</button>
+      <div class="auth-hero">
+        <div class="auth-brand-row">
+          <div class="auth-brand-logo">C</div>
+          <div>
+            <div class="auth-wordmark">Clinotes</div>
+            <div class="auth-tagline">Apuntes médicos inteligentes</div>
+          </div>
+        </div>
+        <div class="auth-hero-copy">
+          <h2>Tu estudio clínico, ordenado y siempre contigo.</h2>
+          <p>Guarda temas, casos, preguntas y repasos en un espacio rápido, visual y sincronizable.</p>
+        </div>
+        <div class="auth-feature-list">
+          <div class="auth-feature"><i>✓</i><span>Sincronización segura en la nube</span></div>
+          <div class="auth-feature"><i>✓</i><span>Modo local cuando prefieras entrar rápido</span></div>
+          <div class="auth-feature"><i>✓</i><span>Interfaz preparada para estudiar sin fricción</span></div>
+        </div>
       </div>
-      <div class="auth-err" id="auth-err"></div>
-      <label class="label">Correo</label>
-      <input id="auth-email" type="email" placeholder="tu@correo.com" autocomplete="email">
-      <label class="label" style="margin-top:10px">Contraseña</label>
-      <input id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
-      <button class="primary-btn" id="auth-submit" onclick="submitAuth()">Entrar</button>
-      <button class="secondary-btn" onclick="showForgotPassword()" style="margin-top:10px">Olvidé mi contraseña</button>
-      <button class="secondary-btn" onclick="skipAuth()">Usar sin cuenta</button>
+      <div class="auth-form-panel">
+        <div class="auth-logo">C</div>
+        <div class="auth-title">Bienvenido a Clinotes</div>
+        <div class="auth-sub">Inicia sesión para continuar con tus apuntes.</div>
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Iniciar sesión</button>
+          <button class="auth-tab" id="tab-register" onclick="authTab('register')">Registrarse</button>
+        </div>
+        <div class="auth-err" id="auth-err"></div>
+        <label class="label">Correo</label>
+        <input id="auth-email" type="email" placeholder="tu@correo.com" autocomplete="email">
+        <label class="label" style="margin-top:10px">Contraseña</label>
+        <input id="auth-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+        <button class="primary-btn" id="auth-submit" data-mode="login" onclick="submitAuth()">Entrar</button>
+        <button class="secondary-btn" onclick="showForgotPassword()" style="margin-top:10px">Olvidé mi contraseña</button>
+        <button class="secondary-btn" onclick="skipAuth()">Usar sin cuenta</button>
+      </div>
     </div>
   </div>
 </div>
@@ -775,16 +1005,16 @@ body.sortmode .topic-arrow{display:none}
     <div class="sheet-handle"></div>
     <div class="sheet-title">Acciones <button class="close-btn" onclick="closeActionsOverlay()">✕</button></div>
     <div class="action-list">
+      <div class="action-item zoom-action" style="cursor:default;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:12px"><span class="action-icon">🔤</span>Tamaño de fuente</span>
+        <span class="zoom-stepper">
+          <button type="button" onclick="changeZoom(-1)" title="Reducir texto" aria-label="Reducir texto">−</button>
+          <span class="zval" id="zoom-val">100%</span>
+          <button type="button" onclick="changeZoom(1)" title="Aumentar texto" aria-label="Aumentar texto">+</button>
+        </span>
+      </div>
       <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)"><span class="action-icon">📁</span>Nueva carpeta</button>
       <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)"><span class="action-icon">📄</span>Nuevo tema</button>
-      <div class="action-item" style="cursor:default;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px"><span class="action-icon">🔤</span>Tamaño de fuente</span>
-        <div style="display:flex;align-items:center;gap:6px">
-          <button onclick="changeZoom(-1)" style="width:28px;height:28px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);font-size:.9em;font-weight:900;display:flex;align-items:center;justify-content:center">−</button>
-          <span id="zoom-val" style="font-size:.75em;color:var(--muted);font-weight:800;min-width:34px;text-align:center">100%</span>
-          <button onclick="changeZoom(1)" style="width:28px;height:28px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);font-size:.9em;font-weight:900;display:flex;align-items:center;justify-content:center">+</button>
-        </div>
-      </div>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)"><span class="action-icon">⊞</span>Expandir todo</button>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)"><span class="action-icon">⊟</span>Colapsar todo</button>
       <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()"><span class="action-icon">📎</span>Importar HTML</button>
@@ -805,18 +1035,27 @@ body.sortmode .topic-arrow{display:none}
     <div class="sheet-handle"></div>
     <div class="sheet-title"><span id="folder-editor-title">Nueva carpeta</span><button class="close-btn" onclick="closeFolderEditor()">✕</button></div>
     <div class="sheet-body">
-      <label class="label">Emoji</label>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <button class="iconbtn" style="font-size:1.5em;width:50px;height:50px" id="folder-emoji-preview" onclick="openEmojiPicker('folder-emoji')">📁</button>
-        <input id="folder-emoji" placeholder="Emoji" style="flex:1">
-        <button class="secondary-btn" style="width:auto;padding:10px 14px;margin:0" onclick="openNativeEmoji('folder-emoji')">⌨️ Teclado</button>
+      <div class="editor-section">
+        <div class="editor-section-title">📁 Identidad</div>
+        <label class="label">Emoji</label>
+        <div class="editor-row" style="margin-bottom:12px">
+          <button class="iconbtn" style="font-size:1.5em;width:50px;height:50px" id="folder-emoji-preview" onclick="openEmojiPicker('folder-emoji')">📁</button>
+          <input id="folder-emoji" placeholder="Emoji" style="flex:1">
+          <button class="secondary-btn" style="padding:10px 14px" onclick="openNativeEmoji('folder-emoji')">⌨️ Teclado</button>
+        </div>
+        <label class="label">Nombre</label>
+        <input id="folder-name" placeholder="Ej: Cardiología, Semana 1, Farmacología" maxlength="80">
+        <div class="editor-hint">Usa nombres cortos para que las tarjetas se lean mejor en móvil.</div>
       </div>
-      <label class="label">Nombre</label>
-      <input id="folder-name" placeholder="Nombre de la carpeta" maxlength="80">
-      <label class="label">Color</label>
-      <div class="color-choices" id="folder-colors"></div>
-      <label class="label" style="margin-top:14px">Carpeta padre (opcional)</label>
-      <div id="folder-parent-picker" class="folder-pick-list" style="max-height:180px"></div>
+      <div class="editor-section">
+        <div class="editor-section-title">🎨 Color</div>
+        <div class="color-choices" id="folder-colors"></div>
+      </div>
+      <div class="editor-section">
+        <div class="editor-section-title">🗂 Ubicación</div>
+        <div class="editor-hint" style="margin-top:0;margin-bottom:10px">Elige si esta carpeta va en el inicio o dentro de otra carpeta.</div>
+        <div id="folder-parent-picker" class="folder-pick-list location-picker"></div>
+      </div>
       <input type="hidden" id="folder-edit-id">
       <input type="hidden" id="folder-selected-color" value="#4f9cff">
       <input type="hidden" id="folder-parent-id" value="">
@@ -847,10 +1086,26 @@ body.sortmode .topic-arrow{display:none}
       <select id="topic-folder">
         <option value="">Sin carpeta</option>
       </select>
-      <label class="label">Mnemotecnia</label>
-      <input id="topic-mnemo" placeholder="Mnemotecnia o frase clave" maxlength="300">
-      <label class="label">Etiquetas</label>
-      <input id="topic-tags" placeholder="cardio, farmaco, quiz… (separadas por coma)" maxlength="200">
+      <div class="editor-section">
+        <div class="editor-section-title">🧠 Mnemotecnia</div>
+        <div class="mnemo-tools">
+          <input id="topic-mnemo" placeholder="Ej: NAVEL, CHON, ABCDE…" maxlength="300" oninput="updateMnemoPreview()">
+          <button class="secondary-btn" onclick="suggestMnemoFromTitle()">Sugerir</button>
+        </div>
+        <div class="mnemo-preview" id="mnemo-preview"></div>
+      </div>
+      <div class="editor-section">
+        <div class="editor-section-title">🏷 Etiquetas</div>
+        <input id="topic-tags" placeholder="cardio, farmaco, quiz…" maxlength="240" oninput="normalizeTagInput(false)">
+        <div class="tag-tools" id="tag-tools">
+          <button class="tag-suggestion" onclick="addTagSuggestion('examen')">#examen</button>
+          <button class="tag-suggestion" onclick="addTagSuggestion('alta-yield')">#alta-yield</button>
+          <button class="tag-suggestion" onclick="addTagSuggestion('farmaco')">#farmaco</button>
+          <button class="tag-suggestion" onclick="addTagSuggestion('caso-clinico')">#caso-clinico</button>
+          <button class="tag-suggestion" onclick="addTagSuggestion('repaso')">#repaso</button>
+        </div>
+        <div class="editor-hint">Separa con comas. Se limpiarán espacios duplicados y etiquetas repetidas.</div>
+      </div>
       <label class="label">Secciones</label>
       <div id="sections-wrap"></div>
       <button class="secondary-btn" onclick="addSection()">+ Sección</button>
@@ -887,6 +1142,11 @@ body.sortmode .topic-arrow{display:none}
     <div class="sheet-handle"></div>
     <div class="sheet-title">Elige un emoji<button class="close-btn" onclick="closeEmojiPicker()">✕</button></div>
     <div class="sheet-body" style="padding:8px 12px">
+      <div class="emoji-toolbar">
+        <button class="emoji-style-btn" id="emoji-native-btn" onclick="setEmojiStyle('native')">Nativo PC/Android/iOS</button>
+        <button class="emoji-style-btn" id="emoji-twemoji-btn" onclick="setEmojiStyle('twemoji')">Twemoji uniforme</button>
+      </div>
+      <div class="emoji-note" id="emoji-style-note">Nativo muestra el emoji según el dispositivo: Windows, Android o iOS.</div>
       <div class="emoji-grid" id="emoji-grid"></div>
     </div>
   </div>
@@ -996,19 +1256,20 @@ body.sortmode .topic-arrow{display:none}
 <div class="overlay" id="study-overlay" onclick="if(event.target===this)closeStudyMode()">
   <div class="sheet" id="study-sheet" style="max-height:97vh;display:flex;flex-direction:column">
     <div class="sheet-handle" id="study-handle"></div>
-    <div class="sheet-title" id="study-header" style="position:sticky;top:0;background:var(--surface);z-index:2;display:flex;align-items:center;gap:0;padding:10px 12px">
-      <!-- prev / counter / next -->
-      <button id="study-prev" onclick="studyNav(-1)" class="close-btn" title="Anterior" style="font-size:1.2em;font-weight:900;padding:0 10px">‹</button>
-      <span id="study-progress-hdr" style="font-size:.7em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">1/1</span>
-      <button id="study-next" onclick="studyNav(1)" class="close-btn" title="Siguiente" style="font-size:1.2em;font-weight:900;padding:0 10px">›</button>
-      <!-- title -->
-      <span id="study-title-hdr" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:.85em;font-weight:700;padding:0 4px"></span>
-      <!-- actions -->
-      <button id="study-studied-btn" onclick="studyMarkStudied()" class="close-btn" title="Marcar estudiado" style="font-size:.7em;width:auto;padding:0 8px;border-radius:8px;flex-shrink:0">✅</button>
-      <button onclick="toggleStudyFullscreen()" id="study-fs-btn" class="close-btn" title="Pantalla completa" style="font-size:.85em;flex-shrink:0">⤢</button>
-      <button onclick="closeStudyMode()" class="close-btn" style="flex-shrink:0">✕</button>
+    <div class="sheet-title" id="study-header" style="position:sticky;top:0;background:var(--surface);z-index:2;gap:6px">
+      <div class="study-navgroup">
+        <button class="close-btn" id="study-prev" onclick="studyNav(-1)" title="Tema anterior">‹</button>
+        <span id="study-counter">1 / 1</span>
+        <button class="close-btn" id="study-next" onclick="studyNav(1)" title="Tema siguiente">›</button>
+      </div>
+      <span id="study-title-hdr">📖 Modo estudio</span>
+      <div class="study-actgroup">
+        <button class="close-btn" id="study-studied-btn" onclick="studyMarkStudied()" title="Marcar como estudiado">✅</button>
+        <button class="close-btn" id="study-fs-btn" onclick="toggleStudyFullscreen()" title="Pantalla completa">⤢</button>
+        <button class="close-btn" onclick="closeStudyMode()" title="Cerrar">✕</button>
+      </div>
     </div>
-    <div class="sheet-body" id="study-body" style="flex:1;overflow-y:auto;padding:14px 18px 30px">
+    <div class="sheet-body" id="study-body" style="flex:1;overflow-y:auto">
       <div id="study-content"></div>
     </div>
   </div>
@@ -1046,11 +1307,12 @@ let _searchCache=new Map(); // cache search strings
 let confirmPayload=null;
 let currentSourceName='',currentSourceText='';
 let _nativeEmojiTarget=null;
+let emojiStyle=localStorage.getItem('clinotes-emoji-style')||'native';
 let _autoExportTimer=null;
 let autoExportEnabled=false;
 
-const COLORS=['#4f9cff','#a78bfa','#f472b6','#2dd4bf','#34d399','#fbbf24','#f87171','#60a5fa','#818cf8','#fb923c','#4ade80','#22d3ee'];
-const EMOJIS=['📋','📄','📁','🗂','📚','📖','🧠','💊','🩺','🔬','🧬','💉','🩻','🫀','🫁','🦷','🏥','⚕️','🧪','🔭','📊','📈','🗃','📌','📍','🔖','✏️','📝','✅','⭐','❤️','🔥','⚡','🌟','💡','🎯','🏆','🧩','🔑','🔐','🗝','💎','🌈'];
+const COLORS=['#4f9cff','#2563eb','#60a5fa','#22d3ee','#2dd4bf','#14b8a6','#34d399','#22c55e','#84cc16','#fbbf24','#f59e0b','#fb923c','#f97316','#f87171','#ef4444','#f472b6','#ec4899','#a78bfa','#8b5cf6','#818cf8','#6366f1','#94a3b8','#64748b','#f8fafc'];
+const EMOJIS=['📋','📄','📁','🗂','🗃','📚','📖','📑','📝','✏️','🔖','📌','📍','🧠','🧩','💡','🎯','🏆','⭐','✅','🔥','⚡','🩺','💊','💉','🧪','🔬','🧬','🩻','🫀','🫁','🦷','👁️','🦴','🩸','🧫','🧴','🏥','⚕️','🚑','🩹','🌡️','🧻','🧾','📊','📈','🔭','🔎','🧮','⏱️','📅','🗓️','🔑','🔐','🗝','💎','🌈','☀️','🌙','💜','❤️','💙','💚','💛','🧡'];
 
 /* ═══════════════════════════════════════════════════════
    ESCAPE HELPERS  (single authoritative set)
@@ -1163,7 +1425,7 @@ function activeTopics(){return STATE.topics.filter(t=>!t.deleted)}
 function allFolders(){return [{id:null,name:'Sin carpeta',emoji:'📋',color:'#7a8399'},...activeFolders()]}
 function getTopicsInFolder(folderId){
   const id=folderId===undefined?null:(folderId==='null'?null:folderId);
-  return activeTopics().filter(t=>(t.folderId||null)===id);
+  return activeTopics().filter(t=>(t.folderId||null)===id).sort((a,b)=>(a.order??0)-(b.order??0));
 }
 function getFolderChildren(parentId){
   const pid=parentId===null||parentId===undefined?null:parentId;
@@ -1394,15 +1656,33 @@ function renderBullets(text,baseColor){
    TWEMOJI  — parse emoji in element
    ═══════════════════════════════════════════════════════ */
 function parseEmoji(el){
+  if(emojiStyle!=='twemoji') return;
   if(typeof twemoji!=='undefined'&&el){
     twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'});
   }
 }
 const parseEmojiDebounced=debounce(()=>{
+  if(emojiStyle!=='twemoji') return;
   if(typeof twemoji!=='undefined'){
     twemoji.parse(document.body,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'});
   }
 },300);
+function setEmojiStyle(style){
+  emojiStyle=style==='twemoji'?'twemoji':'native';
+  localStorage.setItem('clinotes-emoji-style',emojiStyle);
+  updateEmojiStyleUI();
+  renderEmojiGrid();
+  render();
+  toast(emojiStyle==='native'?'Emoji nativo del dispositivo':'Emoji uniforme activado');
+}
+function updateEmojiStyleUI(){
+  const nativeBtn=document.getElementById('emoji-native-btn');
+  const twBtn=document.getElementById('emoji-twemoji-btn');
+  if(nativeBtn) nativeBtn.classList.toggle('active',emojiStyle!=='twemoji');
+  if(twBtn) twBtn.classList.toggle('active',emojiStyle==='twemoji');
+  const note=document.getElementById('emoji-style-note');
+  if(note) note.textContent=emojiStyle==='twemoji'?'Twemoji mantiene el mismo estilo en PC, Android e iOS.':'Nativo muestra el emoji según el dispositivo: Windows, Android o iOS.';
+}
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -1478,10 +1758,11 @@ function _doRender(){
   }
 
   if(!html){
-    html=`<div style="text-align:center;padding:60px 20px;color:var(--muted)">
-      <div style="font-size:3em;margin-bottom:14px">${q?'🔍':'📋'}</div>
-      <div style="font-weight:800;font-size:1em;margin-bottom:6px">${q?'Sin resultados':'Sin contenido'}</div>
-      <div style="font-size:.82em">${q?'Intenta otra búsqueda':'Crea una carpeta o tema para comenzar'}</div>
+    html=`<div class="empty-state">
+      <div class="empty-state-icon">${q?'🔍':'📋'}</div>
+      <div class="empty-state-title">${q?'Sin resultados':'Tu espacio está listo'}</div>
+      <div class="empty-state-copy">${q?'Intenta con otra palabra o revisa tus filtros.':'Crea una carpeta o tema para comenzar a organizar tus apuntes.'}</div>
+      ${q?'':`<div class="empty-state-actions"><button class="home-action primary" onclick="openFolderEditor(null)">📁 Nueva carpeta</button><button class="home-action" onclick="openTopicEditor(null)">📄 Nuevo tema</button></div>`}
     </div>`;
   }
 
@@ -1494,21 +1775,18 @@ function _doRender(){
 
 
 function renderStats(){
-  const el=document.getElementById('stats-line');
-  if(!el) return;
-  const all=activeTopics();
-  const total=all.length;
-  const studied=all.filter(t=>t.studied).length;
+  const total=activeTopics().length;
+  const studied=activeTopics().filter(t=>t.studied).length;
   const folders=activeFolders().length;
   const pct=total?Math.round(studied/total*100):0;
   const trash=STATE.topics.filter(t=>t.deleted).length+STATE.folders.filter(f=>f.deleted).length;
-  const pill=(icon,val,extra='')=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.72em;font-weight:700;color:var(--text2);${extra}">${icon} ${val}</span>`;
-  el.innerHTML=`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
-    ${pill('📄',total)}
-    ${pill('📁',folders)}
-    ${pill('✅',`${studied}/${total} · ${pct}%`,'color:var(--accent)')}
-    <button onclick="openTrash()" style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.72em;font-weight:700;color:${trash?'var(--danger)':'var(--muted)'};cursor:pointer">🗑️${trash||''}</button>
-  </div>`;
+  const setText=(id,val)=>{const node=document.getElementById(id);if(node)node.textContent=val};
+  setText('home-topic-count',total);
+  setText('home-folder-count',folders);
+  setText('home-progress-count',pct+'%');
+  setText('home-trash-count',trash);
+  const tb=document.getElementById('home-trash-btn');
+  if(tb) tb.classList.toggle('has-items',trash>0);
 }
 
 function renderFolderFilters(){
@@ -1557,7 +1835,7 @@ function renderFolder(folder,q,parentId){
       </div>
       <div class="folder-arrow ${open?'open':''}">›</div>
     </div>
-    ${pct>0?`<div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="${id}" style="width:${pct}%"></div></div><div class="folder-progress-label" data-folder-progress-label="${id}">${studied}/${topics.length}</div>`:''}
+    ${topics.length?`<div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="${id}" style="width:${pct}%"></div></div><div class="folder-progress-label" data-folder-progress-label="${id}">${studied}/${topics.length}</div>`:''}
     ${open?`
     <div class="folder-body" data-folder-body="${id}">
       ${subfolders.length?`<div class="subfolder-list">${subfolders.map(sf=>renderFolder(sf,q,id)).join('')}</div>`:''}
@@ -1745,7 +2023,7 @@ function sizeInlineFrames(root){
 /* ═══════════════════════════════════════════════════════
    FOLDER CRUD
    ═══════════════════════════════════════════════════════ */
-const FOLDER_COLORS=['#4f9cff','#a78bfa','#f472b6','#2dd4bf','#34d399','#fbbf24','#f87171','#60a5fa','#818cf8','#fb923c','#4ade80','#22d3ee'];
+const FOLDER_COLORS=['#4f9cff','#2563eb','#60a5fa','#22d3ee','#2dd4bf','#14b8a6','#34d399','#22c55e','#84cc16','#fbbf24','#f59e0b','#fb923c','#f97316','#f87171','#ef4444','#f472b6','#ec4899','#a78bfa','#8b5cf6','#818cf8','#6366f1','#94a3b8','#64748b','#f8fafc'];
 
 function renderColorChoices(containerId,selected,colors){
   const el=document.getElementById(containerId);
@@ -1913,6 +2191,7 @@ function openTopicEditor(topicId,defaultFolderId){
   /* flashcards */
   const fw=document.getElementById('flashcards-wrap');
   if(fw){fw.innerHTML='';(topic?.flashcards||[]).forEach(f=>addFlashcard(f.q,f.a));}
+  updateMnemoPreview();
   openOverlay('topic-overlay');
   setTimeout(()=>document.getElementById('topic-title')?.focus(),100);
 }
@@ -1940,6 +2219,40 @@ function addFlashcard(q='',a=''){
   </div><button class="rm-btn" onclick="this.parentNode.remove()">✕</button>`;
   wrap.appendChild(div);
 }
+function cleanTagsFromInput(){
+  const inp=document.getElementById('topic-tags');
+  if(!inp) return [];
+  const seen=new Set();
+  return inp.value.split(',').map(t=>normalizeText(t.replace(/^#/,'').trim()).replace(/\s+/g,'-')).filter(Boolean).filter(t=>{if(seen.has(t))return false;seen.add(t);return true;});
+}
+function normalizeTagInput(force=true){
+  if(!force) return;
+  const inp=document.getElementById('topic-tags');
+  if(inp) inp.value=cleanTagsFromInput().join(', ');
+}
+function addTagSuggestion(tag){
+  const inp=document.getElementById('topic-tags');
+  if(!inp) return;
+  const tags=cleanTagsFromInput();
+  const clean=normalizeText(tag).replace(/\s+/g,'-');
+  if(!tags.includes(clean)) tags.push(clean);
+  inp.value=tags.join(', ');
+}
+function updateMnemoPreview(){
+  const val=document.getElementById('topic-mnemo')?.value.trim();
+  const prev=document.getElementById('mnemo-preview');
+  if(!prev) return;
+  prev.textContent=val?('🧠 '+val):'';
+  prev.classList.toggle('show',!!val);
+}
+function suggestMnemoFromTitle(){
+  const title=document.getElementById('topic-title')?.value.trim()||'';
+  const base=title.split(/\s+/).filter(w=>w.length>2).slice(0,6).map(w=>w[0]).join('').toUpperCase();
+  const suggestion=base||'ABCDE';
+  const inp=document.getElementById('topic-mnemo');
+  if(inp) inp.value=suggestion+' = añade aquí tu frase clave';
+  updateMnemoPreview();
+}
 function saveTopic(){
   const title=document.getElementById('topic-title').value.trim();
   if(!title){toast('El título es obligatorio');return;}
@@ -1952,7 +2265,8 @@ function saveTopic(){
     const inputs=row.querySelectorAll('input');
     return{q:inputs[0]?.value.trim()||'',a:inputs[1]?.value.trim()||''};
   }).filter(f=>f.q||f.a);
-  const tags=document.getElementById('topic-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  normalizeTagInput(true);
+  const tags=cleanTagsFromInput();
   const data={
     title,
     session:document.getElementById('topic-session').value.trim(),
@@ -1967,7 +2281,8 @@ function saveTopic(){
     const idx=STATE.topics.findIndex(t=>t.id===editId);
     if(idx>=0) Object.assign(STATE.topics[idx],data,{updatedAt:Date.now()});
   }else{
-    STATE.topics.push({id:uid('t'),...data,studied:false,favorite:false,deleted:false,createdAt:Date.now(),order:STATE.topics.length});
+    const order=getTopicsInFolder(data.folderId||null).length;
+    STATE.topics.push({id:uid('t'),...data,studied:false,favorite:false,deleted:false,createdAt:Date.now(),order});
   }
   _searchCache.delete(editId||'');
   saveState();render();closeTopicEditor();
@@ -2156,7 +2471,7 @@ function openTopicSource(topicId){
   openOverlay('source-overlay');
 }
 function openAppSource(){
-  currentSourceName='clinote.html';
+  currentSourceName='clinotes.html';
   currentSourceText=document.documentElement.outerHTML;
   document.getElementById('source-title').innerHTML=`Código fuente<button class="close-btn" onclick="closeSource()">✕</button>`;
   document.getElementById('source-pre').textContent=currentSourceText.slice(0,8000)+(currentSourceText.length>8000?'\n\n[... truncado ...]':'');
@@ -2167,7 +2482,7 @@ function copySource(){
 }
 function downloadSource(){
   const blob=new Blob([currentSourceText],{type:'text/html'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=currentSourceName||'clinote.html';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=currentSourceName||'clinotes.html';a.click();
   toast('⬇️ Descargando');
 }
 function openTopicPreview(topicId){
@@ -2202,7 +2517,7 @@ function openPreviewSource(){
 }
 function downloadAppHTML(){
   const blob=new Blob([document.documentElement.outerHTML],{type:'text/html'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clinote.html';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clinotes.html';a.click();
   toast('⬇️ App descargada');
 }
 
@@ -2213,6 +2528,7 @@ let _emojiTarget=null;
 function renderEmojiGrid(){
   const grid=document.getElementById('emoji-grid');
   if(!grid) return;
+  updateEmojiStyleUI();
   grid.innerHTML=EMOJIS.map(e=>`<button class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`).join('');
   parseEmoji(grid);
 }
@@ -2244,6 +2560,8 @@ function openNativeEmoji(targetId){
     if(val){
       const target=document.getElementById(_nativeEmojiTarget||targetId);
       if(target) target.value=val.slice(-2);
+      const previewId=(_nativeEmojiTarget||targetId)==='folder-emoji'?'folder-emoji-preview':(_nativeEmojiTarget||targetId)==='topic-icon'?'topic-icon-preview':null;
+      if(previewId){const prev=document.getElementById(previewId);if(prev)prev.textContent=val.slice(-2);}
     }
     setTimeout(()=>document.body.removeChild(inp),500);
   });
@@ -2324,13 +2642,56 @@ function endSort(e){
   if(_ghostSource){_ghostSource.classList.remove('ghost');_ghostSource=null;}
   render();
 }
+function romanToNumber(token){
+  const roman={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};
+  const s=String(token||'').toUpperCase();
+  if(!/^[IVXLCDM]+$/.test(s)) return null;
+  let total=0,prev=0;
+  for(let i=s.length-1;i>=0;i--){const v=roman[s[i]]||0;total+=v<prev?-v:v;prev=Math.max(prev,v);}
+  return total||null;
+}
+function naturalTokens(text){
+  const s=normalizeText(text).replace(/[-_/]+/g,' ');
+  return (s.match(/\d+|[ivxlcdm]+|[a-z]+/g)||[]).map(tok=>{
+    if(/^\d+$/.test(tok)) return {t:'n',v:parseInt(tok,10)};
+    const r=romanToNumber(tok);
+    if(r!==null) return {t:'n',v:r};
+    return {t:'s',v:tok};
+  });
+}
+function naturalTitleCompare(a,b){
+  const A=naturalTokens(a?.title||''),B=naturalTokens(b?.title||'');
+  const len=Math.max(A.length,B.length);
+  for(let i=0;i<len;i++){
+    if(!A[i]) return -1;if(!B[i]) return 1;
+    if(A[i].t===B[i].t){if(A[i].v<B[i].v)return -1;if(A[i].v>B[i].v)return 1;}
+    else{return A[i].t==='n'?-1:1;}
+  }
+  return String(a?.title||'').localeCompare(String(b?.title||''),'es',{sensitivity:'base',numeric:true});
+}
+function applyTopicOrderForFolder(folderId,ordered){
+  ordered.forEach((topic,idx)=>{topic.order=idx;});
+  const ids=new Set(ordered.map(t=>t.id));
+  STATE.topics=[...STATE.topics.filter(t=>!ids.has(t.id)),...ordered];
+}
+function sortTopicsByName(folderId){
+  const hasFolder=arguments.length>0 && folderId!==undefined && folderId!==null;
+  if(hasFolder){
+    const realId=folderId==='null'?null:folderId;
+    const ordered=getTopicsInFolder(realId).slice().sort(naturalTitleCompare);
+    applyTopicOrderForFolder(realId,ordered);
+  }else{
+    const groups=new Map();
+    activeTopics().forEach(t=>{const k=t.folderId||'__root__';if(!groups.has(k))groups.set(k,[]);groups.get(k).push(t);});
+    groups.forEach((items,key)=>applyTopicOrderForFolder(key==='__root__'?null:key,items.slice().sort(naturalTitleCompare)));
+  }
+  saveState();render();toast('A-Z Temas ordenados por nombre');
+}
 function sortFolderBySession(folderId){
   const realId=folderId==='null'?null:folderId;
   const parseS=s=>{if(!s)return 9999;const m=String(s).match(/(\d+)/);return m?parseInt(m[1]):9999};
-  STATE.topics.sort((a,b)=>{
-    if((a.folderId||null)!==realId||(b.folderId||null)!==realId) return 0;
-    return parseS(a.session)-parseS(b.session);
-  });
+  const ordered=getTopicsInFolder(realId).slice().sort((a,b)=>parseS(a.session)-parseS(b.session));
+  applyTopicOrderForFolder(realId,ordered);
   saveState();render();toast('📋 Ordenado por sesión');
 }
 
@@ -2403,7 +2764,7 @@ function dzFile(e){
 function exportJSON(){
   const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='clinote-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.download='clinotes-backup-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();toast('💾 Backup exportado');
 }
 function importJSON(){
@@ -2434,7 +2795,7 @@ function triggerAutoExport(){
   _autoExportTimer=setTimeout(()=>{
     const blob=new Blob([JSON.stringify(STATE)],{type:'application/json'});
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-    a.download='clinote-auto-'+Date.now()+'.json';
+    a.download='clinotes-auto-'+Date.now()+'.json';
     a.click();
   },5000);
 }
@@ -2498,33 +2859,68 @@ function skipAuth(){
 function showForgotPassword(){
   setAuthErr('');
   document.getElementById('auth-card').innerHTML=`
-    <div class="auth-logo">🔑</div>
-    <div class="auth-title">Restablecer contraseña</div>
-    <div class="auth-sub">Te enviaremos un enlace por correo</div>
-    <div class="auth-err" id="auth-err"></div>
-    <label class="label">Correo</label>
-    <input id="auth-email-reset" type="email" placeholder="tu@correo.com" autocomplete="email">
-    <button class="primary-btn" onclick="sendResetEmail()">Enviar enlace</button>
-    <button class="secondary-btn" onclick="restoreAuthCard()" style="margin-top:8px">← Volver</button>
+    <div class="auth-hero">
+      <div class="auth-brand-row">
+        <div class="auth-brand-logo">C</div>
+        <div><div class="auth-wordmark">Clinotes</div><div class="auth-tagline">Recuperación segura</div></div>
+      </div>
+      <div class="auth-hero-copy">
+        <h2>Recupera tu acceso sin perder el ritmo.</h2>
+        <p>Te enviaremos un enlace para crear una nueva contraseña y volver a tus apuntes.</p>
+      </div>
+      <div class="auth-feature-list">
+        <div class="auth-feature"><i>✓</i><span>El enlace llega directo a tu correo</span></div>
+        <div class="auth-feature"><i>✓</i><span>Tus datos siguen protegidos</span></div>
+      </div>
+    </div>
+    <div class="auth-form-panel">
+      <div class="auth-title">Restablecer contraseña</div>
+      <div class="auth-sub">Escribe el correo asociado a tu cuenta.</div>
+      <div class="auth-err" id="auth-err"></div>
+      <label class="label">Correo</label>
+      <input id="auth-email-reset" type="email" placeholder="tu@correo.com" autocomplete="email">
+      <button class="primary-btn" onclick="sendResetEmail()">Enviar enlace</button>
+      <button class="secondary-btn" onclick="restoreAuthCard()" style="margin-top:8px">Volver</button>
+    </div>
   `;
 }
 function restoreAuthCard(){
   document.getElementById('auth-card').innerHTML=`
-    <div class="auth-logo">📋</div>
-    <div class="auth-title">Clinote</div>
-    <div class="auth-sub">Sincroniza tus apuntes en la nube</div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Iniciar sesión</button>
-      <button class="auth-tab" id="tab-register" onclick="authTab('register')">Registrarse</button>
+    <div class="auth-hero">
+      <div class="auth-brand-row">
+        <div class="auth-brand-logo">C</div>
+        <div>
+          <div class="auth-wordmark">Clinotes</div>
+          <div class="auth-tagline">Apuntes médicos inteligentes</div>
+        </div>
+      </div>
+      <div class="auth-hero-copy">
+        <h2>Tu estudio clínico, ordenado y siempre contigo.</h2>
+        <p>Guarda temas, casos, preguntas y repasos en un espacio rápido, visual y sincronizable.</p>
+      </div>
+      <div class="auth-feature-list">
+        <div class="auth-feature"><i>✓</i><span>Sincronización segura en la nube</span></div>
+        <div class="auth-feature"><i>✓</i><span>Modo local cuando prefieras entrar rápido</span></div>
+        <div class="auth-feature"><i>✓</i><span>Interfaz preparada para estudiar sin fricción</span></div>
+      </div>
     </div>
-    <div class="auth-err" id="auth-err"></div>
-    <label class="label">Correo</label>
-    <input id="auth-email" type="email" placeholder="tu@correo.com" autocomplete="email">
-    <label class="label" style="margin-top:10px">Contraseña</label>
-    <input id="auth-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
-    <button class="primary-btn" id="auth-submit" data-mode="login" onclick="submitAuth()">Entrar</button>
-    <button class="secondary-btn" onclick="showForgotPassword()" style="margin-top:10px">Olvidé mi contraseña</button>
-    <button class="secondary-btn" onclick="skipAuth()">Usar sin cuenta</button>
+    <div class="auth-form-panel">
+      <div class="auth-logo">C</div>
+      <div class="auth-title">Bienvenido a Clinotes</div>
+      <div class="auth-sub">Inicia sesión para continuar con tus apuntes.</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Iniciar sesión</button>
+        <button class="auth-tab" id="tab-register" onclick="authTab('register')">Registrarse</button>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <label class="label">Correo</label>
+      <input id="auth-email" type="email" placeholder="tu@correo.com" autocomplete="email">
+      <label class="label" style="margin-top:10px">Contraseña</label>
+      <input id="auth-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitAuth()">
+      <button class="primary-btn" id="auth-submit" data-mode="login" onclick="submitAuth()">Entrar</button>
+      <button class="secondary-btn" onclick="showForgotPassword()" style="margin-top:10px">Olvidé mi contraseña</button>
+      <button class="secondary-btn" onclick="skipAuth()">Usar sin cuenta</button>
+    </div>
   `;
   authTab('login');
 }
@@ -2537,12 +2933,28 @@ async function sendResetEmail(){
 }
 function showSetNewPasswordForm(){
   document.getElementById('auth-card').innerHTML=`
-    <div class="auth-logo">🔐</div>
-    <div class="auth-title">Nueva contraseña</div>
-    <div class="auth-err" id="auth-err"></div>
-    <label class="label">Nueva contraseña</label>
-    <input id="auth-newpass" type="password" placeholder="Mínimo 6 caracteres">
-    <button class="primary-btn" onclick="confirmNewPassword()">Guardar contraseña</button>
+    <div class="auth-hero">
+      <div class="auth-brand-row">
+        <div class="auth-brand-logo">C</div>
+        <div><div class="auth-wordmark">Clinotes</div><div class="auth-tagline">Cuenta protegida</div></div>
+      </div>
+      <div class="auth-hero-copy">
+        <h2>Crea una nueva llave de acceso.</h2>
+        <p>Elige una contraseña segura para volver a sincronizar tus apuntes.</p>
+      </div>
+      <div class="auth-feature-list">
+        <div class="auth-feature"><i>✓</i><span>Mínimo 6 caracteres</span></div>
+        <div class="auth-feature"><i>✓</i><span>Actualización inmediata</span></div>
+      </div>
+    </div>
+    <div class="auth-form-panel">
+      <div class="auth-title">Nueva contraseña</div>
+      <div class="auth-sub">Define una contraseña para tu cuenta.</div>
+      <div class="auth-err" id="auth-err"></div>
+      <label class="label">Nueva contraseña</label>
+      <input id="auth-newpass" type="password" placeholder="Mínimo 6 caracteres">
+      <button class="primary-btn" onclick="confirmNewPassword()">Guardar contraseña</button>
+    </div>
   `;
 }
 async function confirmNewPassword(){
@@ -2737,7 +3149,6 @@ function quizAnswer(correct){
    ═══════════════════════════════════════════════════════ */
 let STUDY={topics:[],idx:0,folderId:null};
 let _studyFullscreen=false;
-
 function openStudyMode(folderId){
   const realId=folderId==='null'?null:folderId;
   const pool=getTopicsInFolder(realId);
@@ -2745,59 +3156,58 @@ function openStudyMode(folderId){
   STUDY={topics:pool,idx:0,folderId:realId};
   _studyFullscreen=false;
   _applyStudyLayout();
-  renderStudyMode();
-  openOverlay('study-overlay');
+  renderStudyMode();openOverlay('study-overlay');
 }
-
 function _applyStudyLayout(){
   const sheet=document.getElementById('study-sheet');
   const handle=document.getElementById('study-handle');
+  const fsBtn=document.getElementById('study-fs-btn');
   if(!sheet) return;
   if(_studyFullscreen){
-    sheet.style.maxHeight='100dvh';
-    sheet.style.height='100dvh';
-    sheet.style.borderRadius='0';
+    sheet.style.maxHeight='100dvh';sheet.style.height='100dvh';
+    sheet.style.maxWidth='100%';sheet.style.borderRadius='0';
     if(handle) handle.style.display='none';
-    document.getElementById('study-fs-btn').textContent='⊡';
+    if(fsBtn){fsBtn.textContent='⤡';fsBtn.title='Salir de pantalla completa';}
   }else{
-    sheet.style.maxHeight='97vh';
-    sheet.style.height='';
-    sheet.style.borderRadius='';
+    sheet.style.maxHeight='97vh';sheet.style.height='';
+    sheet.style.maxWidth='';sheet.style.borderRadius='';
     if(handle) handle.style.display='';
-    document.getElementById('study-fs-btn').textContent='⤢';
+    if(fsBtn){fsBtn.textContent='⤢';fsBtn.title='Pantalla completa';}
   }
 }
-
-function toggleStudyFullscreen(){
-  _studyFullscreen=!_studyFullscreen;
-  _applyStudyLayout();
+function toggleStudyFullscreen(){_studyFullscreen=!_studyFullscreen;_applyStudyLayout()}
+function _updateStudyStudiedBtn(){
+  const topic=STUDY.topics[STUDY.idx];
+  const sb=document.getElementById('study-studied-btn');
+  if(!sb||!topic) return;
+  const t=activeTopics().find(x=>x.id===topic.id)||topic;
+  sb.textContent=t.studied?'↩️':'✅';
+  sb.title=t.studied?'Quitar de estudiados':'Marcar como estudiado';
+  sb.style.color=t.studied?'var(--success)':'';
 }
-
+function studyMarkStudied(){
+  const topic=STUDY.topics[STUDY.idx];
+  if(!topic) return;
+  toggleStudied(topic.id);
+  const t=activeTopics().find(x=>x.id===topic.id);
+  if(t) STUDY.topics[STUDY.idx]=t;
+  _updateStudyStudiedBtn();
+}
 function renderStudyMode(){
   const container=document.getElementById('study-content');
   if(!container) return;
   const topic=STUDY.topics[STUDY.idx];
   if(!topic){container.innerHTML='<p style="text-align:center;color:var(--muted)">Sin temas</p>';return;}
-
-  /* Update header */
-  const ph=document.getElementById('study-progress-hdr');
-  const th=document.getElementById('study-title-hdr');
-  const sb=document.getElementById('study-studied-btn');
-  const prev=document.getElementById('study-prev');
-  const next=document.getElementById('study-next');
-  if(ph) ph.textContent=`${STUDY.idx+1}/${STUDY.topics.length}`;
-  if(th) th.textContent=`${topic.icon||'📄'} ${topic.title}`;
-  if(sb){
-    sb.textContent=topic.studied?'↩️':'✅';
-    sb.title=topic.studied?'Quitar estudiado':'Marcar estudiado';
-    sb.style.color=topic.studied?'var(--success)':'';
-  }
-  if(prev) prev.disabled=STUDY.idx===0;
-  if(next) next.disabled=STUDY.idx===STUDY.topics.length-1;
-
-  /* Topic content */
-  let html='';
-  if(topic.session) html+=`<p style="font-size:.75em;color:var(--muted);font-weight:700;margin-bottom:8px">Sesión: ${h(topic.session)}</p>`;
+  /* sticky top bar */
+  const counter=document.getElementById('study-counter');
+  const titleHdr=document.getElementById('study-title-hdr');
+  if(counter) counter.textContent=`${STUDY.idx+1} / ${STUDY.topics.length}`;
+  if(titleHdr) titleHdr.innerHTML=`${h(topic.icon||'📄')} ${h(topic.title)}`;
+  _updateStudyStudiedBtn();
+  let html=`<div class="study-header">
+    <h2>${h(topic.icon||'📄')} ${h(topic.title)}</h2>
+    ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:5px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
+  </div>`;
   if(topic.html){
     html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
   }
@@ -2814,24 +3224,15 @@ function renderStudyMode(){
     if(sf) sf.srcdoc=buildEmbedDoc(topic.html);
   }
   sizeInlineFrames(container);
+  parseEmoji(document.getElementById('study-sheet'));
+  /* update nav buttons */
+  const prev=document.getElementById('study-prev');
+  const next=document.getElementById('study-next');
+  if(prev) prev.disabled=STUDY.idx===0;
+  if(next) next.disabled=STUDY.idx===STUDY.topics.length-1;
   document.getElementById('study-body')?.scrollTo(0,0);
 }
-
-function studyNav(dir){
-  STUDY.idx=Math.max(0,Math.min(STUDY.topics.length-1,STUDY.idx+dir));
-  renderStudyMode();
-}
-
-function studyMarkStudied(){
-  const topic=STUDY.topics[STUDY.idx];
-  if(!topic) return;
-  toggleStudied(topic.id);
-  /* re-sync button icon from updated state */
-  const t=activeTopics().find(x=>x.id===topic.id);
-  if(t) STUDY.topics[STUDY.idx]=t;
-  const sb=document.getElementById('study-studied-btn');
-  if(sb){sb.textContent=t?.studied?'↩️':'✅';sb.style.color=t?.studied?'var(--success)':'';}
-}
+function studyNav(dir){STUDY.idx=Math.max(0,Math.min(STUDY.topics.length-1,STUDY.idx+dir));renderStudyMode()}
 
 /* ═══════════════════════════════════════════════════════
    PRINT  —  Clean A4 extraction
