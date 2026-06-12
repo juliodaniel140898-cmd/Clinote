@@ -701,11 +701,6 @@ body.sortmode .topic-arrow{display:none}
       <div class="sb-dot" id="sb-dot"></div>
     </div>
   </div>
-  <div class="zoombar">
-    <button onclick="changeZoom(-1)" title="Reducir texto">−</button>
-    <span class="zval" id="zoom-val">100%</span>
-    <button onclick="changeZoom(1)" title="Aumentar texto">+</button>
-  </div>
 </div>
 
 <!-- ── RECOVERY BANNER ── -->
@@ -722,9 +717,9 @@ body.sortmode .topic-arrow{display:none}
      inputs readonly, así Chrome no puede meter el correo guardado aquí -->
 <div class="searchwrap"><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="🔍  Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
 
-<!-- ── STATS + FOLDER FILTERS (combined) ── -->
-<div id="stats-filters-wrap" style="max-width:1140px;margin:0 auto;padding:8px 14px 0">
-  <div id="stats-line" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:0 0 6px;font-size:.78em;font-weight:700;color:var(--muted)"></div>
+<!-- ── MINI STATS + FOLDER FILTERS ── -->
+<div id="stats-filters-wrap" style="max-width:1140px;margin:0 auto;padding:6px 14px 0">
+  <div id="stats-line" style="display:flex;align-items:center;gap:0;padding:0 0 5px"></div>
   <div class="folder-filters" id="folder-filters"></div>
 </div>
 
@@ -733,7 +728,6 @@ body.sortmode .topic-arrow{display:none}
   <button class="toolbtn" onclick="openFolderEditor(null)">📁 + Carpeta</button>
   <button class="toolbtn" onclick="openTopicEditor(null)">📄 + Tema</button>
   <button class="toolbtn" id="sort-btn" onclick="toggleSortMode()">⇅ Ordenar</button>
-  <button class="toolbtn" onclick="openTrash()" id="trash-btn">🗑️ Papelera</button>
   <button class="toolbtn" onclick="openActionsOverlay()">⋯ Más</button>
 </div>
 
@@ -783,6 +777,14 @@ body.sortmode .topic-arrow{display:none}
     <div class="action-list">
       <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)"><span class="action-icon">📁</span>Nueva carpeta</button>
       <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)"><span class="action-icon">📄</span>Nuevo tema</button>
+      <div class="action-item" style="cursor:default;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px"><span class="action-icon">🔤</span>Tamaño de fuente</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <button onclick="changeZoom(-1)" style="width:28px;height:28px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);font-size:.9em;font-weight:900;display:flex;align-items:center;justify-content:center">−</button>
+          <span id="zoom-val" style="font-size:.75em;color:var(--muted);font-weight:800;min-width:34px;text-align:center">100%</span>
+          <button onclick="changeZoom(1)" style="width:28px;height:28px;border-radius:8px;background:var(--surface3);border:1px solid var(--border);font-size:.9em;font-weight:900;display:flex;align-items:center;justify-content:center">+</button>
+        </div>
+      </div>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)"><span class="action-icon">⊞</span>Expandir todo</button>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)"><span class="action-icon">⊟</span>Colapsar todo</button>
       <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()"><span class="action-icon">📎</span>Importar HTML</button>
@@ -992,15 +994,22 @@ body.sortmode .topic-arrow{display:none}
 
 <!-- ── STUDY ── -->
 <div class="overlay" id="study-overlay" onclick="if(event.target===this)closeStudyMode()">
-  <div class="sheet" style="max-height:97vh">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">📖 Modo estudio<button class="close-btn" onclick="closeStudyMode()">✕</button></div>
-    <div class="sheet-body">
+  <div class="sheet" id="study-sheet" style="max-height:97vh;display:flex;flex-direction:column">
+    <div class="sheet-handle" id="study-handle"></div>
+    <div class="sheet-title" id="study-header" style="position:sticky;top:0;background:var(--surface);z-index:2;display:flex;align-items:center;gap:0;padding:10px 12px">
+      <!-- prev / counter / next -->
+      <button id="study-prev" onclick="studyNav(-1)" class="close-btn" title="Anterior" style="font-size:1.2em;font-weight:900;padding:0 10px">‹</button>
+      <span id="study-progress-hdr" style="font-size:.7em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">1/1</span>
+      <button id="study-next" onclick="studyNav(1)" class="close-btn" title="Siguiente" style="font-size:1.2em;font-weight:900;padding:0 10px">›</button>
+      <!-- title -->
+      <span id="study-title-hdr" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:.85em;font-weight:700;padding:0 4px"></span>
+      <!-- actions -->
+      <button id="study-studied-btn" onclick="studyMarkStudied()" class="close-btn" title="Marcar estudiado" style="font-size:.7em;width:auto;padding:0 8px;border-radius:8px;flex-shrink:0">✅</button>
+      <button onclick="toggleStudyFullscreen()" id="study-fs-btn" class="close-btn" title="Pantalla completa" style="font-size:.85em;flex-shrink:0">⤢</button>
+      <button onclick="closeStudyMode()" class="close-btn" style="flex-shrink:0">✕</button>
+    </div>
+    <div class="sheet-body" id="study-body" style="flex:1;overflow-y:auto;padding:14px 18px 30px">
       <div id="study-content"></div>
-      <div class="study-nav">
-        <button onclick="studyNav(-1)" id="study-prev">← Anterior</button>
-        <button onclick="studyNav(1)" id="study-next">Siguiente →</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1017,7 +1026,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v4.2';
+const APP_VERSION='v5.0';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1487,17 +1496,19 @@ function _doRender(){
 function renderStats(){
   const el=document.getElementById('stats-line');
   if(!el) return;
-  const total=activeTopics().length;
-  const studied=activeTopics().filter(t=>t.studied).length;
+  const all=activeTopics();
+  const total=all.length;
+  const studied=all.filter(t=>t.studied).length;
   const folders=activeFolders().length;
   const pct=total?Math.round(studied/total*100):0;
   const trash=STATE.topics.filter(t=>t.deleted).length+STATE.folders.filter(f=>f.deleted).length;
-  el.innerHTML=`<span>📄 ${total} temas</span>
-    <span style="color:var(--border2)">·</span>
-    <span>📁 ${folders} carpetas</span>
-    <span style="color:var(--border2)">·</span>
-    <span style="color:var(--accent)">✅ ${studied}/${total} · ${pct}%</span>
-    ${trash?`<span style="color:var(--border2)">·</span><span style="cursor:pointer;color:var(--danger)" onclick="openTrash()">🗑 ${trash} en papelera</span>`:''}`;
+  const pill=(icon,val,extra='')=>`<span style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.72em;font-weight:700;color:var(--text2);${extra}">${icon} ${val}</span>`;
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+    ${pill('📄',total)}
+    ${pill('📁',folders)}
+    ${pill('✅',`${studied}/${total} · ${pct}%`,'color:var(--accent)')}
+    <button onclick="openTrash()" style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.72em;font-weight:700;color:${trash?'var(--danger)':'var(--muted)'};cursor:pointer">🗑️${trash||''}</button>
+  </div>`;
 }
 
 function renderFolderFilters(){
@@ -2009,6 +2020,7 @@ function toggleStudied(topicId){
     if(btn) btn.textContent=t.studied?'↩️ No estudiado':'✅ Estudiado';
   }
   updateFolderProgress(t.folderId);
+  renderStats();
   toast(t.studied?'✅ Marcado como estudiado':'↩️ No estudiado');
 }
 function updateFolderProgress(folderId){
@@ -2723,24 +2735,69 @@ function quizAnswer(correct){
 /* ═══════════════════════════════════════════════════════
    STUDY MODE
    ═══════════════════════════════════════════════════════ */
-let STUDY={topics:[],idx:0};
+let STUDY={topics:[],idx:0,folderId:null};
+let _studyFullscreen=false;
+
 function openStudyMode(folderId){
   const realId=folderId==='null'?null:folderId;
   const pool=getTopicsInFolder(realId);
   if(!pool.length){toast('Esta carpeta no tiene temas');return;}
-  STUDY={topics:pool,idx:0};
-  renderStudyMode();openOverlay('study-overlay');
+  STUDY={topics:pool,idx:0,folderId:realId};
+  _studyFullscreen=false;
+  _applyStudyLayout();
+  renderStudyMode();
+  openOverlay('study-overlay');
 }
+
+function _applyStudyLayout(){
+  const sheet=document.getElementById('study-sheet');
+  const handle=document.getElementById('study-handle');
+  if(!sheet) return;
+  if(_studyFullscreen){
+    sheet.style.maxHeight='100dvh';
+    sheet.style.height='100dvh';
+    sheet.style.borderRadius='0';
+    if(handle) handle.style.display='none';
+    document.getElementById('study-fs-btn').textContent='⊡';
+  }else{
+    sheet.style.maxHeight='97vh';
+    sheet.style.height='';
+    sheet.style.borderRadius='';
+    if(handle) handle.style.display='';
+    document.getElementById('study-fs-btn').textContent='⤢';
+  }
+}
+
+function toggleStudyFullscreen(){
+  _studyFullscreen=!_studyFullscreen;
+  _applyStudyLayout();
+}
+
 function renderStudyMode(){
   const container=document.getElementById('study-content');
   if(!container) return;
   const topic=STUDY.topics[STUDY.idx];
   if(!topic){container.innerHTML='<p style="text-align:center;color:var(--muted)">Sin temas</p>';return;}
-  let html=`<div class="study-header">
-    <span class="study-progress">${STUDY.idx+1} / ${STUDY.topics.length}</span>
-    <h2>${h(topic.icon||'📄')} ${h(topic.title)}</h2>
-    ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:3px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
-  </div>`;
+
+  /* Update header */
+  const ph=document.getElementById('study-progress-hdr');
+  const th=document.getElementById('study-title-hdr');
+  const sb=document.getElementById('study-studied-btn');
+  const prev=document.getElementById('study-prev');
+  const next=document.getElementById('study-next');
+  if(ph) ph.textContent=`${STUDY.idx+1}/${STUDY.topics.length}`;
+  if(th) th.textContent=`${topic.icon||'📄'} ${topic.title}`;
+  if(sb){
+    sb.textContent=topic.studied?'↩️':'✅';
+    sb.title=topic.studied?'Quitar estudiado':'Marcar estudiado';
+    sb.style.color=topic.studied?'var(--success)':'';
+  }
+  if(prev) prev.disabled=STUDY.idx===0;
+  if(next) next.disabled=STUDY.idx===STUDY.topics.length-1;
+
+  /* Topic content */
+  let html='';
+  if(topic.session) html+=`<p style="font-size:.75em;color:var(--muted);font-weight:700;margin-bottom:8px">Sesión: ${h(topic.session)}</p>`;
   if(topic.html){
     html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
   }
@@ -2757,13 +2814,24 @@ function renderStudyMode(){
     if(sf) sf.srcdoc=buildEmbedDoc(topic.html);
   }
   sizeInlineFrames(container);
-  /* update nav buttons */
-  const prev=document.getElementById('study-prev');
-  const next=document.getElementById('study-next');
-  if(prev) prev.disabled=STUDY.idx===0;
-  if(next) next.disabled=STUDY.idx===STUDY.topics.length-1;
+  document.getElementById('study-body')?.scrollTo(0,0);
 }
-function studyNav(dir){STUDY.idx=Math.max(0,Math.min(STUDY.topics.length-1,STUDY.idx+dir));renderStudyMode()}
+
+function studyNav(dir){
+  STUDY.idx=Math.max(0,Math.min(STUDY.topics.length-1,STUDY.idx+dir));
+  renderStudyMode();
+}
+
+function studyMarkStudied(){
+  const topic=STUDY.topics[STUDY.idx];
+  if(!topic) return;
+  toggleStudied(topic.id);
+  /* re-sync button icon from updated state */
+  const t=activeTopics().find(x=>x.id===topic.id);
+  if(t) STUDY.topics[STUDY.idx]=t;
+  const sb=document.getElementById('study-studied-btn');
+  if(sb){sb.textContent=t?.studied?'↩️':'✅';sb.style.color=t?.studied?'var(--success)':'';}
+}
 
 /* ═══════════════════════════════════════════════════════
    PRINT  —  Clean A4 extraction
