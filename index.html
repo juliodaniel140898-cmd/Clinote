@@ -744,6 +744,33 @@ body.sortmode .topic-arrow{display:none}
 /* ── DARK MODE TOGGLE ── */
 .dark-btn.active{background:var(--surface3);color:var(--warning)}
 
+/* ── THEME PICKER ── */
+.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.theme-card{
+  display:flex;flex-direction:column;gap:0;border:1.5px solid var(--border);border-radius:var(--r);
+  overflow:hidden;background:var(--surface2);transition:transform var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast);
+  text-align:left;
+}
+.theme-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.theme-card:active{transform:scale(.98)}
+.theme-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,156,255,.18)}
+.theme-preview{
+  display:flex;flex-direction:column;gap:6px;padding:14px;min-height:96px;border-bottom:1px solid var(--border);
+  border-bottom-width:0;
+}
+.theme-preview-head{height:9px;border-radius:3px;display:block}
+.theme-preview-line{height:6px;border-radius:3px;display:block;opacity:.92}
+.theme-preview-row{display:flex;align-items:center;gap:6px;margin-top:4px}
+.theme-preview-chip{width:34px;height:16px;border-radius:5px;border:1px solid;display:block;flex-shrink:0}
+.theme-preview-link{height:6px;border-radius:3px;display:block}
+.theme-card-foot{display:flex;align-items:center;justify-content:space-between;padding:9px 12px}
+.theme-card-name{font-size:.84em;font-weight:800}
+.theme-card-check{
+  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72em;font-weight:900;
+  background:var(--accent);color:#fff;opacity:0;transform:scale(.5);transition:opacity var(--t-fast),transform var(--t-fast) var(--ease-spring);
+}
+.theme-card.selected .theme-card-check{opacity:1;transform:scale(1)}
+
 /* ── SUPABASE STATUS ── */
 .sb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
 .sb-dot.ok{background:var(--success);box-shadow:0 0 6px var(--success)}
@@ -937,7 +964,7 @@ body.sortmode .topic-arrow{display:none}
       <h1><span class="clinote-logo">C</span>Clinotes</h1>
       <div class="sub" id="brand-sub">Cargando…</div>
     </div>
-    <button class="iconbtn dark-btn" id="dark-btn" onclick="toggleDarkMode()" title="Modo oscuro iframe">🌙</button>
+    <button class="iconbtn dark-btn" id="dark-btn" onclick="openThemePicker()" title="Tema de lectura">🌙</button>
     <div class="user-chip" onclick="showAuthOrPanel()">
       <div class="user-avatar" id="user-avatar">?</div>
       <span id="user-chip-label">Entrar</span>
@@ -1087,6 +1114,11 @@ body.sortmode .topic-arrow{display:none}
         <button type="button" onclick="changeZoom(1)" aria-label="Aumentar texto">+</button>
       </span>
     </div>
+    <button class="action-item" style="margin:0 18px 4px;width:auto" onclick="closeActionsOverlay();openThemePicker()">
+      <span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)">🎨</span>
+      <span style="flex:1">Tema de lectura</span>
+      <span id="actions-theme-name" style="font-size:.82em;color:var(--muted);font-weight:800"></span>
+    </button>
     <!-- Sección Contenido -->
     <div class="actions-section-label">Contenido</div>
     <div class="action-list">
@@ -1281,7 +1313,7 @@ body.sortmode .topic-arrow{display:none}
         <button class="close-btn" onclick="readerZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
         <span id="reader-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
         <button class="close-btn" onclick="readerZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
-        <button class="close-btn" onclick="toggleDarkMode()" id="reader-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
+        <button class="close-btn" onclick="openThemePicker()" id="reader-dark-btn" title="Tema de lectura" style="font-size:.9em">🌙</button>
         <button class="close-btn" onclick="printTopic(currentReaderTopicId)" id="reader-print-btn" title="Imprimir" style="font-size:.85em">🖨️</button>
         <button class="close-btn" onclick="closeReader()" title="Cerrar">✕</button>
       </div>
@@ -1312,7 +1344,7 @@ body.sortmode .topic-arrow{display:none}
         <button class="close-btn" onclick="previewZoom(-1)" title="Reducir texto" style="font-size:.85em;width:auto;padding:0 9px">−</button>
         <span id="preview-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
         <button class="close-btn" onclick="previewZoom(1)" title="Aumentar texto" style="font-size:.85em;width:auto;padding:0 9px">+</button>
-        <button class="close-btn" onclick="toggleDarkMode()" id="preview-dark-btn" title="Modo oscuro" style="font-size:.9em">🌙</button>
+        <button class="close-btn" onclick="openThemePicker()" id="preview-dark-btn" title="Tema de lectura" style="font-size:.9em">🌙</button>
         <button class="close-btn" id="preview-edit-btn" onclick="editPreviewTopic()" title="Editar tema" style="font-size:.88em">✏️</button>
         <button class="close-btn" onclick="closePreview()" title="Cerrar">✕</button>
       </div>
@@ -1385,6 +1417,18 @@ body.sortmode .topic-arrow{display:none}
   </div>
 </div>
 
+<!-- ── THEME PICKER ── -->
+<div class="overlay" id="theme-overlay" onclick="if(event.target===this)closeThemePicker()">
+  <div class="sheet" style="max-width:480px">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)">🎨</span>Tema de lectura</span><button class="close-btn" onclick="closeThemePicker()">✕</button></div>
+    <div class="sheet-body">
+      <p style="font-size:.8em;color:var(--muted);margin:0 0 14px;line-height:1.5">Se aplica al contenido de tus documentos. El motor de contraste corrige automáticamente la legibilidad (WCAG AA) en cualquier documento.</p>
+      <div class="theme-grid" id="theme-grid"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ── STUDY ── -->
 <div class="overlay" id="study-overlay" onclick="if(event.target===this)closeStudyMode()">
   <div class="sheet" id="study-sheet" style="max-height:97vh;display:flex;flex-direction:column">
@@ -1437,7 +1481,7 @@ let STATE=INITIAL_STATE();
 let expandedTopics={};
 let folderFilter=null;
 /* folder navigation removed — always renders root level */
-let iframeDark=true;
+/* READING_THEME declarado junto al sistema de temas más abajo */
 let SORT_MODE=false;
 let _sbClient=null;
 let _sbSyncTimer=null;
@@ -1630,6 +1674,8 @@ function openActionsOverlay(){
   document.getElementById('actions-overlay').style.display='flex';
   document.getElementById('actions-overlay').classList.add('open');
   document.getElementById('fab').classList.add('open');
+  const tn=document.getElementById('actions-theme-name');
+  if(tn){const p=getReadingPalette();tn.textContent=p.icon+' '+p.name;}
 }
 function closeActionsOverlay(){
   document.getElementById('actions-overlay').classList.remove('open');
@@ -1652,63 +1698,99 @@ function closeStudyMode(){closeOverlay('study-overlay')}
    DARK MODE (iframe content)
    ═══════════════════════════════════════════════════════ */
 /* Light-content dark mode: filter inversion on body (NOT html — iOS Safari bug) */
-const IFRAME_DARK_CSS=`<style>
-body{filter:invert(1) hue-rotate(180deg) contrast(1.05);background:#fff}
-img,video,canvas,svg,picture,figure img,[style*="background-image"]{filter:invert(1) hue-rotate(180deg)}
-iframe{filter:invert(1) hue-rotate(180deg)}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:#111}
-::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
-*,*::before,*::after{transition:none!important}
-</style>`;
+/* ═══════════════════════════════════════════════════════════════════
+   READING THEME SYSTEM  —  design tokens + WCAG contrast engine
+   ───────────────────────────────────────────────────────────────────
+   Reemplaza el viejo hack `filter:invert()`. Cada documento HTML se
+   renderiza dentro de un iframe; inyectamos (1) una capa base de tokens
+   y (2) un motor que recorre el DOM, calcula luminancia/contraste WCAG
+   y corrige cualquier color que rompa la legibilidad — preservando la
+   intención visual (tono) siempre que el contraste lo permita.
+   ═══════════════════════════════════════════════════════════════════ */
+const READING_PALETTES={
+  light:{key:'light',name:'Claro',icon:'☀️',isDark:false,
+    bg:'#ffffff',surface:'#f3f4f7',surface2:'#e8eaf0',fg:'#1a1d23',fgMuted:'#5b626e',
+    heading:'#0f1116',link:'#1d4ed8',border:'#d9dde4',codeBg:'#f0f2f5',codeFg:'#1a1d23',
+    codeBorder:'#dde1e8',tableHeadBg:'#eceef3'},
+  dark:{key:'dark',name:'Oscuro',icon:'🌙',isDark:true,
+    bg:'#1a1d23',surface:'#22262e',surface2:'#2b2f39',fg:'#e6e8ec',fgMuted:'#9aa1ad',
+    heading:'#f3f5f8',link:'#74b4ff',border:'#363b46',codeBg:'#12151a',codeFg:'#e6e8ec',
+    codeBorder:'#2b2f39',tableHeadBg:'#2b2f39'},
+  amoled:{key:'amoled',name:'AMOLED',icon:'⬛',isDark:true,
+    bg:'#000000',surface:'#0b0b0d',surface2:'#16161a',fg:'#eaecef',fgMuted:'#8b919c',
+    heading:'#ffffff',link:'#5aa9ff',border:'#23232a',codeBg:'#050506',codeFg:'#eaecef',
+    codeBorder:'#1c1c22',tableHeadBg:'#16161a'},
+  sepia:{key:'sepia',name:'Sepia',icon:'📖',isDark:false,
+    bg:'#f4ecd8',surface:'#ece2cb',surface2:'#e3d7bc',fg:'#433422',fgMuted:'#73624a',
+    heading:'#2e2415',link:'#8a4f24',border:'#d8c8a6',codeBg:'#e8dcc0',codeFg:'#433422',
+    codeBorder:'#d2c09c',tableHeadBg:'#e3d7bc'}};
 
-/* Dark-content: content already has dark backgrounds — only add scrollbar styles */
-const IFRAME_DARK_MIN=`<style>
-html,body{background:#111}
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:#111}
-::-webkit-scrollbar-thumb{background:#444;border-radius:4px}
-</style>`;
+let READING_THEME='dark';
+function getReadingPalette(){return READING_PALETTES[READING_THEME]||READING_PALETTES.dark;}
 
-/* Detect if HTML content already has a dark color theme.
-   Counts hex colors with luminance < 40 (very dark: #0f0c29, #1a1a2e, etc.)
-   If 3+ found, the content already has a dark theme — don't invert. */
-function isAlreadyDark(html){
-  let n=0;
-  const re=/#([0-9a-f]{6})\b/gi;
-  let m;
-  while((m=re.exec(html))!==null){
-    const h=m[1];
-    const r=parseInt(h.substr(0,2),16);
-    const g=parseInt(h.substr(2,2),16);
-    const b=parseInt(h.substr(4,2),16);
-    const lum=(r*299+g*587+b*114)/1000;
-    if(lum<40&&!(r===0&&g===0&&b===0)) n++;
-    if(n>=3) return true;
-  }
-  return false;
+/* Capa base de tokens — pinta el marco al instante (sin parpadeo blanco)
+   y da estilos coherentes a títulos, enlaces, tablas, código y scrollbars. */
+function themeBaseCSS(p){
+  return `<style id="__ct_base">
+:root{color-scheme:${p.isDark?'dark':'light'};--ct-bg:${p.bg};--ct-surface:${p.surface};--ct-surface2:${p.surface2};--ct-fg:${p.fg};--ct-mut:${p.fgMuted};--ct-head:${p.heading};--ct-link:${p.link};--ct-border:${p.border};--ct-code-bg:${p.codeBg};--ct-code-fg:${p.codeFg};--ct-th:${p.tableHeadBg}}
+html,body{background:${p.bg}!important;color:${p.fg}!important}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
+h1,h2,h3,h4,h5,h6{color:${p.heading}}
+a,a *{color:${p.link}}
+hr{border-color:${p.border};background:${p.border}}
+blockquote{border-left:3px solid ${p.border};color:${p.fgMuted}}
+table{border-color:${p.border}}
+th{background:${p.tableHeadBg};color:${p.heading}}
+td,th{border-color:${p.border}}
+pre,code,kbd,samp{background:${p.codeBg};color:${p.codeFg}}
+pre{border:1px solid ${p.codeBorder}}
+::selection{background:${p.link};color:${p.bg}}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:${p.surface}}
+::-webkit-scrollbar-thumb{background:${p.border};border-radius:5px}
+</style>`;
 }
 
-function injectDarkMode(html){
-  if(!iframeDark) return html;
-  const css=isAlreadyDark(html)?IFRAME_DARK_MIN:IFRAME_DARK_CSS;
-  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${css}`);
-  return css+html;
+/* Motor de contraste (corre DENTRO del iframe). Sin backticks ni etiquetas
+   <script> internas para no romper el script padre. La paleta se inyecta
+   como JSON en la variable T. */
+const READING_ENGINE=`
+var DARK=T.isDark, MINC=4.5;
+function parse(c){if(!c||c==='transparent')return null;c=(''+c).trim();if(c.charAt(0)==='#'){var x=c.slice(1);if(x.length===3)x=x[0]+x[0]+x[1]+x[1]+x[2]+x[2];if(x.length<6)return null;return{r:parseInt(x.slice(0,2),16),g:parseInt(x.slice(2,4),16),b:parseInt(x.slice(4,6),16)};}var m=c.match(/rgba?\\(([^)]+)\\)/);if(!m)return null;var p=m[1].split(',').map(parseFloat);var a=p.length>3?p[3]:1;if(!a)return null;return{r:p[0],g:p[1],b:p[2]};}
+function L(c){function f(v){v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4);}return 0.2126*f(c.r)+0.7152*f(c.g)+0.0722*f(c.b);}
+function ratio(a,b){var x=L(a),y=L(b),hi=Math.max(x,y),lo=Math.min(x,y);return (hi+0.05)/(lo+0.05);}
+function toHsl(c){var r=c.r/255,g=c.g/255,b=c.b/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),h,s,l=(mx+mn)/2;if(mx===mn){h=s=0;}else{var d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);if(mx===r)h=(g-b)/d+(g<b?6:0);else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h/=6;}return{h:h*360,s:s,l:l};}
+function toRgb(h,s,l){h/=360;function f(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<0.5)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}var r,g,b;if(!s){r=g=b=l;}else{var q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;r=f(p,q,h+1/3);g=f(p,q,h);b=f(p,q,h-1/3);}return{r:Math.round(r*255),g:Math.round(g*255),b:Math.round(b*255)};}
+function S(c){return 'rgb('+Math.round(c.r)+','+Math.round(c.g)+','+Math.round(c.b)+')';}
+var FG=parse(T.fg),BG=parse(T.bg);
+var tcache={};
+function fixText(fg,bg){var key=S(fg)+'|'+S(bg);if(key in tcache)return tcache[key];if(ratio(fg,bg)>=MINC){tcache[key]=null;return null;}var hsl=toHsl(fg),out;if(hsl.s<0.18){out=FG;}else{var step=DARK?0.045:-0.045,l=hsl.l,best=null;for(var i=0;i<26;i++){l=Math.min(0.97,Math.max(0.05,l+step));var cand=toRgb(hsl.h,Math.min(0.92,hsl.s),l);if(ratio(cand,bg)>=MINC){best=cand;break;}}out=best||FG;}tcache[key]=out;return out;}
+function fixBg(bg){var l=L(bg),hsl=toHsl(bg);if(DARK){if(l<=0.22)return null;if(hsl.s<0.12)return parse(l>0.85?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.5,hsl.s),0.19);}else{if(l>=0.82)return null;if(hsl.s<0.12)return parse(l<0.2?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.42,hsl.s),0.88);}}
+function effBg(el){var n=el;while(n&&n!==document.documentElement){var c=parse(getComputedStyle(n).backgroundColor);if(c)return c;n=n.parentElement;}return BG;}
+var MARK='data-ct-'+(DARK?'d':'l');
+var SKIP={SCRIPT:1,STYLE:1,IMG:1,SVG:1,svg:1,VIDEO:1,CANVAS:1,PICTURE:1,IFRAME:1,NOSCRIPT:1};
+function process(){var els=document.body?document.body.querySelectorAll('*'):[];var n=els.length;var heavy=n>5000;for(var i=0;i<n;i++){var el=els[i];if(el.getAttribute(MARK))continue;if(SKIP[el.tagName]){el.setAttribute(MARK,'1');continue;}var cs=getComputedStyle(el);var ownBg=parse(cs.backgroundColor);if(ownBg){var nb=fixBg(ownBg);if(nb)el.style.setProperty('background-color',S(nb),'important');}if(!heavy){var hasText=false,cn=el.childNodes;for(var k=0;k<cn.length;k++){if(cn[k].nodeType===3&&cn[k].textContent.trim()){hasText=true;break;}}if(hasText){var fg=parse(cs.color);if(fg){var bgT=ownBg?(fixBg(ownBg)||ownBg):effBg(el);var nf=fixText(fg,bgT);if(nf)el.style.setProperty('color',S(nf),'important');}}}el.setAttribute(MARK,'1');}}
+function run(){try{process();}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
+setTimeout(run,250);setTimeout(run,800);
+try{var to=null,last=Date.now();var mo=new MutationObserver(function(){last=Date.now();clearTimeout(to);to=setTimeout(run,350);});mo.observe(document.documentElement,{childList:true,subtree:true});(function chk(){setTimeout(function(){if(Date.now()-last>5000)mo.disconnect();else chk();},2200);})();}catch(e){}
+`;
+
+function injectReadingTheme(html,pal){
+  const head=themeBaseCSS(pal)+'<script>(function(){var T='+JSON.stringify(pal)+';'+READING_ENGINE+'})();<\/script>';
+  if(/<\/head>/i.test(html)) return html.replace(/<\/head>/i,head+'</head>');
+  if(/<body[^>]*>/i.test(html)) return html.replace(/<body([^>]*)>/i,`<body$1>${head}`);
+  return head+html;
 }
-function toggleDarkMode(){
-  iframeDark=!iframeDark;
-  localStorage.setItem('clinote-dark',iframeDark?'1':'0');
-  ['dark-btn','reader-dark-btn','preview-dark-btn'].forEach(id=>{
-    const btn=document.getElementById(id);
-    if(btn){btn.textContent=iframeDark?'🌙':'☀️';btn.classList.toggle('active',iframeDark);}
-  });
+
+/* Refresca el contenido de TODOS los iframes abiertos con la paleta actual */
+function refreshAllFrames(){
   document.querySelectorAll('.inline-frame[data-tid],.study-frame[data-tid]').forEach(fr=>{
     try{
       const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
       if(t?.html) fr.srcdoc=buildEmbedDoc(t.html);
     }catch(_){}
   });
-  /* refrescar también el iframe del lector y del previsualizador */
   try{
     const rf=document.querySelector('#reader-body .reader-frame');
     const rt=activeTopics().find(t=>t.id===window.currentReaderTopicId);
@@ -1718,14 +1800,58 @@ function toggleDarkMode(){
     const pf=document.getElementById('preview-frame');
     if(pf&&window.currentPreviewHtml){
       const pct=previewZoomPct||100;
-      pf.addEventListener('load',()=>{
-        try{const bd=pf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
-      },{once:true});
+      pf.addEventListener('load',()=>{try{const bd=pf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}},{once:true});
       pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
     }
   }catch(_){}
-  toast(iframeDark?'🌙 Modo oscuro activado':'☀️ Modo claro activado');
 }
+
+function updateThemeButtons(){
+  const pal=getReadingPalette();
+  ['dark-btn','reader-dark-btn','preview-dark-btn'].forEach(id=>{
+    const b=document.getElementById(id);
+    if(b){b.textContent=pal.icon;b.classList.toggle('active',pal.isDark);b.title='Tema de lectura: '+pal.name;}
+  });
+}
+
+function setReadingTheme(theme,silent){
+  if(!READING_PALETTES[theme]) return;
+  READING_THEME=theme;
+  localStorage.setItem('clinote-reading-theme',theme);
+  if(!STATE.settings) STATE.settings={};
+  STATE.settings.theme=theme;
+  try{saveState();}catch(_){}
+  updateThemeButtons();
+  renderThemePicker();
+  refreshAllFrames();
+  if(!silent) toast(getReadingPalette().icon+' Tema: '+getReadingPalette().name);
+}
+
+function renderThemePicker(){
+  const grid=document.getElementById('theme-grid');
+  if(!grid) return;
+  grid.innerHTML=Object.values(READING_PALETTES).map(p=>`
+    <button class="theme-card ${p.key===READING_THEME?'selected':''}" onclick="setReadingTheme('${p.key}')" aria-pressed="${p.key===READING_THEME}">
+      <span class="theme-preview" style="background:${p.bg};border-color:${p.border}">
+        <span class="theme-preview-head" style="background:${p.heading};width:54%"></span>
+        <span class="theme-preview-line" style="background:${p.fg};width:82%"></span>
+        <span class="theme-preview-line" style="background:${p.fgMuted};width:68%"></span>
+        <span class="theme-preview-row">
+          <span class="theme-preview-chip" style="background:${p.codeBg};border-color:${p.codeBorder}"></span>
+          <span class="theme-preview-link" style="background:${p.link};width:30%"></span>
+        </span>
+      </span>
+      <span class="theme-card-foot"><span class="theme-card-name">${p.icon} ${p.name}</span><span class="theme-card-check">✓</span></span>
+    </button>`).join('');
+}
+
+function openThemePicker(){
+  renderThemePicker();
+  openOverlay('theme-overlay');
+}
+function closeThemePicker(){closeOverlay('theme-overlay');}
+/* compat: cualquier referencia antigua abre el selector de temas */
+function toggleDarkMode(){openThemePicker();}
 
 /* ═══════════════════════════════════════════════════════
    IFRAME CONTENT BUILDER
@@ -1770,17 +1896,18 @@ function _injectAnchorFix(html){
 
 function buildEmbedDoc(rawHtml){
   const c=rawHtml||'';
+  const pal=getReadingPalette();
   /* React/JSX detection */
   const isReact=c.includes('useState')||c.includes('useEffect')||c.includes('React.')||c.includes('jsx')||c.includes('TSX');
   const hasFullDoc=/<!DOCTYPE|<html/i.test(c);
   if(isReact&&!hasFullDoc){
     const{body,comp}=prepareReactBody(c);
     const lookup=comp||'App';
-    return _injectAnchorFix(injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:#0f0c29;color:#fff}#root{min-height:100vh}</style><script>window.addEventListener('error',function(e){var r=document.getElementById('root');if(r&&!r.childElementCount){r.innerHTML='<pre style="padding:20px;color:#ff8a8a;white-space:pre-wrap;font-size:12px">⚠️ Error: '+(e.message||'desconocido')+'</pre>';}});<\/script></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,useLayoutEffect}=React;${body}
-try{const Comp=(typeof ${lookup}!=='undefined')?${lookup}:((typeof App!=='undefined')?App:((typeof __Default!=='undefined')?__Default:null));if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`));
+    return _injectAnchorFix(injectReadingTheme(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"><\/script><script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"><\/script><script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script><style>body{margin:0;font-family:-apple-system,sans-serif;background:${pal.bg};color:${pal.fg}}#root{min-height:100vh}</style><script>window.addEventListener('error',function(e){var r=document.getElementById('root');if(r&&!r.childElementCount){r.innerHTML='<pre style="padding:20px;color:#ff8a8a;white-space:pre-wrap;font-size:12px">⚠️ Error: '+(e.message||'desconocido')+'</pre>';}});<\/script></head><body><div id="root"></div><script type="text/babel" data-presets="react">const{useState,useEffect,useRef,useMemo,useCallback,useReducer,useContext,useLayoutEffect}=React;${body}
+try{const Comp=(typeof ${lookup}!=='undefined')?${lookup}:((typeof App!=='undefined')?App:((typeof __Default!=='undefined')?__Default:null));if(Comp){ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Comp));}else{document.getElementById('root').innerHTML='<p style=\\'padding:20px\\'>No component found.</p>';}}catch(e){document.getElementById('root').innerHTML='<pre style=\\'padding:20px;color:#ff8a8a;white-space:pre-wrap\\'>'+e.message+'</pre>';}<\/script></body></html>`,pal));
   }
-  if(hasFullDoc) return _injectAnchorFix(injectDarkMode(c));
-  return _injectAnchorFix(injectDarkMode(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:14px;font-family:-apple-system,sans-serif;background:#fff;color:#111;line-height:1.5}</style></head><body>${c}</body></html>`));
+  if(hasFullDoc) return _injectAnchorFix(injectReadingTheme(c,pal));
+  return _injectAnchorFix(injectReadingTheme(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;padding:14px;font-family:-apple-system,sans-serif;line-height:1.6}</style></head><body>${c}</body></html>`,pal));
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3530,13 +3657,15 @@ async function init(){
   if(!STATE.settings) STATE.settings={zoom:100,theme:'dark'};
   /* Apply zoom */
   updateZoomDisplay();
-  /* Dark mode preference */
-  const dm=localStorage.getItem('clinote-dark');
-  iframeDark=(dm===null||dm==='1');
-  ['dark-btn','reader-dark-btn','preview-dark-btn'].forEach(id=>{
-    const b=document.getElementById(id);
-    if(b){b.textContent=iframeDark?'🌙':'☀️';b.classList.toggle('active',iframeDark);}
-  });
+  /* Reading theme preference (migra desde la antigua clave clinote-dark) */
+  let rt=localStorage.getItem('clinote-reading-theme');
+  if(!rt||!READING_PALETTES[rt]){
+    if(STATE.settings&&READING_PALETTES[STATE.settings.theme]) rt=STATE.settings.theme;
+    else{const dm=localStorage.getItem('clinote-dark');rt=(dm==='0')?'light':'dark';}
+    localStorage.setItem('clinote-reading-theme',rt);
+  }
+  READING_THEME=rt;
+  updateThemeButtons();
   /* Update brand */
   const sub=document.getElementById('brand-sub');
   if(sub) sub.textContent=`${activeTopics().length} temas · ${APP_VERSION}`;
