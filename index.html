@@ -425,8 +425,9 @@ body.sortmode .topic-arrow{display:none}
   width:32px;height:32px;border-radius:999px;background:var(--surface2);
   display:flex;align-items:center;justify-content:center;
   font-size:1.1em;color:var(--muted);font-weight:700;
-  transition:background var(--t-fast),transform var(--t-fast);
+  transition:background var(--t-fast),transform var(--t-fast),color var(--t-fast);
 }
+.close-btn:hover{background:var(--surface3);color:var(--text2)}
 .close-btn:active{background:var(--border);transform:scale(.9)}
 .label{font-size:.78em;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;margin-top:14px;display:block}
 .label:first-child{margin-top:0}
@@ -653,7 +654,7 @@ body.sortmode .topic-arrow{display:none}
 .action-list{display:grid;gap:5px;padding:0 18px 4px}
 .action-item{
   display:flex;align-items:center;gap:11px;padding:11px 13px;
-  background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r-sm);
   font-size:.88em;font-weight:700;transition:all var(--t-fast);
 }
 .action-item:hover{background:var(--surface3);border-color:var(--border2)}
@@ -744,32 +745,65 @@ body.sortmode .topic-arrow{display:none}
 /* ── DARK MODE TOGGLE ── */
 .dark-btn.active{background:var(--surface3);color:var(--warning)}
 
-/* ── THEME PICKER ── */
-.theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.theme-card{
-  display:flex;flex-direction:column;gap:0;border:1.5px solid var(--border);border-radius:var(--r);
-  overflow:hidden;background:var(--surface2);transition:transform var(--t-fast),border-color var(--t-fast),box-shadow var(--t-fast);
-  text-align:left;
+/* ── THEME PICKER (segmented control + compact list) ── */
+.theme-seg{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  background:var(--surface3);border:1.5px solid var(--border);
+  border-radius:var(--r-lg);padding:3px;gap:3px;margin-bottom:14px;
 }
-.theme-card:hover{border-color:var(--border2);transform:translateY(-2px)}
-.theme-card:active{transform:scale(.98)}
-.theme-card.selected{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,156,255,.18)}
-.theme-preview{
-  display:flex;flex-direction:column;gap:6px;padding:14px;min-height:96px;border-bottom:1px solid var(--border);
-  border-bottom-width:0;
+.theme-seg-btn{
+  padding:9px 4px;border-radius:calc(var(--r-lg) - 5px);
+  font-size:.78em;font-weight:800;color:var(--text2);
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  transition:all var(--t-fast);line-height:1.2;
 }
-.theme-preview-head{height:9px;border-radius:3px;display:block}
-.theme-preview-line{height:6px;border-radius:3px;display:block;opacity:.92}
-.theme-preview-row{display:flex;align-items:center;gap:6px;margin-top:4px}
-.theme-preview-chip{width:34px;height:16px;border-radius:5px;border:1px solid;display:block;flex-shrink:0}
-.theme-preview-link{height:6px;border-radius:3px;display:block}
-.theme-card-foot{display:flex;align-items:center;justify-content:space-between;padding:9px 12px}
-.theme-card-name{font-size:.84em;font-weight:800}
-.theme-card-check{
-  width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72em;font-weight:900;
-  background:var(--accent);color:#fff;opacity:0;transform:scale(.5);transition:opacity var(--t-fast),transform var(--t-fast) var(--ease-spring);
+.theme-seg-btn .seg-icon{font-size:1.12em;line-height:1}
+.theme-seg-btn .seg-label{font-size:.65em;font-weight:900;letter-spacing:.15px;white-space:nowrap}
+.theme-seg-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.theme-seg-btn:active{transform:scale(.93)}
+.theme-seg-btn.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;box-shadow:0 3px 12px rgba(79,156,255,.3);
 }
-.theme-card.selected .theme-card-check{opacity:1;transform:scale(1)}
+.theme-list{display:grid;gap:6px}
+.theme-row{
+  display:flex;align-items:center;gap:12px;padding:11px 14px;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);
+  cursor:pointer;transition:all var(--t-fast);text-align:left;width:100%;
+}
+.theme-row:hover{background:var(--surface3);border-color:var(--border2);transform:translateY(-1px)}
+.theme-row:active{transform:scale(.99)}
+.theme-row.selected{
+  border-color:var(--accent);
+  background:linear-gradient(135deg,rgba(79,156,255,.09),rgba(79,156,255,.03));
+}
+.theme-swatch{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 2px 8px rgba(0,0,0,.22),0 1px 0 rgba(255,255,255,.05) inset;
+}
+.theme-swatch-dot{
+  width:13px;height:13px;border-radius:50%;
+  box-shadow:0 0 0 2px rgba(0,0,0,.18);
+}
+.theme-row-info{flex:1;min-width:0}
+.theme-row-name{font-size:.88em;font-weight:800;color:var(--text);display:flex;align-items:center;gap:6px}
+.theme-row-desc{font-size:.72em;color:var(--muted);font-weight:700;margin-top:2px}
+.theme-row-check{
+  width:22px;height:22px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:grid;place-items:center;font-size:.72em;font-weight:900;color:#fff;
+  opacity:0;transform:scale(.4);flex-shrink:0;
+  transition:opacity var(--t-fast),transform var(--t-fast) var(--ease-spring);
+}
+.theme-row.selected .theme-row-check{opacity:1;transform:scale(1)}
+.theme-wcag-note{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 13px;border-radius:var(--r-sm);margin-top:12px;
+  background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.22);
+  font-size:.74em;font-weight:700;color:var(--success);line-height:1.4;
+}
 
 /* ── SUPABASE STATUS ── */
 .sb-dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex-shrink:0}
@@ -1114,11 +1148,15 @@ body.sortmode .topic-arrow{display:none}
         <button type="button" onclick="changeZoom(1)" aria-label="Aumentar texto">+</button>
       </span>
     </div>
-    <button class="action-item" style="margin:0 18px 4px;width:auto" onclick="closeActionsOverlay();openThemePicker()">
-      <span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)">🎨</span>
-      <span style="flex:1">Tema de lectura</span>
-      <span id="actions-theme-name" style="font-size:.82em;color:var(--muted);font-weight:800"></span>
-    </button>
+    <!-- Sección Apariencia -->
+    <div class="actions-section-label">Apariencia</div>
+    <div class="action-list">
+      <button class="action-item" onclick="closeActionsOverlay();openThemePicker()">
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)">🎨</span>
+        <span style="flex:1">Tema de lectura</span>
+        <span id="actions-theme-name" style="font-size:.78em;color:var(--muted);font-weight:800;background:var(--surface3);padding:3px 8px;border-radius:999px;border:1px solid var(--border)"></span>
+      </button>
+    </div>
     <!-- Sección Contenido -->
     <div class="actions-section-label">Contenido</div>
     <div class="action-list">
@@ -1383,6 +1421,7 @@ body.sortmode .topic-arrow{display:none}
             <span class="sb-action-sub">Restaura tu última copia guardada</span>
           </span>
         </button>
+        <div style="height:1px;background:var(--border);margin:4px 0"></div>
         <button class="sb-action-btn sb-signout-btn" onclick="signOut()">
           <span class="sb-action-icon" style="background:rgba(248,113,113,.1);color:var(--danger)">🚪</span>
           <span class="sb-action-body">
@@ -1419,12 +1458,13 @@ body.sortmode .topic-arrow{display:none}
 
 <!-- ── THEME PICKER ── -->
 <div class="overlay" id="theme-overlay" onclick="if(event.target===this)closeThemePicker()">
-  <div class="sheet" style="max-width:480px">
+  <div class="sheet" style="max-width:540px">
     <div class="sheet-handle"></div>
     <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)">🎨</span>Tema de lectura</span><button class="close-btn" onclick="closeThemePicker()">✕</button></div>
     <div class="sheet-body">
-      <p style="font-size:.8em;color:var(--muted);margin:0 0 14px;line-height:1.5">Se aplica al contenido de tus documentos. El motor de contraste corrige automáticamente la legibilidad (WCAG AA) en cualquier documento.</p>
-      <div class="theme-grid" id="theme-grid"></div>
+      <div class="theme-seg" id="theme-seg"></div>
+      <div class="theme-list" id="theme-list"></div>
+      <div class="theme-wcag-note">✅ Motor WCAG AA activo — contraste automático en todos los documentos</div>
     </div>
   </div>
 </div>
@@ -1469,7 +1509,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v5.0';
+const APP_VERSION='v6.1';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1828,20 +1868,26 @@ function setReadingTheme(theme,silent){
 }
 
 function renderThemePicker(){
-  const grid=document.getElementById('theme-grid');
-  if(!grid) return;
-  grid.innerHTML=Object.values(READING_PALETTES).map(p=>`
-    <button class="theme-card ${p.key===READING_THEME?'selected':''}" onclick="setReadingTheme('${p.key}')" aria-pressed="${p.key===READING_THEME}">
-      <span class="theme-preview" style="background:${p.bg};border-color:${p.border}">
-        <span class="theme-preview-head" style="background:${p.heading};width:54%"></span>
-        <span class="theme-preview-line" style="background:${p.fg};width:82%"></span>
-        <span class="theme-preview-line" style="background:${p.fgMuted};width:68%"></span>
-        <span class="theme-preview-row">
-          <span class="theme-preview-chip" style="background:${p.codeBg};border-color:${p.codeBorder}"></span>
-          <span class="theme-preview-link" style="background:${p.link};width:30%"></span>
-        </span>
+  const seg=document.getElementById('theme-seg');
+  const list=document.getElementById('theme-list');
+  if(!seg&&!list) return;
+  const DESCS={light:'Fondo blanco, texto oscuro',dark:'Fondo oscuro, texto claro',amoled:'Negro puro, máximo contraste',sepia:'Calidez sepia, lectura larga'};
+  const pals=Object.values(READING_PALETTES);
+  if(seg) seg.innerHTML=pals.map(p=>`
+    <button class="theme-seg-btn${p.key===READING_THEME?' active':''}" onclick="setReadingTheme('${p.key}')" aria-pressed="${p.key===READING_THEME}">
+      <span class="seg-icon">${p.icon}</span>
+      <span class="seg-label">${p.name}</span>
+    </button>`).join('');
+  if(list) list.innerHTML=pals.map(p=>`
+    <button class="theme-row${p.key===READING_THEME?' selected':''}" onclick="setReadingTheme('${p.key}')" aria-pressed="${p.key===READING_THEME}">
+      <span class="theme-swatch" style="background:${p.bg}">
+        <span class="theme-swatch-dot" style="background:${p.fg}"></span>
       </span>
-      <span class="theme-card-foot"><span class="theme-card-name">${p.icon} ${p.name}</span><span class="theme-card-check">✓</span></span>
+      <span class="theme-row-info">
+        <span class="theme-row-name">${p.icon} ${p.name}</span>
+        <span class="theme-row-desc">${DESCS[p.key]||''}</span>
+      </span>
+      <span class="theme-row-check">✓</span>
     </button>`).join('');
 }
 
@@ -3305,24 +3351,24 @@ function openSupabasePanel(){
     if(user){
       const initials=(user.email||'?').slice(0,2).toUpperCase();
       el.innerHTML=`
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:.88em;font-weight:900;color:#fff;flex-shrink:0">${h(initials)}</div>
-          <div style="min-width:0">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div class="sb-dot ok"></div><strong style="font-size:.84em">Conectado</strong></div>
-            <div style="font-size:.76em;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h(user.email)}</div>
+        <div style="display:flex;align-items:center;gap:14px;padding:2px 0 12px">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:1.08em;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 6px 20px rgba(79,156,255,.3),0 0 0 3px rgba(79,156,255,.12)">${h(initials)}</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-size:.92em;font-weight:900;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px">${h(user.email)}</div>
+            <div style="display:flex;align-items:center;gap:5px"><div class="sb-dot ok"></div><span style="font-size:.74em;color:var(--success);font-weight:800">Conectado</span></div>
           </div>
         </div>
-        <div id="sb-sync-status" style="font-size:.74em;margin-top:8px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)"></div>
+        <div id="sb-sync-status" style="font-size:.74em;color:var(--muted);padding-top:10px;border-top:1px solid var(--border)"></div>
       `;
-      el.style.background='linear-gradient(135deg,rgba(79,156,255,.06),rgba(79,156,255,.02))';
-      el.style.borderColor='rgba(79,156,255,.2)';
+      el.style.background='linear-gradient(135deg,rgba(79,156,255,.07),rgba(79,156,255,.02))';
+      el.style.borderColor='rgba(79,156,255,.22)';
     }else{
       el.innerHTML=`
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;flex-shrink:0;font-size:1.2em">👤</div>
+        <div style="display:flex;align-items:center;gap:14px;padding:2px 0">
+          <div style="width:52px;height:52px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;flex-shrink:0;font-size:1.4em;border:1.5px solid var(--border)">👤</div>
           <div>
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px"><div class="sb-dot err"></div><strong style="font-size:.84em">Sin cuenta</strong></div>
-            <div style="font-size:.76em;color:var(--muted)">Datos guardados solo localmente</div>
+            <div style="font-size:.9em;font-weight:900;color:var(--text);margin-bottom:4px">Sin cuenta activa</div>
+            <div style="display:flex;align-items:center;gap:5px"><div class="sb-dot err"></div><span style="font-size:.74em;color:var(--muted);font-weight:700">Solo almacenamiento local</span></div>
           </div>
         </div>
       `;
