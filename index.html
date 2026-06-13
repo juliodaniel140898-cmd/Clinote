@@ -1000,6 +1000,39 @@ body.sortmode .topic-arrow{display:none}
 .home-metric-trash.has-items .home-metric-value{color:var(--danger)}
 .home-metric-trash .home-metric-icon{background:rgba(248,113,113,.1);color:var(--muted)}
 .home-metric-trash.has-items .home-metric-icon{color:var(--danger)}
+/* ── HOME RESUME (Continuar estudiando + recientes) ── */
+.home-resume{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.resume-label{font-size:.68em;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.resume-label .resume-week{margin-left:auto;text-transform:none;letter-spacing:0;color:var(--success);font-weight:800}
+.resume-continue{
+  display:flex;align-items:center;gap:12px;padding:12px 13px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));
+  border:1.5px solid color-mix(in srgb,var(--accent) 28%,var(--border));
+  border-radius:var(--r-lg);cursor:pointer;width:100%;text-align:left;
+  transition:transform var(--t-fast),border-color var(--t-fast);
+}
+.resume-continue:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent) 45%,var(--border))}
+.resume-continue:active{transform:scale(.99)}
+.resume-continue-emoji{font-size:1.7em;line-height:1;flex-shrink:0;width:38px;text-align:center}
+.resume-continue-emoji img.emoji{width:1.5em;height:1.5em;vertical-align:middle}
+.resume-continue-body{flex:1;min-width:0}
+.resume-continue-kicker{font-size:.64em;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:.5px}
+.resume-continue-title{font-size:.96em;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.resume-continue-meta{font-size:.72em;color:var(--muted);font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.resume-continue-go{flex-shrink:0;display:flex;align-items:center;gap:5px;font-size:.78em;font-weight:800;color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,transparent);padding:8px 12px;border-radius:999px}
+.resume-continue-go .ic{width:1em;height:1em}
+.resume-recent{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.resume-recent::-webkit-scrollbar{display:none}
+.resume-chip{
+  flex-shrink:0;display:flex;align-items:center;gap:7px;max-width:170px;
+  padding:8px 12px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:999px;cursor:pointer;transition:border-color var(--t-fast),transform var(--t-fast);
+}
+.resume-chip:hover{border-color:var(--border2)}
+.resume-chip:active{transform:scale(.96)}
+.resume-chip-emoji{font-size:1em;line-height:1;flex-shrink:0}
+.resume-chip-emoji img.emoji{width:1.1em;height:1.1em;vertical-align:middle}
+.resume-chip-title{font-size:.78em;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .searchwrap{padding-top:12px;position:relative}
 .search-ic{position:absolute;left:30px;top:calc(50% + 6px);transform:translateY(-50%);color:var(--muted);pointer-events:none;z-index:1;font-size:1.08em;display:flex}
 .searchbox{
@@ -1156,6 +1189,8 @@ body.sortmode .topic-arrow{display:none}
       </button>
     </div>
   </section>
+  <!-- FASE 7: Continuar estudiando + recientes (se ocultan si no hay historial) -->
+  <section class="home-resume" id="home-resume" style="display:none" aria-label="Continuar estudiando"></section>
 </div>
 
 <!-- ── SEARCH ── -->
@@ -1636,7 +1671,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.3';
+const APP_VERSION='v8.4';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2341,6 +2376,7 @@ function _doRender(){
   renderFolderFilters();
   /* render stats */
   renderStats();
+  renderHomeResume();
 
   /* always show root-level folders */
   const foldersAtLevel=getFolderChildren(null).filter(f=>!f.deleted);
@@ -2422,6 +2458,80 @@ function renderStats(){
   setText('home-trash-count',trash);
   const tb=document.getElementById('home-trash-btn');
   if(tb) tb.classList.toggle('has-items',trash>0);
+}
+
+/* FASE 7: Panel "Continuar estudiando" + temas recientes + stat semanal.
+   Usa topic.lastOpenedAt / topic.studiedAt (campos aditivos). Se oculta si no
+   hay historial o si hay una búsqueda activa. */
+function renderHomeResume(){
+  const el=document.getElementById('home-resume');
+  if(!el) return;
+  const searching=!!normalizeText(document.getElementById('search')?.value||'');
+  const opened=activeTopics().filter(t=>t.lastOpenedAt).sort((a,b)=>b.lastOpenedAt-a.lastOpenedAt);
+  if(searching||!opened.length){el.style.display='none';el.innerHTML='';return;}
+
+  /* W3: estudiados en los últimos 7 días */
+  const weekAgo=Date.now()-7*864e5;
+  const weekCount=activeTopics().filter(t=>t.studiedAt&&t.studiedAt>=weekAgo).length;
+
+  /* W1: continuar — el más reciente sin estudiar; si todos estudiados, el más reciente */
+  const cont=opened.find(t=>!t.studied)||opened[0];
+  const fol=cont.folderId?getFolder(cont.folderId):null;
+  const folName=fol?fol.name:'Sin carpeta';
+  const emoji=cont.icon||(fol&&fol.emoji)||'📄';
+
+  /* W2: recientes (hasta 5, excluyendo el de "continuar") */
+  const recent=opened.filter(t=>t.id!==cont.id).slice(0,5);
+
+  let html=`<div class="resume-label">${icon('graduation-cap')} Continuar estudiando`;
+  if(weekCount>0) html+=`<span class="resume-week">${weekCount} estudiado${weekCount!==1?'s':''} esta semana</span>`;
+  html+=`</div>`;
+  html+=`<button class="resume-continue" onclick="openTopicFromHome('${cont.id}')">
+    <span class="resume-continue-emoji">${h(emoji)}</span>
+    <span class="resume-continue-body">
+      <span class="resume-continue-kicker">${cont.studied?'Repasar':'Reanudar'}</span>
+      <span class="resume-continue-title">${h(cont.title||'Sin título')}</span>
+      <span class="resume-continue-meta">${h(folName)}</span>
+    </span>
+    <span class="resume-continue-go">${icon('book-open')} Abrir</span>
+  </button>`;
+  if(recent.length){
+    html+=`<div class="resume-recent">`+recent.map(t=>{
+      const fe=t.icon||(getFolder(t.folderId)?.emoji)||'📄';
+      return `<button class="resume-chip" onclick="openTopicFromHome('${t.id}')" title="${ha(t.title||'')}">
+        <span class="resume-chip-emoji">${h(fe)}</span>
+        <span class="resume-chip-title">${h(t.title||'Sin título')}</span>
+      </button>`;
+    }).join('')+`</div>`;
+  }
+  el.innerHTML=html;
+  el.style.display='';
+  hydrateIcons(el);
+  parseEmoji(el);
+}
+
+/* Abre un tema desde el panel: expande su cadena de carpetas, lo marca abierto,
+   re-renderiza y hace scroll hasta él. */
+function openTopicFromHome(id){
+  const t=activeTopics().find(x=>x.id===id);
+  if(!t) return;
+  /* expandir la carpeta del tema y todos sus ancestros */
+  let fid=t.folderId||null;
+  if(fid===null){expandedTopics['null']=true;}
+  while(fid){
+    expandedTopics[fid]=true;
+    const f=getFolder(fid);
+    fid=f?(f.parentId||null):null;
+  }
+  expandedTopics[id]=true;
+  /* registrar apertura (mismo throttle que toggleTopicExpand) */
+  const now=Date.now();
+  if(!t.lastOpenedAt||now-t.lastOpenedAt>60000){t.lastOpenedAt=now;saveState();}
+  render();
+  requestAnimationFrame(()=>setTimeout(()=>{
+    const card=document.querySelector(`[data-topic-id="${id}"]`);
+    if(card) card.scrollIntoView({behavior:'smooth',block:'center'});
+  },120));
 }
 
 function renderFolderFilters(){
@@ -2586,6 +2696,14 @@ function toggleTopicExpand(id){
   if(arrowEl) arrowEl.classList.toggle('open',isOpen);
   if(collapseEl){
     if(isOpen){
+      /* FASE 7: registra la última apertura para el panel "Continuar
+         estudiando". Throttle de 60s para evitar churn de sync al abrir
+         y cerrar rápido; el guardado usa el debounce de sync existente. */
+      const now=Date.now();
+      if(!topic.lastOpenedAt||now-topic.lastOpenedAt>60000){
+        topic.lastOpenedAt=now;
+        saveState();
+      }
       collapseEl.innerHTML=buildTopicInner(topic);
       /* Set srcdoc directly from the topic object in memory — no HTML
          attribute encoding roundtrip, no double-encoding, works on all
@@ -2962,6 +3080,8 @@ function toggleStudied(topicId){
   const t=activeTopics().find(x=>x.id===topicId);
   if(!t) return;
   t.studied=!t.studied;
+  /* FASE 7: marca de tiempo para la estadística "estudiados esta semana" */
+  if(t.studied) t.studiedAt=Date.now();
   saveState();
   const card=document.querySelector(`[data-topic-id="${topicId}"]`);
   if(card){
