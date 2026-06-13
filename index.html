@@ -1706,7 +1706,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.7';
+const APP_VERSION='v8.8';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1738,6 +1738,50 @@ function normalizeStateShape(p){
   if(!Array.isArray(p.folders)) p.folders=[];
   if(!p.settings||typeof p.settings!=='object') p.settings={zoom:100,theme:'dark'};
   return p;
+}
+
+/* FASE 11: Sincronización por fusión a nivel de elemento.
+   touch — sella updatedAt en un objeto modificado (tema/carpeta). Llamado en
+   cada punto de mutación para que la fusión sepa cuál versión es más reciente. */
+function touch(o){if(o&&typeof o==='object')o.updatedAt=Date.now();return o;}
+/* Marca de tiempo efectiva de un elemento: updatedAt > createdAt > 0.
+   Datos antiguos sin updatedAt cuentan como los más viejos, así cualquier
+   edición explícita (que sí sella updatedAt) gana sobre ellos. */
+function itemStamp(o){
+  if(!o||typeof o!=='object') return 0;
+  if(typeof o.updatedAt==='number') return o.updatedAt;
+  if(typeof o.createdAt==='number') return o.createdAt;
+  return 0;
+}
+/* Une dos listas de elementos por id. Ante el mismo id gana el de updatedAt
+   más reciente; en empate se queda el LOCAL (nunca se pierde lo de este
+   dispositivo). Un tombstone (deleted:true) es solo una versión más; un
+   borrado reciente gana sobre una edición vieja y viceversa. */
+function mergeItems(localArr,remoteArr){
+  const byId=new Map();
+  for(const it of localArr||[]) if(it&&it.id!=null) byId.set(it.id,it);
+  for(const it of remoteArr||[]){
+    if(!it||it.id==null) continue;
+    const cur=byId.get(it.id);
+    if(!cur){ byId.set(it.id,it); }            /* solo en remoto → traer */
+    else if(itemStamp(it)>itemStamp(cur)){ byId.set(it.id,it); } /* remoto más nuevo gana */
+    /* empate o local más nuevo → se queda el local */
+  }
+  return [...byId.values()];
+}
+/* Fusiona dos estados completos. No muta los originales. */
+function mergeStates(local,remote){
+  if(!remote||typeof remote!=='object') return local;
+  if(!local||typeof local!=='object') return remote;
+  const remoteNewer=(remote.updatedAt||0)>(local.updatedAt||0);
+  return {
+    version:Math.max(local.version||2,remote.version||2),
+    topics:mergeItems(local.topics,remote.topics),
+    folders:mergeItems(local.folders,remote.folders),
+    /* settings no tiene id por elemento → usar el del estado globalmente más reciente */
+    settings:(remoteNewer?remote.settings:local.settings)||local.settings||remote.settings,
+    updatedAt:Math.max(local.updatedAt||0,remote.updatedAt||0),
+  };
 }
 
 let STATE=INITIAL_STATE();
@@ -2668,7 +2712,7 @@ function renderStats(){
   const studied=activeTopics().filter(t=>t.studied).length;
   const folders=activeFolders().length;
   const pct=total?Math.round(studied/total*100):0;
-  const trash=STATE.topics.filter(t=>t.deleted).length+STATE.folders.filter(f=>f.deleted).length;
+  const trash=STATE.topics.filter(t=>t.deleted&&!t.purged).length+STATE.folders.filter(f=>f.deleted&&!f.purged).length;
   const setText=(id,val)=>{const node=document.getElementById(id);if(node)node.textContent=val};
   setText('home-topic-count',total);
   setText('home-folder-count',folders);
@@ -2953,7 +2997,7 @@ function expandAllFolders(open){
 function toggleFavorite(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
   if(!t) return;
-  t.favorite=!t.favorite;saveState();
+  t.favorite=!t.favorite;touch(t);saveState();
   const card=document.querySelector(`[data-topic-id="${topicId}"]`);
   if(card){
     const btn=card.querySelector('.toolbtn:has-text');
@@ -3047,9 +3091,9 @@ function saveFolder(){
   const parentId=document.getElementById('folder-parent-id').value||null;
   if(editId){
     const f=getFolder(editId);
-    if(f){Object.assign(f,{name,emoji,color,parentId});}
+    if(f){Object.assign(f,{name,emoji,color,parentId});touch(f);}
   }else{
-    STATE.folders.push({id:uid('f'),name,emoji,color,parentId,order:STATE.folders.length,favorite:false,deleted:false});
+    STATE.folders.push({id:uid('f'),name,emoji,color,parentId,order:STATE.folders.length,favorite:false,deleted:false,createdAt:Date.now(),updatedAt:Date.now()});
   }
   saveState();render();closeFolderEditor();
   toast(editId?'Carpeta actualizada':'Carpeta creada',editId?'success':'folder');
@@ -3071,14 +3115,18 @@ function runConfirmAction(){
   closeOverlay('confirm-overlay');
   if(confirmPayload.type==='folder'){
     const f=getFolder(confirmPayload.id);
-    if(f){f.deleted=true;f.deletedAt=Date.now();}
+    if(f){f.deleted=true;f.deletedAt=Date.now();touch(f);}
     /* move topics to trash */
-    getTopicsInFolder(confirmPayload.id).forEach(t=>{t.deleted=true;t.deletedAt=Date.now();});
+    getTopicsInFolder(confirmPayload.id).forEach(t=>{t.deleted=true;t.deletedAt=Date.now();touch(t);});
   }else if(confirmPayload.type==='topic'){
     const t=activeTopics().find(t=>t.id===confirmPayload.id)||STATE.topics.find(t=>t.id===confirmPayload.id);
-    if(t){t.deleted=true;t.deletedAt=Date.now();}
+    if(t){t.deleted=true;t.deletedAt=Date.now();touch(t);}
   }else if(confirmPayload.type==='clearAll'){
-    STATE=INITIAL_STATE();
+    /* FASE 11: tombstones en vez de wipe, para que el "borrar todo" se propague
+       por la fusión y NO resucite desde la nube en otro dispositivo. */
+    const now=Date.now();
+    STATE.topics.forEach(t=>{t.deleted=true;t.purged=true;t.deletedAt=now;t.updatedAt=now;});
+    STATE.folders.forEach(f=>{f.deleted=true;f.purged=true;f.deletedAt=now;f.updatedAt=now;});
   }
   saveState();render();
   toast('Movido a la papelera','delete');
@@ -3090,8 +3138,8 @@ function runConfirmAction(){
    ═══════════════════════════════════════════════════════ */
 function openTrash(){
   const list=document.getElementById('trash-list');
-  const deletedTopics=STATE.topics.filter(t=>t.deleted);
-  const deletedFolders=STATE.folders.filter(f=>f.deleted);
+  const deletedTopics=STATE.topics.filter(t=>t.deleted&&!t.purged);
+  const deletedFolders=STATE.folders.filter(f=>f.deleted&&!f.purged);
   if(!deletedTopics.length&&!deletedFolders.length){
     list.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-size:.88em">La papelera está vacía</div>';
   }else{
@@ -3111,22 +3159,32 @@ function openTrash(){
   openOverlay('trash-overlay');
 }
 function restoreItem(id,type){
-  if(type==='folder'){const f=STATE.folders.find(f=>f.id===id);if(f){f.deleted=false;delete f.deletedAt;}}
-  else{const t=STATE.topics.find(t=>t.id===id);if(t){t.deleted=false;delete t.deletedAt;}}
+  if(type==='folder'){const f=STATE.folders.find(f=>f.id===id);if(f){f.deleted=false;delete f.deletedAt;touch(f);}}
+  else{const t=STATE.topics.find(t=>t.id===id);if(t){t.deleted=false;delete t.deletedAt;touch(t);}}
   saveState();render();openTrash();
   toast('Restaurado','undo');
 }
+/* FASE 11: la purga ya no borra físicamente — deja un tombstone mínimo
+   (id + flags), sin contenido, para que la eliminación se propague por la
+   fusión y el elemento NO reaparezca desde una nube desactualizada. */
+function _purgeStrip(o){
+  const id=o.id, deletedAt=o.deletedAt||Date.now();
+  for(const k of Object.keys(o)) delete o[k];
+  o.id=id; o.deleted=true; o.purged=true; o.deletedAt=deletedAt; o.updatedAt=Date.now();
+  return o;
+}
 function purgeItem(id,type){
   if(!confirm('¿Eliminar este elemento de forma permanente? No se puede deshacer.')) return;
-  if(type==='folder'){STATE.folders=STATE.folders.filter(f=>f.id!==id);}
-  else{STATE.topics=STATE.topics.filter(t=>t.id!==id);}
+  const arr=type==='folder'?STATE.folders:STATE.topics;
+  const it=arr.find(x=>x.id===id);
+  if(it) _purgeStrip(it);
   saveState();render();openTrash();
   toast('Eliminado permanentemente','delete');
 }
 function emptyTrash(){
   if(!confirm('¿Eliminar permanentemente todos los elementos de la papelera?')) return;
-  STATE.topics=STATE.topics.filter(t=>!t.deleted);
-  STATE.folders=STATE.folders.filter(f=>!f.deleted);
+  STATE.topics.forEach(t=>{if(t.deleted&&!t.purged)_purgeStrip(t);});
+  STATE.folders.forEach(f=>{if(f.deleted&&!f.purged)_purgeStrip(f);});
   saveState();render();closeTrash();
   toast('Papelera vaciada','delete');
 }
@@ -3257,7 +3315,7 @@ function saveTopic(){
     if(idx>=0) Object.assign(STATE.topics[idx],data,{updatedAt:Date.now()});
   }else{
     const order=getTopicsInFolder(data.folderId||null).length;
-    STATE.topics.push({id:uid('t'),...data,studied:false,favorite:false,deleted:false,createdAt:Date.now(),order});
+    STATE.topics.push({id:uid('t'),...data,studied:false,favorite:false,deleted:false,createdAt:Date.now(),updatedAt:Date.now(),order});
   }
   _searchCache.delete(editId||'');
   saveState();render();closeTopicEditor();
@@ -3288,7 +3346,9 @@ function duplicateTopic(topicId){
   copy.studied=false;
   copy.favorite=false;
   copy.createdAt=Date.now();
-  delete copy.updatedAt;
+  copy.updatedAt=Date.now();
+  delete copy.deleted;delete copy.deletedAt;delete copy.purged;
+  copy.deleted=false;
   STATE.topics.push(copy);
   saveState();render();
   toast('Tema duplicado','doc');
@@ -3303,6 +3363,7 @@ function toggleStudied(topicId){
   t.studied=!t.studied;
   /* FASE 7: marca de tiempo para la estadística "estudiados esta semana" */
   if(t.studied) t.studiedAt=Date.now();
+  touch(t);
   saveState();
   const card=document.querySelector(`[data-topic-id="${topicId}"]`);
   if(card){
@@ -3351,6 +3412,7 @@ function confirmMoveTopic(){
   const t=activeTopics().find(t=>t.id===topicId);
   if(t){
     t.folderId=fid||null;
+    touch(t);
     saveState();render();closeMove();
     const fname=fid?(getFolder(fid)?.name||'carpeta'):'Sin carpeta';
     toast(`Movido a "${fname}"`,'move');
@@ -3626,7 +3688,7 @@ function endSort(e){
     const topicId=_ghostSource.dataset.topicId;
     const newFolderId=dropBody.dataset.folderBody||null;
     const t=activeTopics().find(t=>t.id===topicId);
-    if(t){t.folderId=newFolderId==='null'?null:newFolderId;saveState();}
+    if(t){t.folderId=newFolderId==='null'?null:newFolderId;touch(t);saveState();}
   }
   if(_ghost){_ghost.remove();_ghost=null;}
   if(_ghostSource){_ghostSource.classList.remove('ghost');_ghostSource=null;}
@@ -3660,7 +3722,7 @@ function naturalTitleCompare(a,b){
   return String(a?.title||'').localeCompare(String(b?.title||''),'es',{sensitivity:'base',numeric:true});
 }
 function applyTopicOrderForFolder(folderId,ordered){
-  ordered.forEach((topic,idx)=>{topic.order=idx;});
+  ordered.forEach((topic,idx)=>{if(topic.order!==idx){topic.order=idx;touch(topic);}});
   const ids=new Set(ordered.map(t=>t.id));
   STATE.topics=[...STATE.topics.filter(t=>!ids.has(t.id)),...ordered];
 }
@@ -3733,7 +3795,7 @@ function createTopicFromFile(fileName,text){
   STATE.topics.push({
     id:uid('t'),title,html:text,icon:'📄',color:'#4f9cff',
     folderId:folder,sections:[],flashcards:[],studied:false,
-    favorite:false,deleted:false,createdAt:Date.now(),order:STATE.topics.length
+    favorite:false,deleted:false,createdAt:Date.now(),updatedAt:Date.now(),order:STATE.topics.length
   });
 }
 function dzFile(e){
@@ -4064,23 +4126,30 @@ async function sbPullSilent(){
   const{data:{user}}=await getSB().auth.getUser();
   if(!user) return;
   const{data}=await getSB().from('study_backup').select('data').eq('user_id',user.id).single();
-  if(!data?.data?.topics?.length) return;
-  /* Comparar por timestamp, NO por conteo de temas: comparar conteos
-     resucitaba elementos borrados — al borrar, el conteo local bajaba
-     y la nube (desactualizada) "ganaba" en cada inicio de sesión. */
-  const remoteTime=data.data.updatedAt||0;
-  const localTime=STATE.updatedAt||0;
+  if(!data?.data?.topics) return;
+  const remote=normalizeStateShape(data.data);
   const localEmpty=!activeTopics().length&&!activeFolders().length;
-  if(localEmpty||remoteTime>localTime){
-    STATE=data.data;
-    /* Write to localStorage preserving the remote updatedAt — do NOT call saveState()
-       because it would stamp STATE.updatedAt=Date.now(), making the local copy look
-       newer than the cloud and causing an immediate push of stale data next startup. */
+  /* FASE 11: primer arranque sin datos locales → descargar directo (rápido). */
+  if(localEmpty){
+    STATE=remote;
     try{_searchCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){}
     render();
+    return;
   }
-  else if(localTime>remoteTime){sbPush(true);} /* la nube está atrasada → actualizarla */
-  /* no toast — content appears silently */
+  /* FASE 11: fusión a nivel de elemento. Ni el local ni el remoto se descartan:
+     gana la versión más reciente de cada tema/carpeta (con tombstones). Así
+     editar en un dispositivo y borrar en otro convergen sin pérdida. */
+  const before=JSON.stringify({t:STATE.topics.length,f:STATE.folders.length,u:STATE.updatedAt});
+  STATE=mergeStates(STATE,remote);
+  /* Persistir sin saveState() para no re-sellar updatedAt global (preservamos el
+     max de ambos). _searchCache se limpia porque el contenido pudo cambiar. */
+  try{_searchCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){}
+  render();
+  /* Empujar el resultado fusionado para que la nube converja con la unión.
+     Solo si la fusión cambió algo respecto a lo que teníamos o trajo novedades. */
+  const after=JSON.stringify({t:STATE.topics.length,f:STATE.folders.length,u:STATE.updatedAt});
+  const remoteCount=JSON.stringify({t:remote.topics.length,f:remote.folders.length,u:remote.updatedAt});
+  if(after!==before||after!==remoteCount) sbPush(true);
 }
 const triggerSbSync=debounce(()=>sbPush(true),5000);
 function updateSbStatus(user){
