@@ -572,6 +572,10 @@ body.sortmode .topic-arrow{display:none}
   align-items:stretch;justify-content:stretch;padding:0;
   z-index:250;
 }
+/* El selector de tema se abre DESDE el lector/preview/estudio (botón paleta),
+   así que debe quedar por encima de esos overlays a pantalla completa (z250).
+   Sin esto, la hoja aparece detrás y hay que cerrar el tema para verla. */
+#theme-overlay{z-index:260}
 #reader-overlay .sheet,
 #preview-overlay .sheet{
   max-height:100dvh;height:100dvh;width:100vw;max-width:none;
