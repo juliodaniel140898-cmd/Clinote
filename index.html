@@ -1033,6 +1033,27 @@ body.sortmode .topic-arrow{display:none}
 .resume-chip-emoji{font-size:1em;line-height:1;flex-shrink:0}
 .resume-chip-emoji img.emoji{width:1.1em;height:1.1em;vertical-align:middle}
 .resume-chip-title{font-size:.78em;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ─── FASE 8: Resultados de búsqueda ─── */
+.search-results-count{font-size:.67em;font-weight:800;color:var(--muted);padding:6px 0 2px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.search-results-count .ic{width:.9em;height:.9em}
+.search-results-list{display:flex;flex-direction:column;gap:7px;padding:8px 0 20px}
+.search-result-item{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;text-align:left;width:100%;transition:background var(--t-fast),border-color var(--t-fast);animation:itemIn .25s var(--ease-out) both}
+.search-result-item:hover{background:var(--surface2);border-color:var(--border2)}
+.search-result-item:active{background:var(--surface3)}
+.search-result-emoji{font-size:1.45em;line-height:1;flex-shrink:0;width:30px;text-align:center;padding-top:1px}
+.search-result-emoji img.emoji{width:1.2em;height:1.2em;vertical-align:middle}
+.search-result-body{flex:1;min-width:0}
+.search-result-folder{font-size:.64em;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.45px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.search-result-title{font-size:.9em;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.search-result-title mark{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--accent);border-radius:3px;padding:0 1px;font-style:normal}
+.search-result-snippet{font-size:.74em;color:var(--text2);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.search-result-snippet mark{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--warning);border-radius:3px;padding:0 1px;font-style:normal}
+.search-field-badge{flex-shrink:0;font-size:.58em;font-weight:800;text-transform:uppercase;letter-spacing:.4px;padding:3px 7px;border-radius:999px;background:var(--surface3);color:var(--muted);align-self:flex-start;margin-top:2px}
+.search-results-empty{padding:48px 16px;text-align:center}
+.search-results-empty .sr-empty-icon{font-size:2em;margin-bottom:10px;opacity:.45;display:flex;justify-content:center}
+.search-results-empty .sr-empty-icon .ic{width:2em;height:2em}
+.search-results-empty .sr-empty-title{font-size:.95em;font-weight:700;color:var(--text2);margin-bottom:6px}
+.search-results-empty .sr-empty-copy{font-size:.78em;color:var(--muted)}
 .searchwrap{padding-top:12px;position:relative}
 .search-ic{position:absolute;left:30px;top:calc(50% + 6px);transform:translateY(-50%);color:var(--muted);pointer-events:none;z-index:1;font-size:1.08em;display:flex}
 .searchbox{
@@ -1214,6 +1235,7 @@ body.sortmode .topic-arrow{display:none}
 
 <!-- ── FOLDER LIST ── -->
 <div class="container">
+  <div id="search-results" style="display:none"></div>
   <div class="folder-list" id="folder-list">
     <!-- skeleton loading -->
     <div class="skeleton skeleton-folder"></div>
@@ -1671,7 +1693,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.4';
+const APP_VERSION='v8.5';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1926,6 +1948,112 @@ function topicSearchString(topic){
 }
 function folderSearchString(folder){
   return normalizeText(folder.name+' '+(folder.emoji||'')+' '+getTopicsInFolder(folder.id).map(t=>topicSearchString(t)).join(' '));
+}
+
+/* FASE 8: Builds a short snippet (~160 chars) around the first term match,
+   with <mark> wrapping for matching tokens. XSS-safe: escape first, mark after. */
+function buildSnippet(rawText,terms,maxLen=160){
+  if(!rawText) return '';
+  const norm=normalizeText(rawText);
+  let pos=norm.length;
+  for(const t of terms){const i=norm.indexOf(t);if(i>=0&&i<pos)pos=i;}
+  if(pos===norm.length) pos=0;
+  const start=Math.max(0,pos-50);
+  const end=Math.min(rawText.length,start+maxLen);
+  const prefix=start>0?'…':'';
+  const suffix=end<rawText.length?'…':'';
+  const words=h(rawText.slice(start,end)).split(/(\s+)/);
+  const marked=words.map(w=>{
+    const nw=normalizeText(w.replace(/&amp;|&lt;|&gt;|&quot;/g,''));
+    return terms.some(t=>t&&nw.includes(t))?`<mark>${w}</mark>`:w;
+  }).join('');
+  return prefix+marked+suffix;
+}
+
+/* FASE 8: Multi-term AND search. Returns [{topic,score,field,snippet}] ranked
+   by field score (Title=100 > Tag/Mnemo=60 > Section=40 > Flashcard=30 > Content=10),
+   capped at 50 results. */
+function searchTopics(q){
+  const terms=q.split(/\s+/).filter(Boolean);
+  if(!terms.length) return [];
+  const results=[];
+  for(const t of activeTopics()){
+    const full=topicSearchString(t);
+    if(!terms.every(tm=>full.includes(tm))) continue;
+    const ft=terms[0];
+    const titleNorm=normalizeText(t.title||'');
+    const tagsNorm=normalizeText((t.tags||[]).join(' '));
+    const mnemoNorm=normalizeText(t.mnemo||'');
+    const sectionsNorm=normalizeText((t.sections||[]).map(s=>s.h+' '+s.b).join(' '));
+    const flashNorm=normalizeText((t.flashcards||[]).map(f=>f.q+' '+f.a).join(' '));
+    let score=0,field='',snippet='';
+    if(titleNorm.includes(ft)){
+      score=100;field='Título';snippet=buildSnippet(t.title||'',terms);
+    }else if(tagsNorm.includes(ft)){
+      score=60;field='Tag';snippet=buildSnippet((t.tags||[]).join(', '),terms);
+    }else if(mnemoNorm.includes(ft)){
+      score=60;field='Mnemotecnia';snippet=buildSnippet(t.mnemo||'',terms);
+    }else if(sectionsNorm.includes(ft)){
+      score=40;field='Sección';
+      const ms=(t.sections||[]).find(s=>normalizeText(s.h+' '+s.b).includes(ft));
+      snippet=buildSnippet(ms?ms.h+': '+ms.b:'',terms);
+    }else if(flashNorm.includes(ft)){
+      score=30;field='Flashcard';
+      const mf=(t.flashcards||[]).find(f=>normalizeText(f.q+' '+f.a).includes(ft));
+      snippet=buildSnippet(mf?mf.q+' · '+mf.a:'',terms);
+    }else{
+      score=10;field='Contenido';snippet=buildSnippet(stripHtml(t.html||''),terms);
+    }
+    results.push({topic:t,score,field,snippet});
+  }
+  results.sort((a,b)=>b.score-a.score||(a.topic.title||'').localeCompare(b.topic.title||''));
+  return results.slice(0,50);
+}
+
+/* FASE 8: Renders the flat ranked search results list, replacing the folder tree. */
+function renderSearchResults(q){
+  const terms=q.split(/\s+/).filter(Boolean);
+  const sr=document.getElementById('search-results');
+  const fl=document.getElementById('folder-list');
+  if(!sr||!fl) return;
+  fl.style.display='none';
+  sr.style.display='';
+  const results=searchTopics(q);
+  if(!results.length){
+    sr.innerHTML=`<div class="search-results-empty">
+      <div class="sr-empty-icon">${icon('search')}</div>
+      <div class="sr-empty-title">Sin resultados para "${h(q)}"</div>
+      <div class="sr-empty-copy">Intenta con otra palabra o revisa los filtros.</div>
+    </div>`;
+    hydrateIcons(sr);
+    return;
+  }
+  const BADGE_COLORS={Título:'var(--accent)',Tag:'var(--purple)',Mnemotecnia:'var(--purple)',Sección:'var(--teal)',Flashcard:'var(--warning)',Contenido:'var(--muted)'};
+  let html=`<div class="search-results-count">${icon('search')} ${results.length} resultado${results.length!==1?'s':''}</div><div class="search-results-list">`;
+  for(const {topic:t,field,snippet} of results){
+    const fol=t.folderId?getFolder(t.folderId):null;
+    const folName=fol?fol.name:'Sin carpeta';
+    const emoji=t.icon||(fol&&fol.emoji)||'📄';
+    const titleWords=h(t.title||'Sin título').split(/(\s+)/);
+    const markedTitle=titleWords.map(w=>{
+      const nw=normalizeText(w.replace(/&amp;|&lt;|&gt;|&quot;/g,''));
+      return terms.some(tm=>tm&&nw.includes(tm))?`<mark>${w}</mark>`:w;
+    }).join('');
+    const bc=BADGE_COLORS[field]||'var(--muted)';
+    html+=`<button class="search-result-item" onclick="document.getElementById('search').value='';openTopicFromHome('${t.id}')">
+      <span class="search-result-emoji">${h(emoji)}</span>
+      <span class="search-result-body">
+        <span class="search-result-folder">${h(folName)}</span>
+        <span class="search-result-title">${markedTitle}</span>
+        ${snippet?`<span class="search-result-snippet">${snippet}</span>`:''}
+      </span>
+      <span class="search-field-badge" style="color:${bc}">${field}</span>
+    </button>`;
+  }
+  html+=`</div>`;
+  sr.innerHTML=html;
+  hydrateIcons(sr);
+  parseEmoji(sr);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2377,6 +2505,11 @@ function _doRender(){
   /* render stats */
   renderStats();
   renderHomeResume();
+
+  /* FASE 8: search results replace tree */
+  if(q){renderSearchResults(q);return;}
+  {const sr=document.getElementById('search-results');if(sr){sr.style.display='none';sr.innerHTML='';}}
+  container.style.display='';
 
   /* always show root-level folders */
   const foldersAtLevel=getFolderChildren(null).filter(f=>!f.deleted);
