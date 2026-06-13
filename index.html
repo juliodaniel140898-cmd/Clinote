@@ -814,6 +814,14 @@ body.sortmode .topic-arrow{display:none}
 }
 .study-zoom-btn{width:26px;height:26px;font-size:1em;font-weight:900;background:transparent}
 .study-zoom-pct{font-size:.65em;color:var(--muted);font-weight:800;min-width:36px;text-align:center}
+/* FASE 9: progress dots (study mode) */
+.study-dots{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;padding:8px 14px 2px}
+.study-dot{width:7px;height:7px;border-radius:50%;background:var(--surface4);border:1.5px solid var(--border);transition:background var(--t-fast),transform var(--t-fast),border-color var(--t-fast);flex-shrink:0;cursor:pointer}
+.study-dot.s-current{background:var(--accent);border-color:var(--accent);transform:scale(1.35)}
+.study-dot.s-done{background:var(--success);border-color:var(--success)}
+/* FASE 9: quiz progress bar */
+.quiz-bar-wrap{height:3px;background:var(--surface3);border-radius:2px;margin:-2px 0 10px;overflow:hidden}
+.quiz-bar-fill{height:100%;background:var(--success);border-radius:2px;transition:width .35s var(--ease-out)}
 
 /* ── TRASH INDICATOR ── */
 .trash-badge{
@@ -1675,6 +1683,7 @@ body.sortmode .topic-arrow{display:none}
         <button class="close-btn" onclick="closeStudyMode()" title="Cerrar"><i class="ic" data-ic="x"></i></button>
       </div>
     </div>
+    <div id="study-dots" class="study-dots" style="display:none"></div>
     <div class="sheet-body" id="study-body" style="flex:1;overflow-y:auto">
       <div id="study-content"></div>
     </div>
@@ -1693,7 +1702,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.5';
+const APP_VERSION='v8.6';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2096,8 +2105,24 @@ function closeOverlay(id){
     el._hideTimer=null;
   },280);
 }
-/* Escape key closes the topmost open overlay */
+/* Keyboard handler — Escape closes overlays; study/quiz get navigation keys */
 document.addEventListener('keydown',e=>{
+  /* FASE 9: study mode keyboard (← → = prev/next, M = mark studied, F = fullscreen) */
+  if(document.getElementById('study-overlay')?.classList.contains('open')){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') {}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){studyNav(-1);e.preventDefault();return;}
+    else if(e.key==='ArrowRight'||e.key==='ArrowDown'){studyNav(1);e.preventDefault();return;}
+    else if(e.key.toLowerCase()==='m'){studyMarkStudied();return;}
+    else if(e.key.toLowerCase()==='f'){toggleStudyFullscreen();return;}
+  }
+  /* FASE 9: quiz mode keyboard (Space = flip, → = correct, ← = incorrect) */
+  if(document.getElementById('quiz-overlay')?.classList.contains('open')){
+    if(e.key===' '){flipQuizCard();e.preventDefault();return;}
+    if(QUIZ.flipped){
+      if(e.key==='ArrowRight'||e.key.toLowerCase()==='l'){quizAnswer(true);e.preventDefault();return;}
+      if(e.key==='ArrowLeft'||e.key.toLowerCase()==='j'){quizAnswer(false);e.preventDefault();return;}
+    }
+  }
   if(e.key!=='Escape') return;
   const OVERLAY_CLOSE_ORDER=[
     'emoji-overlay','confirm-overlay','move-overlay',
@@ -4039,7 +4064,7 @@ function openQuizMode(folderId){
   if(!pool.length){toast('Esta carpeta no tiene flashcards');return;}
   QUIZ={
     cards:pool.flatMap(t=>t.flashcards.map(fc=>({q:fc.q,a:fc.a,title:t.title}))).sort(()=>Math.random()-.5),
-    idx:0,flipped:false,score:{correct:0,incorrect:0}
+    idx:0,flipped:false,score:{correct:0,incorrect:0},_incorrect:[]
   };
   renderQuiz();openOverlay('quiz-overlay');
 }
@@ -4048,16 +4073,24 @@ function renderQuiz(){
   if(!el) return;
   const card=QUIZ.cards[QUIZ.idx];
   if(!card){
+    /* FASE 9: quiz-done with retry-incorrects */
+    const pct=QUIZ.cards.length?Math.round(QUIZ.score.correct/QUIZ.cards.length*100):0;
+    const hasIncorrect=QUIZ._incorrect&&QUIZ._incorrect.length>0;
     el.innerHTML=`<div class="quiz-done">
-      <div style="font-size:2.5em;margin-bottom:10px">${QUIZ.score.correct>QUIZ.score.incorrect?'🏆':'📚'}</div>
+      <div style="font-size:2.5em;margin-bottom:10px">${pct>=80?'🏆':pct>=50?'📚':'💪'}</div>
       <h2>Quiz terminado</h2>
       <p>Correctas: <strong style="color:var(--success)">${QUIZ.score.correct}</strong> · Incorrectas: <strong style="color:var(--danger)">${QUIZ.score.incorrect}</strong></p>
-      <div style="font-size:.82em;color:var(--muted);margin:4px 0 14px">Precisión: ${QUIZ.cards.length?Math.round(QUIZ.score.correct/QUIZ.cards.length*100):0}%</div>
-      <button class="primary-btn" onclick="closeQuiz()">Cerrar</button>
+      <div style="font-size:.82em;color:var(--muted);margin:4px 0 14px">Precisión: ${pct}%</div>
+      ${hasIncorrect?`<button class="primary-btn" style="margin-bottom:10px" onclick="quizRetryIncorrect()">${icon('rotate-ccw')} Reintentar incorrectas (${QUIZ._incorrect.length})</button><br>`:''}
+      <button class="secondary-btn" onclick="closeQuiz()">Cerrar</button>
     </div>`;
+    hydrateIcons(el);
     return;
   }
+  /* FASE 9: progress bar */
+  const pct=QUIZ.cards.length?Math.round(QUIZ.idx/QUIZ.cards.length*100):0;
   el.innerHTML=`
+    <div class="quiz-bar-wrap"><div class="quiz-bar-fill" style="width:${pct}%"></div></div>
     <div class="quiz-progress">${QUIZ.idx+1} / ${QUIZ.cards.length}</div>
     <div class="quiz-flashcard ${QUIZ.flipped?'flipped':''}" onclick="flipQuizCard()">
       <div class="quiz-hint">${QUIZ.flipped?'Respuesta':'Pregunta'}</div>
@@ -4072,8 +4105,15 @@ function renderQuiz(){
 }
 function flipQuizCard(){QUIZ.flipped=!QUIZ.flipped;renderQuiz()}
 function quizAnswer(correct){
-  if(correct)QUIZ.score.correct++;else QUIZ.score.incorrect++;
+  if(correct){QUIZ.score.correct++;}
+  else{QUIZ.score.incorrect++;if(!QUIZ._incorrect)QUIZ._incorrect=[];QUIZ._incorrect.push(QUIZ.cards[QUIZ.idx]);}
   QUIZ.idx++;QUIZ.flipped=false;renderQuiz();
+}
+function quizRetryIncorrect(){
+  if(!QUIZ._incorrect?.length) return;
+  QUIZ.cards=QUIZ._incorrect.sort(()=>Math.random()-.5);
+  QUIZ.idx=0;QUIZ.flipped=false;QUIZ.score={correct:0,incorrect:0};QUIZ._incorrect=[];
+  renderQuiz();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -4151,6 +4191,22 @@ function renderStudyMode(){
   if(counter) counter.textContent=`${STUDY.idx+1} / ${STUDY.topics.length}`;
   if(titleHdr) titleHdr.innerHTML=`${h(topic.icon||'📄')} ${h(topic.title)}`;
   _updateStudyStudiedBtn();
+  /* FASE 9: progress dots (show up to 20; text counter for larger sessions) */
+  const dotsEl=document.getElementById('study-dots');
+  if(dotsEl){
+    if(STUDY.topics.length<=20){
+      dotsEl.style.display='';
+      const liveTopics=activeTopics();
+      dotsEl.innerHTML=STUDY.topics.map((t,i)=>{
+        const live=liveTopics.find(x=>x.id===t.id)||t;
+        const cls=i===STUDY.idx?'s-current':live.studied?'s-done':'';
+        const title=ha(live.title||'');
+        return `<span class="study-dot${cls?' '+cls:''}" title="${title}" onclick="studyNav(${i-STUDY.idx})"></span>`;
+      }).join('');
+    }else{
+      dotsEl.style.display='none';
+    }
+  }
   let html=`<div class="study-header">
     <h2>${h(topic.icon||'📄')} ${h(topic.title)}</h2>
     ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:5px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
