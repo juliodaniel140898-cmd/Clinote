@@ -1706,13 +1706,39 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.6';
+const APP_VERSION='v8.7';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
 const ZOOM_KEY='clinote-zoom';
 
 const INITIAL_STATE=()=>({version:2,folders:[],topics:[],settings:{zoom:100,theme:'dark'}});
+
+/* FASE 10: Integridad de datos.
+   validateState — comprueba que un objeto importado/cargado tenga la forma
+   mínima esperada. Devuelve {ok, reason}. No muta nada.
+   normalizeStateShape — garantiza arrays/objeto en topics/folders/settings para
+   que el resto del código nunca crashee con `.filter of undefined`. Muta y
+   devuelve el mismo objeto. */
+function validateState(p){
+  if(!p||typeof p!=='object') return {ok:false,reason:'no es un objeto'};
+  if(!Array.isArray(p.topics)) return {ok:false,reason:'falta la lista de temas'};
+  if('folders' in p && !Array.isArray(p.folders)) return {ok:false,reason:'la lista de carpetas es inválida'};
+  for(const t of p.topics){
+    if(!t||typeof t!=='object') return {ok:false,reason:'un tema no es un objeto'};
+    if(t.id!=null && typeof t.id!=='string') return {ok:false,reason:'un tema tiene id inválido'};
+    if(t.title!=null && typeof t.title!=='string') return {ok:false,reason:'un tema tiene título inválido'};
+    if(t.html!=null && typeof t.html!=='string') return {ok:false,reason:'un tema tiene HTML inválido'};
+  }
+  return {ok:true};
+}
+function normalizeStateShape(p){
+  if(!p||typeof p!=='object') return INITIAL_STATE();
+  if(!Array.isArray(p.topics)) p.topics=[];
+  if(!Array.isArray(p.folders)) p.folders=[];
+  if(!p.settings||typeof p.settings!=='object') p.settings={zoom:100,theme:'dark'};
+  return p;
+}
 
 let STATE=INITIAL_STATE();
 let expandedTopics={};
@@ -1859,15 +1885,28 @@ function toast(msg,type,dur=2200){
 /* ═══════════════════════════════════════════════════════
    STORAGE  (localStorage primary, IndexedDB emergency)
    ═══════════════════════════════════════════════════════ */
+let _localSaveOk=true; // FASE 10: rastrea si el último guardado local tuvo éxito
 function saveState(){
+  _searchCache.clear(); // invalidate search cache on state change
+  STATE.updatedAt=Date.now();
+  let saved=false;
   try{
-    _searchCache.clear(); // invalidate search cache on state change
-    STATE.updatedAt=Date.now();
     localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));
+    saved=true;
   }catch(e){
+    /* cuota llena: liberar claves legacy y reintentar una vez */
     console.warn('localStorage full, trying to clear old keys',e);
     STORAGE_LEGACY.forEach(k=>{ try{localStorage.removeItem(k)}catch(_){} });
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE))}catch(_){}
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));saved=true;}catch(_){}
+  }
+  /* FASE 10 (A1): no fallar en silencio. Avisar UNA vez hasta recuperarse.
+     La sync a la nube se intenta igual abajo, así que con sesión los datos
+     siguen a salvo aunque el disco local esté lleno. */
+  if(saved){
+    _localSaveOk=true;
+  }else if(_localSaveOk){
+    _localSaveOk=false;
+    try{toast('Almacenamiento local lleno: tus cambios podrían no guardarse en este dispositivo. Sincroniza con la nube o libera espacio.','error',5500);}catch(_){}
   }
   triggerAutoExport();
   triggerSbSync();
@@ -1877,13 +1916,23 @@ function loadState(){
   /* Try new key */
   try{
     const raw=localStorage.getItem(STORAGE_KEY);
-    if(raw){const p=JSON.parse(raw);if(p?.topics){return p;}}
+    if(raw){
+      try{
+        const p=JSON.parse(raw);
+        if(p?.topics) return normalizeStateShape(p);
+      }catch(parseErr){
+        /* FASE 10 (M4): JSON corrupto. NO sobrescribir ni caer silenciosamente
+           a vacío. Preservar la copia cruda para poder recuperarla y avisar. */
+        try{localStorage.setItem(STORAGE_KEY+'-corrupt',raw);}catch(_){}
+        window._loadCorrupted=true;
+      }
+    }
   }catch(_){}
   /* Try legacy keys */
   for(const k of STORAGE_LEGACY){
     try{
       const raw=localStorage.getItem(k);
-      if(raw){const p=JSON.parse(raw);if(p?.topics){return p;}}
+      if(raw){const p=JSON.parse(raw);if(p?.topics){return normalizeStateShape(p);}}
     }catch(_){}
   }
   /* Emergency backup */
@@ -3716,9 +3765,12 @@ function importJSON(){
     r.onload=ev=>{
       try{
         const p=JSON.parse(ev.target.result);
-        if(!p?.topics) throw new Error('Formato inválido');
+        /* FASE 10 (A5): validar la forma antes de reemplazar el estado para no
+           corromper STATE (y propagarlo a la nube) con un archivo malformado. */
+        const v=validateState(p);
+        if(!v.ok) throw new Error('Archivo inválido ('+v.reason+')');
         if(!confirm(`¿Importar ${p.topics.length} temas y ${p.folders?.length||0} carpetas? Esto reemplazará tu contenido actual.`)) return;
-        STATE=p;saveState();render();
+        STATE=normalizeStateShape(p);saveState();render();
         toast(`Importado: ${p.topics.length} temas`,'import');
       }catch(ex){toast('Error al importar: '+ex.message,'error');}
     };
@@ -4388,6 +4440,11 @@ async function init(){
   render();
   /* Recovery check */
   checkRecoveryBanner();
+  /* FASE 10 (M4): avisar si los datos locales estaban corruptos. Se preservó
+     una copia cruda en clinote-v2-corrupt; con sesión, la nube los repondrá. */
+  if(window._loadCorrupted){
+    setTimeout(()=>{try{toast('Los datos locales estaban dañados. Se guardó una copia de seguridad; si tienes cuenta, se restaurarán desde la nube.','error',6000);}catch(_){}},800);
+  }
   /* Auth */
   await initAuth();
   /* beforeunload: save locally + flush any pending cloud sync */
