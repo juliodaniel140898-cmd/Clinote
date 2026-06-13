@@ -27,7 +27,7 @@
   --border2:#384155;
   --text:#e8eaed;
   --text2:#b8bcc8;
-  --muted:#7a8399;
+  --muted:#8b93a7; /* FASE 13: sube contraste a AA (4.5:1) también sobre surface3 */
   --accent:#4f9cff;
   --accent2:#2563eb;
   --success:#34d399;
@@ -91,7 +91,7 @@
   --border2:#353538;
   --text:#efefef;
   --text2:#a0a0a8;
-  --muted:#606060;
+  --muted:#7e7e7e; /* FASE 13: AA sobre fondo AMOLED */
   --shadow-sm:0 2px 8px rgba(0,0,0,.55);
   --shadow:0 8px 24px rgba(0,0,0,.65);
   --shadow-lg:0 20px 48px rgba(0,0,0,.75);
@@ -159,6 +159,10 @@ a{color:inherit;text-decoration:none}
   -webkit-backdrop-filter:blur(20px) saturate(1.8);
   border-bottom:1px solid var(--border);
   padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  /* FASE 13: con status bar translúcida, no quedar bajo el notch/Dynamic Island */
+  padding-top:calc(10px + env(safe-area-inset-top,0));
+  padding-left:calc(14px + env(safe-area-inset-left,0));
+  padding-right:calc(14px + env(safe-area-inset-right,0));
 }
 .topbar-row1{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
 .brand{display:flex;flex-direction:column;min-width:0;flex:1}
@@ -509,6 +513,19 @@ body.sortmode .topic-arrow{display:none}
 }
 .close-btn:hover{background:var(--surface3);color:var(--text2)}
 .close-btn:active{background:var(--border);transform:scale(.9)}
+/* ─── FASE 13: UX/Accesibilidad ─── */
+/* Lock de scroll del fondo con overlay abierto (evita scroll fantasma en móvil) */
+body.overlay-open{overflow:hidden}
+/* Foco visible solo con teclado (no con ratón/touch) */
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{
+  outline:2px solid var(--accent);outline-offset:2px;border-radius:6px;
+}
+/* Áreas táctiles ≥ HIG en móvil (sin romper las barras densas) */
+@media(max-width:540px){
+  .close-btn{width:38px;height:38px}
+  .folder-btn{width:40px;height:40px}
+  .preview-expand{width:40px;height:40px}
+}
 .label{font-size:.78em;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;margin-top:14px;display:block}
 .label:first-child{margin-top:0}
 .primary-btn{
@@ -1162,7 +1179,7 @@ body.sortmode .topic-arrow{display:none}
 <body style="--base-font:16px">
 
 <!-- ── TOAST ── -->
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <!-- ── TOPBAR ── -->
 <div class="topbar">
@@ -1257,7 +1274,7 @@ body.sortmode .topic-arrow{display:none}
 </div>
 
 <!-- ── FAB ── -->
-<button class="fab" id="fab" onclick="openActionsOverlay()"><i class="ic" data-ic="plus"></i></button>
+<button class="fab" id="fab" onclick="openActionsOverlay()" aria-label="Abrir menú de acciones"><i class="ic" data-ic="plus" aria-hidden="true"></i></button>
 
 <!-- ════════════════════════ OVERLAYS ════════════════════════ -->
 
@@ -1706,7 +1723,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.9';
+const APP_VERSION='v8.10';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2182,6 +2199,13 @@ function changeZoom(dir){
 /* ═══════════════════════════════════════════════════════
    OVERLAYS
    ═══════════════════════════════════════════════════════ */
+/* FASE 13: bloquea el scroll del fondo mientras haya algún overlay abierto.
+   Cuenta los abiertos (no un booleano) para que cerrar uno con otro aún abierto
+   no desbloquee antes de tiempo. */
+function _syncScrollLock(){
+  const anyOpen=!!document.querySelector('.overlay.open');
+  document.body.classList.toggle('overlay-open',anyOpen);
+}
 function openOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
@@ -2189,13 +2213,14 @@ function openOverlay(id){
      puede ocultar una ventana recién abierta (display:none gana al class) */
   if(el._hideTimer){clearTimeout(el._hideTimer);el._hideTimer=null;}
   el.style.display='flex';
-  requestAnimationFrame(()=>el.classList.add('open'));
+  requestAnimationFrame(()=>{el.classList.add('open');_syncScrollLock();});
   setTimeout(()=>{if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})},60);
 }
 function closeOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
   el.classList.remove('open');
+  _syncScrollLock();
   if(el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer=setTimeout(()=>{
     if(!el.classList.contains('open')) el.style.display='none';
@@ -2248,11 +2273,13 @@ function openActionsOverlay(){
   document.getElementById('fab').classList.add('open');
   const tn=document.getElementById('actions-theme-name');
   if(tn) tn.textContent=getReadingPalette().name;
+  _syncScrollLock(); /* FASE 13: este overlay no pasa por openOverlay */
 }
 function closeActionsOverlay(){
   document.getElementById('actions-overlay').classList.remove('open');
   setTimeout(()=>document.getElementById('actions-overlay').style.display='',300);
   document.getElementById('fab').classList.remove('open');
+  _syncScrollLock();
 }
 /* Menú "Más" de un tema: acciones secundarias (FASE 6 U1). El contenido se
    genera según el tema (Fuente sólo si tiene HTML). */
