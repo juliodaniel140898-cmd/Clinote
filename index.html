@@ -646,18 +646,18 @@ body.sortmode .topic-arrow{display:none}
 .auth-logo{display:none}
 .auth-title{font-size:1.62em;font-weight:950;letter-spacing:0;margin-bottom:6px;text-align:left}
 .auth-sub{font-size:.9em;color:var(--text2);text-align:left;margin-bottom:22px;font-weight:650}
-.auth-tabs{display:flex;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:4px;margin-bottom:18px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
+.auth-tabs{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:16px;padding:4px;margin-bottom:18px}
 .auth-tab{flex:1;padding:11px 12px;border-radius:12px;font-size:.86em;font-weight:900;transition:background var(--t-base),color var(--t-base),transform var(--t-fast),box-shadow var(--t-base);color:var(--muted);text-align:center}
-.auth-tab:hover{color:var(--text);background:rgba(255,255,255,.05)}
+.auth-tab:hover{color:var(--text);background:var(--bg-press)}
 .auth-tab.active{background:linear-gradient(135deg,rgba(79,156,255,.95),rgba(37,99,235,.95));color:#fff;box-shadow:0 10px 24px rgba(37,99,235,.28)}
 .auth-card .label{color:var(--text2);font-size:.72em;margin-top:14px;margin-bottom:7px;letter-spacing:.5px}
-.auth-card input{background:rgba(255,255,255,.055);border-color:rgba(255,255,255,.11);border-radius:16px;padding:13px 15px;box-shadow:0 1px 0 rgba(255,255,255,.05) inset;transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast),transform var(--t-fast)}
-.auth-card input:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18)}
+.auth-card input{background:var(--surface2);border-color:var(--border);border-radius:16px;padding:13px 15px;transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast),transform var(--t-fast)}
+.auth-card input:hover{background:var(--surface3);border-color:var(--border2)}
 .auth-card input:focus{border-color:rgba(79,156,255,.9);box-shadow:0 0 0 4px rgba(79,156,255,.14);transform:translateY(-1px)}
 .auth-card .primary-btn{margin-top:18px;padding:14px;border-radius:16px;font-size:.96em;box-shadow:0 15px 32px rgba(37,99,235,.34);position:relative;overflow:hidden}
 .auth-card .primary-btn:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(37,99,235,.42)}
-.auth-card .secondary-btn{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);border-radius:16px;color:var(--text2)}
-.auth-card .secondary-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(79,156,255,.26);color:var(--text)}
+.auth-card .secondary-btn{background:var(--surface2);border-color:var(--border);border-radius:16px;color:var(--text2)}
+.auth-card .secondary-btn:hover{background:var(--surface3);border-color:color-mix(in srgb,var(--accent) 26%,var(--border));color:var(--text)}
 .auth-err{font-size:.82em;padding:10px 12px;border-radius:14px;margin-bottom:12px;font-weight:800;display:none;animation:authMessage .22s var(--ease-out)}
 .auth-err.show{display:block}
 .auth-err.ok{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.32)}
@@ -1102,7 +1102,7 @@ body.sortmode .topic-arrow{display:none}
 <div class="topbar">
   <div class="topbar-row1">
     <div class="brand">
-      <h1><span class="clinote-logo">C</span>Clinotes</h1>
+      <h1><span class="clinote-logo">C</span>Clinote</h1>
       <div class="sub" id="brand-sub">Cargando…</div>
     </div>
     <button class="iconbtn dark-btn" id="dark-btn" onclick="openThemePicker()" title="Tema de lectura"><i class="ic" data-ic="palette"></i></button>
@@ -1307,6 +1307,18 @@ body.sortmode .topic-arrow{display:none}
       </button>
     </div>
     <input type="file" id="file-inp" accept=".html,.htm" multiple style="display:none" onchange="dzFile(event)">
+  </div>
+</div>
+
+<!-- ── TOPIC "MÁS" (acciones secundarias de un tema) ── -->
+<div class="overlay" id="topic-more-overlay" onclick="if(event.target===this)closeTopicMore()">
+  <div class="sheet actions-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title actions-sheet-title">
+      <span id="topic-more-title">Más acciones</span>
+      <button class="close-btn" onclick="closeTopicMore()"><i class="ic" data-ic="x"></i></button>
+    </div>
+    <div class="action-list" id="topic-more-list" style="margin-bottom:4px"></div>
   </div>
 </div>
 
@@ -1624,7 +1636,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.2';
+const APP_VERSION='v8.3';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1926,7 +1938,7 @@ document.addEventListener('keydown',e=>{
   if(e.key!=='Escape') return;
   const OVERLAY_CLOSE_ORDER=[
     'emoji-overlay','confirm-overlay','move-overlay',
-    'theme-overlay','quiz-overlay','study-overlay',
+    'topic-more-overlay','theme-overlay','quiz-overlay','study-overlay',
     'trash-overlay','source-overlay','preview-overlay',
     'reader-overlay','sb-overlay','topic-overlay',
     'folder-overlay','actions-overlay'
@@ -1957,6 +1969,29 @@ function closeActionsOverlay(){
   setTimeout(()=>document.getElementById('actions-overlay').style.display='',300);
   document.getElementById('fab').classList.remove('open');
 }
+/* Menú "Más" de un tema: acciones secundarias (FASE 6 U1). El contenido se
+   genera según el tema (Fuente sólo si tiene HTML). */
+function openTopicMore(id){
+  const t=activeTopics().find(x=>x.id===id);
+  if(!t) return;
+  const list=document.getElementById('topic-more-list');
+  const titleEl=document.getElementById('topic-more-title');
+  if(titleEl) titleEl.textContent=t.title||'Más acciones';
+  const ai=(ic,bg,col,label,fn,danger)=>`
+    <button class="action-item"${danger?' style="color:var(--danger)"':''} onclick="closeTopicMore();${fn}">
+      <span class="actions-section-icon" style="background:${bg};color:${col}"><i class="ic" data-ic="${ic}"></i></span>${label}
+    </button>`;
+  let html='';
+  html+=ai('printer','rgba(79,156,255,.1)','var(--accent)','Imprimir',`printTopic('${id}')`);
+  html+=ai('copy','rgba(45,212,191,.1)','var(--teal)','Duplicar',`duplicateTopic('${id}')`);
+  html+=ai('folder','rgba(251,191,36,.1)','var(--warning)','Mover',`openMoveTopic('${id}')`);
+  if(t.html) html+=ai('code','rgba(167,139,250,.1)','var(--purple)','Ver fuente HTML',`openTopicSource('${id}')`);
+  html+=ai('trash-2','rgba(248,113,113,.1)','var(--danger)','Eliminar',`askDeleteTopic('${id}')`,true);
+  list.innerHTML=html;
+  hydrateIcons(list);
+  openOverlay('topic-more-overlay');
+}
+function closeTopicMore(){closeOverlay('topic-more-overlay')}
 function closeFolderEditor(){closeOverlay('folder-overlay')}
 function closeTopicEditor(){closeOverlay('topic-overlay')}
 function closeReader(){closeOverlay('reader-overlay')}
@@ -2522,18 +2557,15 @@ function buildTopicInner(topic){
     inner+=`</div>`;
   }
 
-  /* Actions */
+  /* Actions — acciones primarias visibles; el resto en el menú "Más"
+     (reduce la barra de 10 botones/4 filas a 6 botones, UX FASE 6 U1). */
   inner+=`<div class="topic-actions">
     <button class="toolbtn" onclick="toggleTopicExpand('${topic.id}')">${icon('x')} Cerrar</button>
     <button class="toolbtn btn-studied" onclick="toggleStudied('${topic.id}')">${topic.studied?icon('rotate-ccw')+' No estudiado':icon('check-circle')+' Estudiado'}</button>
     <button class="toolbtn" onclick="openTopicEditor('${topic.id}')">${icon('pencil')} Editar</button>
     <button class="toolbtn" onclick="openReader('${topic.id}')">${icon('book-open')} Leer</button>
-    <button class="toolbtn" onclick="printTopic('${topic.id}')">${icon('printer')} Imprimir</button>
     <button class="toolbtn" onclick="toggleFavorite('${topic.id}')">${topic.favorite?icon('star','ic-fill')+' Quitar fav':icon('star')+' Favorito'}</button>
-    <button class="toolbtn" onclick="duplicateTopic('${topic.id}')">${icon('copy')} Duplicar</button>
-    <button class="toolbtn" onclick="openMoveTopic('${topic.id}')">${icon('folder')} Mover</button>
-    ${topic.html?`<button class="toolbtn" onclick="openTopicSource('${topic.id}')">${icon('code')} Fuente</button>`:''}
-    <button class="toolbtn danger" onclick="askDeleteTopic('${topic.id}')" style="color:var(--danger)">${icon('trash-2')} Eliminar</button>
+    <button class="toolbtn" onclick="openTopicMore('${topic.id}')">${icon('more-horizontal')} Más</button>
   </div>`;
   return inner;
 }
