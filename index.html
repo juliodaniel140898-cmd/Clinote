@@ -900,7 +900,11 @@ body.sortmode .topic-arrow{display:none}
   white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;
   box-shadow:var(--shadow);
   opacity:0;
+  display:inline-flex;align-items:center;gap:8px;
 }
+#toast .toast-ic{flex-shrink:0;display:inline-flex}
+#toast .toast-ic .ic{width:1.15em;height:1.15em}
+#toast .toast-msg{overflow:hidden;text-overflow:ellipsis}
 #toast.show{opacity:1}
 
 /* ── CONFIRM MODAL ── */
@@ -1620,7 +1624,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.1';
+const APP_VERSION='v8.2';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1672,14 +1676,12 @@ const ICONS={
   'cloud-upload':'<path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/>',
   'cloud-download':'<path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4 4 4-4"/>',
   'download':'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
-  'upload':'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
   'user':'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   'log-out':'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
   'graduation-cap':'<path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>',
   'book-open':'<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
   'pencil':'<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>',
   'more-horizontal':'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
-  'settings':'<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
   'arrow-up-down':'<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
   'arrow-down-az':'<path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M20 8h-5"/><path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10"/><path d="M15 14h5l-5 6h5"/>',
   'check-circle':'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
@@ -1704,7 +1706,6 @@ const ICONS={
   'star':'<path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/>',
   'keyboard':'<path d="M10 8h.01"/><path d="M12 12h.01"/><path d="M14 8h.01"/><path d="M16 12h.01"/><path d="M18 8h.01"/><path d="M6 8h.01"/><path d="M7 16h10"/><path d="M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/>',
   'copy':'<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-  'cloud':'<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
   'rotate-ccw':'<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>'
 };
 function icon(name,cls){
@@ -1736,10 +1737,36 @@ function truncateText(t,n=160){const s=String(t||'');return s.length>n?s.slice(0
 function debounce(fn,ms){let t,la;const f=(...a)=>{la=a;clearTimeout(t);t=setTimeout(()=>{fn(...la);t=null;la=null;},ms)};f.flush=()=>{if(t!=null){clearTimeout(t);t=null;fn(...(la||[]));la=null;}};return f;}
 
 let _toastTimer=null;
-function toast(msg,dur=2200){
+/* type → [icon, color]. Reemplaza los emoji de los toasts por iconos Lucide
+   coherentes con el resto de la UI. */
+const TOAST_ICONS={
+  success:['check-circle','var(--success)'],
+  error:['alert-triangle','var(--danger)'],
+  info:['book-open','var(--accent)'],
+  delete:['trash-2','var(--danger)'],
+  fav:['star','var(--warning)'],
+  unfav:['star','var(--muted)'],
+  sync:['cloud-upload','var(--accent)'],
+  download:['cloud-download','var(--accent)'],
+  import:['file-down','var(--accent)'],
+  undo:['rotate-ccw','var(--muted)'],
+  folder:['folder-plus','var(--accent)'],
+  move:['folder','var(--accent)'],
+  doc:['file-plus','var(--accent)'],
+  sort:['arrow-up-down','var(--accent)'],
+  save:['check-circle','var(--success)'],
+  bye:['log-out','var(--muted)']
+};
+function toast(msg,type,dur=2200){
   const el=document.getElementById('toast');
   if(!el) return;
-  el.textContent=msg;
+  if(typeof type==='number'){dur=type;type=null;}
+  const t=type&&TOAST_ICONS[type];
+  if(t){
+    el.innerHTML=`<span class="toast-ic" style="color:${t[1]}">${icon(t[0],type==='fav'?'ic-fill':'')}</span><span class="toast-msg">${h(msg)}</span>`;
+  }else{
+    el.textContent=msg;
+  }
   el.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer=setTimeout(()=>el.classList.remove('show'),dur);
@@ -1812,7 +1839,7 @@ function doRecover(){
   saveState();
   render();
   dismissRecovery();
-  toast('✅ Datos recuperados');
+  toast('Datos recuperados','success');
 }
 function dismissRecovery(){
   const banner=document.getElementById('recovery-banner');
@@ -2571,7 +2598,7 @@ function toggleFavorite(topicId){
       if(main){const badge=document.createElement('span');badge.className='fav-badge ic-fill';badge.innerHTML=icon('star');main.insertBefore(badge,main.querySelector('.studied-badge'));}
     }else if(!t.favorite&&favBadge){favBadge.remove();}
   }
-  toast(t.favorite?'⭐ Añadido a favoritos':'☆ Quitado de favoritos');
+  toast(t.favorite?'Añadido a favoritos':'Quitado de favoritos',t.favorite?'fav':'unfav');
 }
 
 /* ─────────────────────────────────────────────────────
@@ -2654,7 +2681,7 @@ function saveFolder(){
     STATE.folders.push({id:uid('f'),name,emoji,color,parentId,order:STATE.folders.length,favorite:false,deleted:false});
   }
   saveState();render();closeFolderEditor();
-  toast(editId?'✅ Carpeta actualizada':'📁 Carpeta creada');
+  toast(editId?'Carpeta actualizada':'Carpeta creada',editId?'success':'folder');
 }
 function askDeleteFolder(folderId){
   const folder=getFolder(folderId);
@@ -2683,7 +2710,7 @@ function runConfirmAction(){
     STATE=INITIAL_STATE();
   }
   saveState();render();
-  toast('🗑️ Movido a la papelera');
+  toast('Movido a la papelera','delete');
   confirmPayload=null;
 }
 
@@ -2716,21 +2743,21 @@ function restoreItem(id,type){
   if(type==='folder'){const f=STATE.folders.find(f=>f.id===id);if(f){f.deleted=false;delete f.deletedAt;}}
   else{const t=STATE.topics.find(t=>t.id===id);if(t){t.deleted=false;delete t.deletedAt;}}
   saveState();render();openTrash();
-  toast('↩️ Restaurado');
+  toast('Restaurado','undo');
 }
 function purgeItem(id,type){
   if(!confirm('¿Eliminar este elemento de forma permanente? No se puede deshacer.')) return;
   if(type==='folder'){STATE.folders=STATE.folders.filter(f=>f.id!==id);}
   else{STATE.topics=STATE.topics.filter(t=>t.id!==id);}
   saveState();render();openTrash();
-  toast('🗑️ Eliminado permanentemente');
+  toast('Eliminado permanentemente','delete');
 }
 function emptyTrash(){
   if(!confirm('¿Eliminar permanentemente todos los elementos de la papelera?')) return;
   STATE.topics=STATE.topics.filter(t=>!t.deleted);
   STATE.folders=STATE.folders.filter(f=>!f.deleted);
   saveState();render();closeTrash();
-  toast('🗑️ Papelera vaciada');
+  toast('Papelera vaciada','delete');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2863,7 +2890,7 @@ function saveTopic(){
   }
   _searchCache.delete(editId||'');
   saveState();render();closeTopicEditor();
-  toast(editId?'✅ Tema actualizado':'📄 Tema creado');
+  toast(editId?'Tema actualizado':'Tema creado',editId?'success':'doc');
 }
 function askDeleteTopic(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
@@ -2893,7 +2920,7 @@ function duplicateTopic(topicId){
   delete copy.updatedAt;
   STATE.topics.push(copy);
   saveState();render();
-  toast('⧉ Tema duplicado');
+  toast('Tema duplicado','doc');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2913,7 +2940,7 @@ function toggleStudied(topicId){
   }
   updateFolderProgress(t.folderId);
   renderStats();
-  toast(t.studied?'✅ Marcado como estudiado':'↩️ No estudiado');
+  toast(t.studied?'Marcado como estudiado':'No estudiado',t.studied?'success':'undo');
 }
 function updateFolderProgress(folderId){
   const id=folderId||null;
@@ -2953,7 +2980,7 @@ function confirmMoveTopic(){
     t.folderId=fid||null;
     saveState();render();closeMove();
     const fname=fid?(getFolder(fid)?.name||'carpeta'):'Sin carpeta';
-    toast(`📂 Movido a "${fname}"`);
+    toast(`Movido a "${fname}"`,'move');
   }
 }
 
@@ -3055,12 +3082,12 @@ function openAppSource(){
   openOverlay('source-overlay');
 }
 function copySource(){
-  navigator.clipboard?.writeText(currentSourceText).then(()=>toast('📋 Copiado')).catch(()=>toast('Error al copiar'));
+  navigator.clipboard?.writeText(currentSourceText).then(()=>toast('Copiado','success')).catch(()=>toast('Error al copiar','error'));
 }
 function downloadSource(){
   const blob=new Blob([currentSourceText],{type:'text/html'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=currentSourceName||'clinotes.html';a.click();
-  toast('⬇️ Descargando');
+  toast('Descargando','download');
 }
 function openTopicPreview(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
@@ -3108,7 +3135,7 @@ function openPreviewSource(){
 function downloadAppHTML(){
   const blob=new Blob([document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clinotes.html';a.click();
-  toast('⬇️ App descargada');
+  toast('App descargada','download');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3172,7 +3199,7 @@ function toggleSortMode(){
   const btn=document.getElementById('sort-btn');
   if(btn) btn.classList.toggle('sort-on',SORT_MODE);
   if(SORT_MODE) attachSort(); else render();
-  toast(SORT_MODE?'⇅ Modo ordenar activado (arrastra)':'✅ Ordenación guardada');
+  toast(SORT_MODE?'Modo ordenar activado (arrastra)':'Ordenación guardada',SORT_MODE?'sort':'success');
 }
 
 let _ghost=null,_ghostSource=null,_sortActive=false,_sortStartX=0,_sortStartY=0,_sortPid=null;
@@ -3282,7 +3309,7 @@ function sortFolderBySession(folderId){
   const parseS=s=>{if(!s)return 9999;const m=String(s).match(/(\d+)/);return m?parseInt(m[1]):9999};
   const ordered=getTopicsInFolder(realId).slice().sort((a,b)=>parseS(a.session)-parseS(b.session));
   applyTopicOrderForFolder(realId,ordered);
-  saveState();render();toast('📋 Ordenado por sesión');
+  saveState();render();toast('Ordenado por sesión','sort');
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -3340,7 +3367,7 @@ function dzFile(e){
   const files=Array.from(e.target?.files||e.dataTransfer?.files||[]);
   if(!files.length) return;
   let count=0;
-  const done=()=>{if(++count===files.length){saveState();render();toast(`📥 ${files.length} archivo${files.length!==1?'s':''} importado${files.length!==1?'s':''}`)}};
+  const done=()=>{if(++count===files.length){saveState();render();toast(`${files.length} archivo${files.length!==1?'s':''} importado${files.length!==1?'s':''}`,'import')}};
   files.forEach(file=>{
     const reader=new FileReader();
     reader.onload=ev=>{createTopicFromFile(file.name,ev.target.result);done()};
@@ -3355,7 +3382,7 @@ function exportJSON(){
   const blob=new Blob([JSON.stringify(STATE,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='clinotes-backup-'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();toast('💾 Backup exportado');
+  a.click();toast('Backup exportado','download');
 }
 function importJSON(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';
@@ -3368,8 +3395,8 @@ function importJSON(){
         if(!p?.topics) throw new Error('Formato inválido');
         if(!confirm(`¿Importar ${p.topics.length} temas y ${p.folders?.length||0} carpetas? Esto reemplazará tu contenido actual.`)) return;
         STATE=p;saveState();render();
-        toast(`📥 Importado: ${p.topics.length} temas`);
-      }catch(ex){toast('❌ Error al importar: '+ex.message);}
+        toast(`Importado: ${p.topics.length} temas`,'import');
+      }catch(ex){toast('Error al importar: '+ex.message,'error');}
     };
     r.readAsText(f);
   };
@@ -3585,7 +3612,7 @@ async function signOut(){
   STATE=INITIAL_STATE();saveState();render();
   updateUserChip(null);updateSbStatus(null);
   showAuthScreen();
-  toast('👋 Sesión cerrada');
+  toast('Sesión cerrada','bye');
 }
 function updateUserChip(user){
   const label=document.getElementById('user-chip-label');
@@ -3644,9 +3671,9 @@ async function sbPush(silent=false){
   if(!user){if(!silent)toast('Inicia sesión para sincronizar');return;}
   setSbSyncStatus('Sincronizando…');
   const{error}=await getSB().from('study_backup').upsert({user_id:user.id,data:STATE,updated_at:new Date().toISOString()},{onConflict:'user_id'});
-  if(error){setSbSyncStatus('Error: '+error.message,false);if(!silent)toast('❌ Error al sincronizar');return;}
-  setSbSyncStatus('✅ '+new Date().toLocaleTimeString(),true);
-  if(!silent) toast('☁️ Datos sincronizados');
+  if(error){setSbSyncStatus('Error: '+error.message,false);if(!silent)toast('Error al sincronizar','error');return;}
+  setSbSyncStatus(new Date().toLocaleTimeString(),true);
+  if(!silent) toast('Datos sincronizados','sync');
 }
 async function sbPull(){
   const{data:{user}}=await getSB().auth.getUser();
@@ -3655,7 +3682,7 @@ async function sbPull(){
   const{data,error}=await getSB().from('study_backup').select('data').eq('user_id',user.id).single();
   if(error||!data?.data?.topics?.length){setSbSyncStatus('Sin datos en la nube',null);toast('No hay datos en la nube');return;}
   if(!confirm(`¿Reemplazar datos locales con ${data.data.topics.length} temas de la nube?`)) return;
-  STATE=data.data;saveState();render();setSbSyncStatus('✅ Descargado',true);toast('⬇️ Datos restaurados');
+  STATE=data.data;saveState();render();setSbSyncStatus('Descargado',true);toast('Datos restaurados','download');
 }
 async function sbPullSilent(){
   const{data:{user}}=await getSB().auth.getUser();
