@@ -2596,6 +2596,13 @@ function _doRender(){
   }
 
   container.innerHTML=html;
+  /* Inline-frames created by renderTopic have no srcdoc (can't embed binary in
+     HTML string). Set it here for every expanded topic so content loads
+     regardless of whether the card was opened via toggleTopicExpand or render(). */
+  container.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>{
+    const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
+    if(t?.html) fr.srcdoc=buildEmbedDoc(t.html,t.id);
+  });
   sizeInlineFrames();
   attachSwipe();
   if(SORT_MODE) attachSort();
@@ -2921,9 +2928,12 @@ function sizeInlineFrames(root){
         if(body){const h2=Math.max(200,body.scrollHeight+24);fr.style.height=h2+'px';}
       }catch(_){}
     };
-    fr.onload=resize;
-    setTimeout(resize,300);
-    setTimeout(resize,900);
+    /* addEventListener (not .onload=) so multiple calls don't clobber each other.
+       {once:true} auto-removes after firing. A post-load timeout handles CSS
+       reflows that finish after the load event. */
+    fr.addEventListener('load',()=>{resize();setTimeout(resize,150);},{once:true});
+    setTimeout(resize,400);
+    setTimeout(resize,1200);
   });
 }
 </script>
@@ -4162,7 +4172,11 @@ function _applyStudyLayout(){
     if(fsBtn){fsBtn.innerHTML=icon('maximize');fsBtn.title='Pantalla completa';}
   }
 }
-function toggleStudyFullscreen(){_studyFullscreen=!_studyFullscreen;_applyStudyLayout()}
+function toggleStudyFullscreen(){
+  _studyFullscreen=!_studyFullscreen;
+  _applyStudyLayout();
+  setTimeout(()=>sizeInlineFrames(document.getElementById('study-sheet')),80);
+}
 function _updateStudyStudiedBtn(){
   const topic=STUDY.topics[STUDY.idx];
   const sb=document.getElementById('study-studied-btn');
