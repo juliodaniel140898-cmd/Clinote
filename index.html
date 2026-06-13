@@ -1581,7 +1581,7 @@ body.sortmode .topic-arrow{display:none}
       </div>
     </div>
     <div style="flex:1;overflow:hidden;padding:0">
-      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:0;display:block"></iframe>
+      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:0;display:block"></iframe>
     </div>
   </div>
 </div>
@@ -1706,7 +1706,7 @@ body.sortmode .topic-arrow{display:none}
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.8';
+const APP_VERSION='v8.9';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2404,8 +2404,7 @@ function refreshAllFrames(){
   try{
     const pf=document.getElementById('preview-frame');
     if(pf&&window.currentPreviewHtml){
-      const pct=previewZoomPct||100;
-      pf.addEventListener('load',()=>{try{const bd=pf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}},{once:true});
+      _applyZoomToFrame(pf,previewZoomPct||100);
       pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
     }
   }catch(_){}
@@ -2533,10 +2532,15 @@ function prepareReactBody(src){
    instead scroll to the target element smoothly within the iframe */
 const IFRAME_ANCHOR_FIX=`<script>(function(){document.addEventListener('click',function(e){var a=e.target.closest?e.target.closest('a'):null;if(!a)return;var href=a.getAttribute('href')||'';if(!href)return;if(href==='#'){e.preventDefault();return;}if(href.charAt(0)==='#'){e.preventDefault();e.stopPropagation();var el=document.getElementById(href.slice(1));if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}return;}if(/^https?:|^\/\//.test(href)){e.preventDefault();e.stopPropagation();window.open(href,'_blank','noopener');}},true);}());<\/script>`;
 
+/* FASE 12: Bridge de aislamiento. Con sandbox SIN allow-same-origin el padre ya
+   no puede leer contentDocument, así que el iframe publica su tamaño y recibe el
+   zoom por postMessage. Se inyecta en TODO documento embebido. */
+const IFRAME_BRIDGE=`<script>(function(){function ps(){if(!document.body)return;var h=Math.max(document.body.scrollHeight||0,document.documentElement.scrollHeight||0);try{parent.postMessage({__clinote:1,type:'size',h:h},'*');}catch(e){}}window.addEventListener('message',function(e){var d=e.data;if(d&&d.__clinote===1&&d.type==='zoom'){try{if(document.body)document.body.style.zoom=(d.pct||100)+'%';}catch(x){}setTimeout(ps,40);}});function init(){ps();window.addEventListener('resize',ps);try{var ro=new ResizeObserver(ps);ro.observe(document.body);}catch(x){}setTimeout(ps,300);setTimeout(ps,1000);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();window.addEventListener('load',ps);}());<\/script>`;
+const _IFRAME_INJECT=IFRAME_ANCHOR_FIX+IFRAME_BRIDGE;
 function _injectAnchorFix(html){
-  if(html.includes('</head>')) return html.replace('</head>',IFRAME_ANCHOR_FIX+'</head>');
-  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${IFRAME_ANCHOR_FIX}`);
-  return IFRAME_ANCHOR_FIX+html;
+  if(html.includes('</head>')) return html.replace('</head>',_IFRAME_INJECT+'</head>');
+  if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${_IFRAME_INJECT}`);
+  return _IFRAME_INJECT+html;
 }
 
 function buildEmbedDoc(rawHtml,topicId){
@@ -2889,7 +2893,7 @@ function buildTopicInner(topic){
     inner+=`<div class="topic-inline-html">
       <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('${topic.id}')" title="Pantalla completa">${icon('maximize')}</button>
       <button class="preview-expand" style="right:52px" onclick="event.stopPropagation();toggleTopicExpand('${topic.id}')" title="Cerrar">${icon('x')}</button>
-      <iframe class="inline-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:280px"></iframe>
+      <iframe class="inline-frame" sandbox="allow-scripts allow-popups" data-tid="${ha(topic.id)}" style="min-height:280px"></iframe>
     </div>`;
   }
 
@@ -3016,23 +3020,25 @@ function toggleFavorite(topicId){
 /* ─────────────────────────────────────────────────────
    INLINE FRAME SIZING
 ───────────────────────────────────────────────────── */
-function sizeInlineFrames(root){
-  const scope=root||document;
-  scope.querySelectorAll('.inline-frame,.study-frame').forEach(fr=>{
-    const resize=()=>{
-      try{
-        const body=fr.contentDocument?.body;
-        if(body){const h2=Math.max(200,body.scrollHeight+24);fr.style.height=h2+'px';}
-      }catch(_){}
-    };
-    /* addEventListener (not .onload=) so multiple calls don't clobber each other.
-       {once:true} auto-removes after firing. A post-load timeout handles CSS
-       reflows that finish after the load event. */
-    fr.addEventListener('load',()=>{resize();setTimeout(resize,150);},{once:true});
-    setTimeout(resize,400);
-    setTimeout(resize,1200);
-  });
+/* FASE 12: el tamaño de los iframes ya NO se lee por contentDocument (el sandbox
+   sin allow-same-origin lo impide). El bridge dentro de cada iframe publica su
+   altura por postMessage; este listener la aplica al iframe correspondiente,
+   identificándolo por contentWindow===event.source (sí accesible sin same-origin).
+   Solo auto-ajusta inline/study; lector y preview son de altura fija por CSS. */
+function _onFrameMessage(e){
+  const d=e.data;
+  if(!d||d.__clinote!==1||d.type!=='size') return;
+  const frames=document.querySelectorAll('.inline-frame,.study-frame');
+  for(const fr of frames){
+    if(fr.contentWindow===e.source){
+      fr.style.height=Math.max(200,(d.h||0)+8)+'px';
+      return;
+    }
+  }
 }
+window.addEventListener('message',_onFrameMessage);
+/* No-op conservado para los llamadores existentes: el bridge ya publica el tamaño. */
+function sizeInlineFrames(root){}
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════
@@ -3437,7 +3443,7 @@ function openReader(topicId){
   if(!body) return;
   let html='';
   if(topic.session) html+=`<p style="font-size:.78em;color:var(--muted);margin-bottom:10px;font-weight:700">Sesión: ${h(topic.session)}</p>`;
-  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups allow-same-origin" style="min-height:calc(100dvh - 120px);height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block;margin-bottom:10px"></iframe>`;}
+  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups" style="min-height:calc(100dvh - 120px);height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block;margin-bottom:10px"></iframe>`;}
   if(topic.sections?.length){topic.sections.forEach(s=>{html+=`<div class="section-block"><div class="section-title">${h(s.h)}</div><div class="section-body">${renderBullets(s.b,topic.color)}</div></div>`;})}
   if(topic.mnemo){html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;}
   if(topic.flashcards?.length){
@@ -3451,10 +3457,7 @@ function openReader(topicId){
   if(topic.html){
     const rf=body.querySelector('.reader-frame');
     if(rf){
-      const pct=readerZoomPct;
-      rf.addEventListener('load',()=>{
-        try{const bd=rf.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
-      },{once:true});
+      _applyZoomToFrame(rf,readerZoomPct);
       rf.srcdoc=buildEmbedDoc(topic.html,topic.id);
     }
   }
@@ -3467,15 +3470,13 @@ let readerZoomPct=100;
 let previewZoomPct=100;
 
 function _applyZoomToFrame(fr,pct){
-  /* srcdoc iframes con allow-same-origin son accesibles desde el padre */
-  try{
-    const bd=fr.contentDocument?.body;
-    if(bd){bd.style.zoom=pct+'%';return;}
-  }catch(_){}
-  /* fallback si aún no cargó: esperar onload */
-  fr.addEventListener('load',()=>{
-    try{const bd=fr.contentDocument?.body;if(bd)bd.style.zoom=pct+'%';}catch(_){}
-  },{once:true});
+  /* FASE 12: el zoom se envía por postMessage al bridge del iframe (sin
+     allow-same-origin no se puede tocar contentDocument). Se envía ahora y de
+     nuevo en load por si el bridge aún no estaba escuchando. */
+  if(!fr) return;
+  const send=()=>{try{fr.contentWindow.postMessage({__clinote:1,type:'zoom',pct},'*');}catch(_){}};
+  send();
+  fr.addEventListener('load',send,{once:true});
 }
 
 function readerZoom(d){
@@ -3541,9 +3542,7 @@ function openPreview(html,title='Vista previa'){
   if(pzv) pzv.textContent='100%';
   const fr=document.getElementById('preview-frame');
   if(fr){
-    fr.addEventListener('load',()=>{
-      try{const bd=fr.contentDocument?.body;if(bd)bd.style.zoom='100%';}catch(_){}
-    },{once:true});
+    _applyZoomToFrame(fr,100);
     fr.srcdoc=buildEmbedDoc(html);
   }
   openOverlay('preview-overlay');
@@ -3564,8 +3563,13 @@ function previewTopicHTML(){
   openPreview(html,'Vista previa');
 }
 function openPreviewSource(){
-  const fr=document.getElementById('preview-frame');
-  try{currentSourceText=fr.contentDocument.documentElement.outerHTML||'';currentSourceName='preview.html';document.getElementById('source-pre').textContent=currentSourceText.slice(0,8000);openOverlay('source-overlay');}catch(_){toast('No se pudo acceder al fuente');}
+  /* FASE 12: sin allow-same-origin no se puede leer contentDocument; usamos el
+     HTML almacenado del tema en preview. */
+  const src=window.currentPreviewHtml||'';
+  if(!src){toast('No hay fuente para mostrar');return;}
+  currentSourceText=src;currentSourceName='preview.html';
+  document.getElementById('source-pre').textContent=src.slice(0,8000)+(src.length>8000?'\n\n[... truncado ...]':'');
+  openOverlay('source-overlay');
 }
 function downloadAppHTML(){
   const blob=new Blob([document.documentElement.outerHTML],{type:'text/html'});
@@ -4351,7 +4355,7 @@ function renderStudyMode(){
     ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:5px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
   </div>`;
   if(topic.html){
-    html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups allow-same-origin" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
+    html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
   }
   if(topic.sections?.length){topic.sections.forEach(sec=>{
     html+=`<div class="study-section">`;
