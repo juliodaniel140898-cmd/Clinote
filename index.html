@@ -1723,7 +1723,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.10';
+const APP_VERSION='v8.11';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2724,13 +2724,10 @@ function _doRender(){
   }
 
   container.innerHTML=html;
-  /* Inline-frames created by renderTopic have no srcdoc (can't embed binary in
-     HTML string). Set it here for every expanded topic so content loads
-     regardless of whether the card was opened via toggleTopicExpand or render(). */
-  container.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>{
-    const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
-    if(t?.html) fr.srcdoc=buildEmbedDoc(t.html,t.id);
-  });
+  /* FASE 14: carga diferida. En vez de inyectar srcdoc en TODOS los iframes
+     expandidos de golpe en cada render (recarga costosa, incluido re-init de
+     React), se observan y cada uno carga cuando se acerca al viewport. */
+  container.querySelectorAll('.inline-frame[data-tid]').forEach(observeInlineFrame);
   sizeInlineFrames();
   attachSwipe();
   if(SORT_MODE) attachSort();
@@ -3002,8 +2999,9 @@ function toggleTopicExpand(id){
          attribute encoding roundtrip, no double-encoding, works on all
          browsers including iOS Safari */
       if(topic.html){
+        /* el tema recién expandido es visible → cargar ya (marca data-loaded) */
         const fr=collapseEl.querySelector('.inline-frame');
-        if(fr) fr.srcdoc=buildEmbedDoc(topic.html,topic.id);
+        if(fr) _loadInlineFrame(fr);
       }
       collapseEl.classList.add('open');
       sizeInlineFrames(card);
@@ -3031,9 +3029,8 @@ function toggleFavorite(topicId){
   t.favorite=!t.favorite;touch(t);saveState();
   const card=document.querySelector(`[data-topic-id="${topicId}"]`);
   if(card){
-    const btn=card.querySelector('.toolbtn:has-text');
     /* rebuild inner since favorite affects card header */
-    if(expandedTopics[topicId]){const col=card.querySelector('.topic-collapse');if(col)col.innerHTML=buildTopicInner(t);}
+    if(expandedTopics[topicId]){const col=card.querySelector('.topic-collapse');if(col){col.innerHTML=buildTopicInner(t);const fr=col.querySelector('.inline-frame[data-tid]');if(fr)_loadInlineFrame(fr);}}
     const favBadge=card.querySelector('.fav-badge');
     if(t.favorite&&!favBadge){
       /* insert fav badge before studied badge */
@@ -3066,6 +3063,32 @@ function _onFrameMessage(e){
 window.addEventListener('message',_onFrameMessage);
 /* No-op conservado para los llamadores existentes: el bridge ya publica el tamaño. */
 function sizeInlineFrames(root){}
+
+/* ─────────────────────────────────────────────────────
+   FASE 14: Carga diferida de iframes (rendimiento a escala)
+   Solo se inyecta srcdoc cuando el iframe se acerca al viewport, no en cada
+   render para todos los temas expandidos. Coste de render casi constante.
+───────────────────────────────────────────────────── */
+function _loadInlineFrame(fr){
+  if(!fr||fr.dataset.loaded==='1') return;
+  const t=activeTopics().find(x=>x.id===fr.getAttribute('data-tid'));
+  if(t&&t.html){
+    fr.dataset.loaded='1';
+    fr.srcdoc=buildEmbedDoc(t.html,t.id);
+  }
+}
+const _frameObserver=(typeof IntersectionObserver!=='undefined')
+  ? new IntersectionObserver((entries,obs)=>{
+      for(const e of entries){
+        if(e.isIntersecting){ _loadInlineFrame(e.target); obs.unobserve(e.target); }
+      }
+    },{rootMargin:'600px 0px'}) /* precarga 600px antes de ser visible */
+  : null;
+function observeInlineFrame(fr){
+  if(!fr||fr.dataset.loaded==='1') return;
+  if(_frameObserver) _frameObserver.observe(fr);
+  else _loadInlineFrame(fr); /* fallback navegadores sin IntersectionObserver */
+}
 </script>
 <script>
 /* ═══════════════════════════════════════════════════════
