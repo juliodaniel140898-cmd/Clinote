@@ -526,6 +526,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   .folder-btn{width:40px;height:40px}
   .preview-expand{width:40px;height:40px}
 }
+/* FASE 15: respeta movimiento reducido (vestibular) — animaciones casi instantáneas */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;scroll-behavior:auto!important;
+  }
+}
 .label{font-size:.78em;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;margin-top:14px;display:block}
 .label:first-child{margin-top:0}
 .primary-btn{
@@ -1723,7 +1730,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.11';
+const APP_VERSION='v8.12';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2206,6 +2213,42 @@ function _syncScrollLock(){
   const anyOpen=!!document.querySelector('.overlay.open');
   document.body.classList.toggle('overlay-open',anyOpen);
 }
+
+/* FASE 15: accesibilidad de diálogos — orden de apilamiento (topmost primero),
+   gestión de foco y focus-trap. */
+const OVERLAY_CLOSE_ORDER=[
+  'emoji-overlay','confirm-overlay','move-overlay',
+  'topic-more-overlay','theme-overlay','quiz-overlay','study-overlay',
+  'trash-overlay','source-overlay','preview-overlay',
+  'reader-overlay','sb-overlay','topic-overlay',
+  'folder-overlay','actions-overlay'
+];
+function _topOpenOverlay(){
+  for(const id of OVERLAY_CLOSE_ORDER){
+    const el=document.getElementById(id);
+    if(el&&el.classList.contains('open')) return el;
+  }
+  return null;
+}
+function _focusables(root){
+  if(!root) return [];
+  return [...root.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])')]
+    .filter(el=>el.offsetWidth>0||el.offsetHeight>0||el===document.activeElement);
+}
+let _focusStack=[];
+function _dialogActivate(el){
+  const dlg=el.querySelector('.sheet')||el.querySelector('.auth-card')||el.firstElementChild;
+  if(dlg){dlg.setAttribute('role','dialog');dlg.setAttribute('aria-modal','true');if(!dlg.hasAttribute('tabindex'))dlg.setAttribute('tabindex','-1');}
+  /* recuerda quién tenía el foco para devolverlo al cerrar */
+  _focusStack.push(document.activeElement);
+  /* enfoca el contenedor del diálogo (no el primer input: evita abrir el teclado
+     móvil de golpe); el lector de pantalla anuncia el diálogo y el Tab queda dentro */
+  setTimeout(()=>{if(el.classList.contains('open')&&dlg)dlg.focus();},70);
+}
+function _dialogDeactivate(){
+  const prev=_focusStack.pop();
+  if(prev&&document.contains(prev)&&typeof prev.focus==='function') setTimeout(()=>{try{prev.focus()}catch(_){}}, 0);
+}
 function openOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
@@ -2214,6 +2257,7 @@ function openOverlay(id){
   if(el._hideTimer){clearTimeout(el._hideTimer);el._hideTimer=null;}
   el.style.display='flex';
   requestAnimationFrame(()=>{el.classList.add('open');_syncScrollLock();});
+  _dialogActivate(el);
   setTimeout(()=>{if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})},60);
 }
 function closeOverlay(id){
@@ -2221,6 +2265,7 @@ function closeOverlay(id){
   if(!el) return;
   el.classList.remove('open');
   _syncScrollLock();
+  _dialogDeactivate();
   if(el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer=setTimeout(()=>{
     if(!el.classList.contains('open')) el.style.display='none';
@@ -2245,14 +2290,21 @@ document.addEventListener('keydown',e=>{
       if(e.key==='ArrowLeft'||e.key.toLowerCase()==='j'){quizAnswer(false);e.preventDefault();return;}
     }
   }
+  /* FASE 15: focus-trap — Tab circula dentro del diálogo abierto */
+  if(e.key==='Tab'){
+    const top=_topOpenOverlay();
+    if(top){
+      const f=_focusables(top);
+      if(f.length){
+        const first=f[0],last=f[f.length-1];
+        if(!top.contains(document.activeElement)){e.preventDefault();first.focus();}
+        else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+        else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+      }
+    }
+    return;
+  }
   if(e.key!=='Escape') return;
-  const OVERLAY_CLOSE_ORDER=[
-    'emoji-overlay','confirm-overlay','move-overlay',
-    'topic-more-overlay','theme-overlay','quiz-overlay','study-overlay',
-    'trash-overlay','source-overlay','preview-overlay',
-    'reader-overlay','sb-overlay','topic-overlay',
-    'folder-overlay','actions-overlay'
-  ];
   for(const id of OVERLAY_CLOSE_ORDER){
     const el=document.getElementById(id);
     if(el&&el.classList.contains('open')){
@@ -2274,12 +2326,14 @@ function openActionsOverlay(){
   const tn=document.getElementById('actions-theme-name');
   if(tn) tn.textContent=getReadingPalette().name;
   _syncScrollLock(); /* FASE 13: este overlay no pasa por openOverlay */
+  _dialogActivate(document.getElementById('actions-overlay'));
 }
 function closeActionsOverlay(){
   document.getElementById('actions-overlay').classList.remove('open');
   setTimeout(()=>document.getElementById('actions-overlay').style.display='',300);
   document.getElementById('fab').classList.remove('open');
   _syncScrollLock();
+  _dialogDeactivate();
 }
 /* Menú "Más" de un tema: acciones secundarias (FASE 6 U1). El contenido se
    genera según el tema (Fuente sólo si tiene HTML). */
