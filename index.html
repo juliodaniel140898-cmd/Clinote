@@ -533,6 +533,23 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
     transition-duration:.01ms!important;scroll-behavior:auto!important;
   }
 }
+/* FASE 17: spinner de carga para iframes de lector/preview/estudio */
+.frame-wrap{position:relative;}
+.frame-wrap::after{
+  content:'';position:absolute;inset:0;background:var(--surface);
+  border-radius:var(--r);display:flex;align-items:center;justify-content:center;
+  opacity:1;pointer-events:none;transition:opacity .25s;
+}
+.frame-wrap.loaded::after{opacity:0;pointer-events:none;}
+.frame-wrap::before{
+  content:'';position:absolute;top:50%;left:50%;z-index:1;
+  width:28px;height:28px;margin:-14px 0 0 -14px;
+  border:3px solid var(--border);border-top-color:var(--accent);
+  border-radius:50%;animation:spin .7s linear infinite;
+  opacity:1;transition:opacity .2s;
+}
+.frame-wrap.loaded::before{opacity:0;}
+@keyframes spin{to{transform:rotate(360deg)}}
 /* FASE 16: barra offline */
 #offline-bar{
   display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
@@ -1614,7 +1631,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
         <button class="close-btn" onclick="closePreview()" title="Cerrar"><i class="ic" data-ic="x"></i></button>
       </div>
     </div>
-    <div style="flex:1;overflow:hidden;padding:0">
+    <div class="frame-wrap loaded" style="flex:1;overflow:hidden;padding:0">
       <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:0;display:block"></iframe>
     </div>
   </div>
@@ -1740,11 +1757,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.13';
+const APP_VERSION='v8.14';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
 const ZOOM_KEY='clinote-zoom';
+/* FASE 17: claves de persistencia de zoom por modo */
+const READER_ZOOM_KEY='clinote-reader-zoom';
+const PREVIEW_ZOOM_KEY='clinote-preview-zoom';
+const STUDY_ZOOM_KEY='clinote-study-zoom';
 
 const INITIAL_STATE=()=>({version:2,folders:[],topics:[],settings:{zoom:100,theme:'dark'}});
 
@@ -3550,14 +3571,14 @@ function openReader(topicId){
      porque ahí viven los botones de zoom/oscuro/imprimir/cerrar */
   const el=document.getElementById('reader-title-text');
   if(el) el.innerHTML=`${h(topic.icon||'📄')} ${h(topic.title)}`;
-  readerZoomPct=100;
+  readerZoomPct=parseInt(localStorage.getItem(READER_ZOOM_KEY)||'100')||100;
   const zv=document.getElementById('reader-zoom-val');
-  if(zv) zv.textContent='100%';
+  if(zv) zv.textContent=readerZoomPct+'%';
   const body=document.getElementById('reader-body');
   if(!body) return;
   let html='';
   if(topic.session) html+=`<p style="font-size:.78em;color:var(--muted);margin-bottom:10px;font-weight:700">Sesión: ${h(topic.session)}</p>`;
-  if(topic.html){html+=`<iframe class="reader-frame" sandbox="allow-scripts allow-popups" style="min-height:calc(100dvh - 120px);height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block;margin-bottom:10px"></iframe>`;}
+  if(topic.html){html+=`<div class="frame-wrap" style="min-height:calc(100dvh - 120px);border-radius:var(--r);margin-bottom:10px"><iframe class="reader-frame" sandbox="allow-scripts allow-popups" style="height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block"></iframe></div>`;}
   if(topic.sections?.length){topic.sections.forEach(s=>{html+=`<div class="section-block"><div class="section-title">${h(s.h)}</div><div class="section-body">${renderBullets(s.b,topic.color)}</div></div>`;})}
   if(topic.mnemo){html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;}
   if(topic.flashcards?.length){
@@ -3572,7 +3593,7 @@ function openReader(topicId){
     const rf=body.querySelector('.reader-frame');
     if(rf){
       _applyZoomToFrame(rf,readerZoomPct);
-      rf.srcdoc=buildEmbedDoc(topic.html,topic.id);
+      _setFrameSrcdoc(rf,buildEmbedDoc(topic.html,topic.id));
     }
   }
   sizeInlineFrames(body);
@@ -3592,9 +3613,19 @@ function _applyZoomToFrame(fr,pct){
   send();
   fr.addEventListener('load',send,{once:true});
 }
+/* FASE 17: establece srcdoc y gestiona el spinner de carga en el wrapper */
+function _setFrameSrcdoc(fr,doc){
+  if(!fr) return;
+  const wrap=fr.parentElement;
+  if(wrap&&wrap.classList.contains('frame-wrap')) wrap.classList.remove('loaded');
+  const onLoad=()=>{if(wrap&&wrap.classList.contains('frame-wrap')) wrap.classList.add('loaded');};
+  fr.addEventListener('load',onLoad,{once:true});
+  fr.srcdoc=doc;
+}
 
 function readerZoom(d){
   readerZoomPct=Math.min(200,Math.max(60,readerZoomPct+d*10));
+  try{localStorage.setItem(READER_ZOOM_KEY,readerZoomPct);}catch(_){}
   const zv=document.getElementById('reader-zoom-val');
   if(zv) zv.textContent=readerZoomPct+'%';
   const body=document.getElementById('reader-body');
@@ -3606,6 +3637,7 @@ function readerZoom(d){
 
 function previewZoom(d){
   previewZoomPct=Math.min(200,Math.max(60,previewZoomPct+d*10));
+  try{localStorage.setItem(PREVIEW_ZOOM_KEY,previewZoomPct);}catch(_){}
   const zv=document.getElementById('preview-zoom-val');
   if(zv) zv.textContent=previewZoomPct+'%';
   const pf=document.getElementById('preview-frame');
@@ -3651,13 +3683,13 @@ function openPreview(html,title='Vista previa'){
   const titleEl=document.getElementById('preview-title-text');
   if(titleEl) titleEl.textContent=title;
   window.currentPreviewHtml=html;
-  previewZoomPct=100;
+  previewZoomPct=parseInt(localStorage.getItem(PREVIEW_ZOOM_KEY)||'100')||100;
   const pzv=document.getElementById('preview-zoom-val');
-  if(pzv) pzv.textContent='100%';
+  if(pzv) pzv.textContent=previewZoomPct+'%';
   const fr=document.getElementById('preview-frame');
   if(fr){
-    _applyZoomToFrame(fr,100);
-    fr.srcdoc=buildEmbedDoc(html);
+    _applyZoomToFrame(fr,previewZoomPct);
+    _setFrameSrcdoc(fr,buildEmbedDoc(html));
   }
   openOverlay('preview-overlay');
 }
@@ -4377,6 +4409,7 @@ let _studyFullscreen=false;
 let _studyZoomPct=100;
 function studyZoom(dir){
   _studyZoomPct=Math.max(70,Math.min(200,_studyZoomPct+dir*10));
+  try{localStorage.setItem(STUDY_ZOOM_KEY,_studyZoomPct);}catch(_){}
   const zv=document.getElementById('study-zoom-val');
   if(zv) zv.textContent=_studyZoomPct+'%';
   const body=document.getElementById('study-body');
@@ -4390,11 +4423,11 @@ function openStudyMode(folderId){
   if(!pool.length){toast('Esta carpeta no tiene temas');return;}
   STUDY={topics:pool,idx:0,folderId:realId};
   _studyFullscreen=false;
-  _studyZoomPct=100;
+  _studyZoomPct=parseInt(localStorage.getItem(STUDY_ZOOM_KEY)||'100')||100;
   const sb=document.getElementById('study-body');
-  if(sb) sb.style.fontSize='';
+  if(sb) sb.style.fontSize=_studyZoomPct+'%';
   const szv=document.getElementById('study-zoom-val');
-  if(szv) szv.textContent='100%';
+  if(szv) szv.textContent=_studyZoomPct+'%';
   _applyStudyLayout();
   renderStudyMode();openOverlay('study-overlay');
 }
@@ -4469,7 +4502,7 @@ function renderStudyMode(){
     ${topic.session?`<div style="font-size:.76em;color:var(--muted);margin-top:5px;font-weight:700">Sesión: ${h(topic.session)}</div>`:''}
   </div>`;
   if(topic.html){
-    html+=`<div class="study-html-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
+    html+=`<div class="study-html-wrap frame-wrap"><iframe class="study-frame" sandbox="allow-scripts allow-popups" data-tid="${ha(topic.id)}" style="min-height:240px"></iframe></div>`;
   }
   if(topic.sections?.length){topic.sections.forEach(sec=>{
     html+=`<div class="study-section">`;
@@ -4481,7 +4514,7 @@ function renderStudyMode(){
   container.innerHTML=html;
   if(topic.html){
     const sf=container.querySelector('.study-frame');
-    if(sf) sf.srcdoc=buildEmbedDoc(topic.html,topic.id);
+    if(sf) _setFrameSrcdoc(sf,buildEmbedDoc(topic.html,topic.id));
   }
   sizeInlineFrames(container);
   parseEmoji(document.getElementById('study-sheet'));
