@@ -1796,7 +1796,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.15';
+const APP_VERSION='v8.16';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2704,7 +2704,29 @@ function prepareReactBody(src){
 
 /* Anchor-intercept: prevent #hash links from navigating the parent frame;
    instead scroll to the target element smoothly within the iframe */
-const IFRAME_ANCHOR_FIX=`<script>(function(){document.addEventListener('click',function(e){var a=e.target.closest?e.target.closest('a'):null;if(!a)return;var href=a.getAttribute('href')||'';if(!href)return;if(href==='#'){e.preventDefault();return;}if(href.charAt(0)==='#'){e.preventDefault();e.stopPropagation();var el=document.getElementById(href.slice(1));if(el){el.scrollIntoView({behavior:'smooth',block:'start'});}return;}if(/^https?:|^\/\//.test(href)){e.preventDefault();e.stopPropagation();window.open(href,'_blank','noopener');}},true);}());<\/script>`;
+/* FASE 19: corrige el escape \/\/ (que rompía TODO el script con un SyntaxError)
+   y enruta el scroll de anclas al padre cuando el iframe es de auto-altura
+   (inline/estudio no tienen scroll interno; el contenedor real es el padre). */
+const IFRAME_ANCHOR_FIX=`<script>(function(){
+  function target(id){return document.getElementById(id)||(document.getElementsByName?document.getElementsByName(id)[0]:null);}
+  document.addEventListener('click',function(e){
+    var a=e.target.closest?e.target.closest('a'):null;if(!a)return;
+    var href=a.getAttribute('href')||'';if(!href)return;
+    if(href==='#'){e.preventDefault();return;}
+    if(href.charAt(0)==='#'){
+      e.preventDefault();e.stopPropagation();
+      var raw=href.slice(1),id=raw;try{id=decodeURIComponent(raw);}catch(_){}
+      var el=target(id)||target(raw);
+      if(el){
+        var canScroll=(document.documentElement.scrollHeight||0)>(window.innerHeight||0)+2;
+        if(canScroll){el.scrollIntoView({behavior:'smooth',block:'start'});}
+        else{var top=el.getBoundingClientRect().top+(window.scrollY||window.pageYOffset||0);try{parent.postMessage({__clinote:1,type:'anchor',top:top},'*');}catch(_){}}
+      }
+      return;
+    }
+    if(/^https?:/.test(href)||href.slice(0,2)==='//'){e.preventDefault();e.stopPropagation();window.open(href,'_blank','noopener');}
+  },true);
+}());<\/script>`;
 
 /* FASE 12: Bridge de aislamiento. Con sandbox SIN allow-same-origin el padre ya
    no puede leer contentDocument, así que el iframe publica su tamaño y recibe el
@@ -3198,14 +3220,41 @@ function toggleFavorite(topicId){
    Solo auto-ajusta inline/study; lector y preview son de altura fija por CSS. */
 function _onFrameMessage(e){
   const d=e.data;
-  if(!d||d.__clinote!==1||d.type!=='size') return;
-  const frames=document.querySelectorAll('.inline-frame,.study-frame');
-  for(const fr of frames){
-    if(fr.contentWindow===e.source){
-      fr.style.height=Math.max(200,(d.h||0)+8)+'px';
-      return;
+  if(!d||d.__clinote!==1) return;
+  if(d.type==='size'){
+    const frames=document.querySelectorAll('.inline-frame,.study-frame');
+    for(const fr of frames){
+      if(fr.contentWindow===e.source){
+        fr.style.height=Math.max(200,(d.h||0)+8)+'px';
+        return;
+      }
+    }
+    return;
+  }
+  /* FASE 19: el iframe de auto-altura (inline/estudio) no tiene scroll interno;
+     pide al padre que lleve la sección #ancla a la vista. */
+  if(d.type==='anchor'){
+    const frames=document.querySelectorAll('.inline-frame,.study-frame');
+    for(const fr of frames){
+      if(fr.contentWindow===e.source){_scrollParentToFrameOffset(fr,d.top||0);return;}
     }
   }
+}
+function _scrollParentToFrameOffset(fr,innerTop){
+  const HEADER=72; // deja aire bajo la topbar fija
+  const rect=fr.getBoundingClientRect();
+  const delta=rect.top+innerTop-HEADER;
+  /* localizar el ancestro con scroll (estudio = #study-body; inline = ventana) */
+  let sp=fr.parentElement;
+  while(sp&&sp!==document.body&&sp!==document.documentElement){
+    const oy=getComputedStyle(sp).overflowY;
+    if((oy==='auto'||oy==='scroll')&&sp.scrollHeight>sp.clientHeight+4) break;
+    sp=sp.parentElement;
+  }
+  try{
+    if(sp&&sp!==document.body&&sp!==document.documentElement) sp.scrollBy({top:delta,behavior:'smooth'});
+    else window.scrollBy({top:delta,behavior:'smooth'});
+  }catch(_){window.scrollBy(0,delta);}
 }
 window.addEventListener('message',_onFrameMessage);
 /* No-op conservado para los llamadores existentes: el bridge ya publica el tamaño. */
