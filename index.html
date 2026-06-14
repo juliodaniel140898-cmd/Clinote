@@ -1796,7 +1796,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.18';
+const APP_VERSION='v8.19';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2554,7 +2554,7 @@ function _reveal(){try{document.documentElement.style.visibility='visible';}catc
 function run(){try{process();}catch(e){}_reveal();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 setTimeout(run,250);setTimeout(run,800);
-try{var to=null,last=Date.now();var mo=new MutationObserver(function(){last=Date.now();clearTimeout(to);try{process();}catch(e){}to=setTimeout(run,350);});mo.observe(document.documentElement,{childList:true,subtree:true});(function chk(){setTimeout(function(){if(Date.now()-last>5000)mo.disconnect();else chk();},2200);})();}catch(e){}
+try{var to=null,last=Date.now();var mo=new MutationObserver(function(ml){last=Date.now();clearTimeout(to);var act=false;for(var i=0;i<ml.length;i++){var m=ml[i];if(m.type==='childList'&&m.addedNodes.length){act=true;}else if(m.type==='attributes'&&m.target&&m.target.nodeType===1){m.target.removeAttribute(MARK);var sub=m.target.querySelectorAll('['+MARK+']');for(var j=0;j<sub.length;j++)sub[j].removeAttribute(MARK);act=true;}}if(act)try{process();}catch(e){}to=setTimeout(run,350);});mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});(function chk(){setTimeout(function(){if(Date.now()-last>5000)mo.disconnect();else chk();},2200);})();}catch(e){}
 setTimeout(_reveal,1500);
 `;
 
