@@ -967,6 +967,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 #toast .toast-ic .ic{width:1.15em;height:1.15em}
 #toast .toast-msg{overflow:hidden;text-overflow:ellipsis}
 #toast.show{opacity:1}
+/* FASE 18: botón de acción dentro del toast (undo) */
+#toast.has-action{pointer-events:auto;white-space:normal;max-width:92vw;}
+#toast .toast-action{
+  flex-shrink:0;margin-left:4px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  color:inherit;border-radius:6px;padding:3px 10px;font-size:.82em;font-weight:900;
+  cursor:pointer;white-space:nowrap;
+}
+#toast .toast-action:active{background:rgba(255,255,255,.32);}
+/* FASE 18: overlay de atajos de teclado */
+#shortcuts-overlay{z-index:215}
+.shortcuts-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;font-size:.84em;}
+.shortcuts-key{background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:2px 7px;font-family:monospace;font-size:.88em;font-weight:800;color:var(--accent);white-space:nowrap;text-align:center;}
+.shortcuts-desc{color:var(--text);font-weight:600;}
+.shortcuts-section{grid-column:1/-1;font-size:.75em;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:10px;margin-bottom:2px;}
 
 /* ── CONFIRM MODAL ── */
 #confirm-overlay{z-index:210}
@@ -1223,6 +1238,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
       <div class="sub" id="brand-sub">Cargando…</div>
     </div>
     <button class="iconbtn dark-btn" id="dark-btn" onclick="openThemePicker()" title="Tema de lectura"><i class="ic" data-ic="palette"></i></button>
+    <button class="iconbtn" onclick="openOverlay('shortcuts-overlay')" title="Atajos de teclado" aria-label="Atajos de teclado" style="font-size:.9em;font-weight:900;color:var(--muted)">?</button>
     <div class="user-chip" onclick="showAuthOrPanel()">
       <div class="user-avatar" id="user-avatar">?</div>
       <span id="user-chip-label">Entrar</span>
@@ -1557,6 +1573,29 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   </div>
 </div>
 
+<!-- ── SHORTCUTS ── -->
+<div class="overlay" id="shortcuts-overlay" onclick="if(event.target===this)closeOverlay('shortcuts-overlay')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Atajos de teclado<button class="close-btn" onclick="closeOverlay('shortcuts-overlay')"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-body" style="padding:10px 18px 30px">
+      <div class="shortcuts-grid">
+        <div class="shortcuts-section">Global</div>
+        <div class="shortcuts-key">Esc</div><div class="shortcuts-desc">Cerrar panel/modal</div>
+        <div class="shortcuts-key">Tab</div><div class="shortcuts-desc">Navegar dentro del panel abierto</div>
+        <div class="shortcuts-section">Modo Estudio</div>
+        <div class="shortcuts-key">← / ↑</div><div class="shortcuts-desc">Tema anterior</div>
+        <div class="shortcuts-key">→ / ↓</div><div class="shortcuts-desc">Tema siguiente</div>
+        <div class="shortcuts-key">M</div><div class="shortcuts-desc">Marcar como estudiado</div>
+        <div class="shortcuts-key">F</div><div class="shortcuts-desc">Pantalla completa</div>
+        <div class="shortcuts-section">Quiz (Flashcards)</div>
+        <div class="shortcuts-key">Space</div><div class="shortcuts-desc">Voltear tarjeta</div>
+        <div class="shortcuts-key">→ / L</div><div class="shortcuts-desc">Correcto</div>
+        <div class="shortcuts-key">← / J</div><div class="shortcuts-desc">Incorrecto</div>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- ── EMOJI PICKER ── -->
 <div class="overlay" id="emoji-overlay" onclick="if(event.target===this)closeEmojiPicker()">
   <div class="sheet">
@@ -1757,7 +1796,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.14';
+const APP_VERSION='v8.15';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -1974,11 +2013,34 @@ function toast(msg,type,dur=2200){
   }else{
     el.textContent=msg;
   }
+  el.classList.remove('has-action');
   el.classList.add('show');
   clearTimeout(_toastTimer);
   _toastTimer=setTimeout(()=>el.classList.remove('show'),dur);
   /* haptic feedback on mobile */
   if(navigator.vibrate) navigator.vibrate(20);
+}
+/* FASE 18: toast con botón de acción (ej: Deshacer) */
+function toastAction(msg,type,actionLabel,actionFn,dur=5000){
+  const el=document.getElementById('toast');
+  if(!el) return;
+  const t=type&&TOAST_ICONS[type];
+  const ic=t?`<span class="toast-ic" style="color:${t[1]}">${icon(t[0])}</span>`:'';
+  el.innerHTML=`${ic}<span class="toast-msg">${h(msg)}</span><button class="toast-action" onclick="_toastDoAction()">${h(actionLabel)}</button>`;
+  el.classList.add('show','has-action');
+  clearTimeout(_toastTimer);
+  _toastActionFn=actionFn;
+  _toastTimer=setTimeout(()=>{el.classList.remove('show','has-action');_toastActionFn=null;},dur);
+  if(navigator.vibrate) navigator.vibrate(20);
+}
+let _toastActionFn=null;
+function _toastDoAction(){
+  const fn=_toastActionFn;
+  _toastActionFn=null;
+  const el=document.getElementById('toast');
+  if(el){el.classList.remove('show','has-action');}
+  clearTimeout(_toastTimer);
+  if(fn) fn();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -2252,7 +2314,7 @@ const OVERLAY_CLOSE_ORDER=[
   'topic-more-overlay','theme-overlay','quiz-overlay','study-overlay',
   'trash-overlay','source-overlay','preview-overlay',
   'reader-overlay','sb-overlay','topic-overlay',
-  'folder-overlay','actions-overlay'
+  'folder-overlay','actions-overlay','shortcuts-overlay'
 ];
 function _topOpenOverlay(){
   for(const id of OVERLAY_CLOSE_ORDER){
@@ -3254,24 +3316,40 @@ function cancelConfirm(){closeOverlay('confirm-overlay');confirmPayload=null}
 function runConfirmAction(){
   if(!confirmPayload) return;
   closeOverlay('confirm-overlay');
-  if(confirmPayload.type==='folder'){
-    const f=getFolder(confirmPayload.id);
+  const payload=confirmPayload;
+  confirmPayload=null;
+  if(payload.type==='folder'){
+    const f=getFolder(payload.id);
     if(f){f.deleted=true;f.deletedAt=Date.now();touch(f);}
-    /* move topics to trash */
-    getTopicsInFolder(confirmPayload.id).forEach(t=>{t.deleted=true;t.deletedAt=Date.now();touch(t);});
-  }else if(confirmPayload.type==='topic'){
-    const t=activeTopics().find(t=>t.id===confirmPayload.id)||STATE.topics.find(t=>t.id===confirmPayload.id);
+    const affected=getTopicsInFolder(payload.id).map(t=>t.id);
+    getTopicsInFolder(payload.id).forEach(t=>{t.deleted=true;t.deletedAt=Date.now();touch(t);});
+    saveState();render();
+    /* FASE 18: undo disponible 5 s — restaura carpeta y sus temas */
+    toastAction('Carpeta movida a la papelera','delete','Deshacer',()=>{
+      const fo=STATE.folders.find(x=>x.id===payload.id);
+      if(fo){fo.deleted=false;delete fo.deletedAt;touch(fo);}
+      affected.forEach(tid=>{const t=STATE.topics.find(x=>x.id===tid);if(t){t.deleted=false;delete t.deletedAt;touch(t);}});
+      saveState();render();toast('Restaurado','undo');
+    });
+  }else if(payload.type==='topic'){
+    const t=activeTopics().find(t=>t.id===payload.id)||STATE.topics.find(t=>t.id===payload.id);
     if(t){t.deleted=true;t.deletedAt=Date.now();touch(t);}
-  }else if(confirmPayload.type==='clearAll'){
+    saveState();render();
+    /* FASE 18: undo disponible 5 s */
+    toastAction('Tema movido a la papelera','delete','Deshacer',()=>{
+      const ti=STATE.topics.find(x=>x.id===payload.id);
+      if(ti){ti.deleted=false;delete ti.deletedAt;touch(ti);}
+      saveState();render();toast('Restaurado','undo');
+    });
+  }else if(payload.type==='clearAll'){
     /* FASE 11: tombstones en vez de wipe, para que el "borrar todo" se propague
        por la fusión y NO resucite desde la nube en otro dispositivo. */
     const now=Date.now();
     STATE.topics.forEach(t=>{t.deleted=true;t.purged=true;t.deletedAt=now;t.updatedAt=now;});
     STATE.folders.forEach(f=>{f.deleted=true;f.purged=true;f.deletedAt=now;f.updatedAt=now;});
+    saveState();render();
+    toast('Todo eliminado','delete');
   }
-  saveState();render();
-  toast('Movido a la papelera','delete');
-  confirmPayload=null;
 }
 
 /* ═══════════════════════════════════════════════════════
