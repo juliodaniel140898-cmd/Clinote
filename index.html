@@ -533,6 +533,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
     transition-duration:.01ms!important;scroll-behavior:auto!important;
   }
 }
+/* FASE 16: barra offline */
+#offline-bar{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:9999;
+  background:#b45309;color:#fff;font-size:.78em;font-weight:800;
+  text-align:center;padding:6px 12px;letter-spacing:.2px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+#offline-bar.visible{display:block;}
 .label{font-size:.78em;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;margin-top:14px;display:block}
 .label:first-child{margin-top:0}
 .primary-btn{
@@ -1185,6 +1193,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </style>
 <body style="--base-font:16px">
 
+<!-- ── OFFLINE BAR ── -->
+<div id="offline-bar" role="status" aria-live="polite">Sin conexión · Los cambios se guardan localmente</div>
 <!-- ── TOAST ── -->
 <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
@@ -1730,7 +1740,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.12';
+const APP_VERSION='v8.13';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -4004,7 +4014,7 @@ function showAuthOrPanel(){
   sb.auth.getUser().then(({data:{user}})=>{
     if(user) openSupabasePanel();
     else showAuthScreen();
-  });
+  }).catch(()=>showAuthScreen());
 }
 function showAuthScreen(){
   document.getElementById('auth-overlay').style.display='flex';
@@ -4203,7 +4213,7 @@ function openSupabasePanel(){
       `;
       el.style.background='';el.style.borderColor='';
     }
-  });
+  }).catch(()=>{});
   openOverlay('sb-overlay');
 }
 function setSbSyncStatus(msg,ok=null){
@@ -4272,7 +4282,7 @@ function updateSbStatus(user){
 }
 async function initAuth(){
   const sb=getSB();
-  const{data:{session}}=await sb.auth.getSession();
+  const{data:{session}}=await sb.auth.getSession().catch(()=>({data:{session:null}}));
   if(session){
     hideAuthScreen();
     updateUserChip(session.user);
@@ -4622,8 +4632,23 @@ async function init(){
   if(window._loadCorrupted){
     setTimeout(()=>{try{toast('Los datos locales estaban dañados. Se guardó una copia de seguridad; si tienes cuenta, se restaurarán desde la nube.','error',6000);}catch(_){}},800);
   }
+  /* FASE 16: indicador offline */
+  function _syncOfflineBar(){
+    const bar=document.getElementById('offline-bar');
+    if(bar) bar.classList.toggle('visible',!navigator.onLine);
+  }
+  _syncOfflineBar();
+  window.addEventListener('online',_syncOfflineBar);
+  window.addEventListener('offline',_syncOfflineBar);
+  /* FASE 16: capturar rechazos de promesa no manejados (Supabase en red cortada) */
+  window.addEventListener('unhandledrejection',e=>{
+    const msg=e.reason?.message||String(e.reason||'');
+    if(/fetch|network|failed to fetch/i.test(msg)) return; // red — silencioso
+    console.warn('[Clinote] unhandledrejection:',e.reason);
+    e.preventDefault();
+  });
   /* Auth */
-  await initAuth();
+  try{ await initAuth(); }catch(err){ console.warn('[Clinote] initAuth failed:',err); }
   /* beforeunload: save locally + flush any pending cloud sync */
   window.addEventListener('beforeunload',()=>{
     try{
