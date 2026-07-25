@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
+<html lang="es" style="--base-font: 110%;"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -242,6 +241,11 @@ a{color:inherit;text-decoration:none}
 .toolbtn:active{transform:scale(.95);background:var(--surface3)}
 .toolbtn.sort-on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent}
 .toolbtn.danger{color:var(--danger);border-color:rgba(248,113,113,.3)}
+.toolbtn.refresh-btn{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 28%,var(--border))}
+.toolbtn.is-refreshing .ic,.close-btn.is-refreshing .ic,.preview-expand.is-refreshing .ic{animation:refreshSpin .72s linear infinite}
+.top-refresh-btn{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 32%,var(--border));background:color-mix(in srgb,var(--accent) 10%,var(--surface2))}
+.top-refresh-btn:hover{background:color-mix(in srgb,var(--accent) 18%,var(--surface2));border-color:var(--accent)}
+@keyframes refreshSpin{to{transform:rotate(360deg)}}
 
 /* ── BREADCRUMB (nested folders) ── */
 .breadcrumb{
@@ -627,10 +631,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 #theme-overlay{z-index:260}
 #reader-overlay .sheet,
 #preview-overlay .sheet{
-  max-height:100dvh;height:100dvh;width:100vw;max-width:none;
+  max-height:100vh;height:100vh;
+  max-height:100dvh;height:100dvh;
+  width:100vw;max-width:none;overflow:hidden;
   border-radius:0;animation:fadeIn .2s var(--ease-out);
   padding:0;margin:0;
 }
+#reader-overlay .sheet-title,#preview-overlay .sheet-title{flex:0 0 auto}
+#reader-overlay .sheet-body{flex:1 1 auto;min-height:0}
+#preview-frame-wrap{flex:1 1 auto!important;min-height:0;overflow:hidden!important}
+#preview-frame{height:100%!important;min-height:0!important}
 .reader-frame,.preview-frame{
   width:100%;border:none;min-height:70vh;height:calc(100dvh - 60px);
   display:block;background:var(--surface3);border-radius:0;
@@ -1222,8 +1232,31 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 /* el icono hereda el color de acento al pasar el cursor por su botón/fila */
 .action-item:hover .actions-section-icon .ic,.sb-action-btn:hover .sb-action-icon .ic{transition:color var(--t-fast)}
 /* ── IFRAME DARK MODE CSS (injected into iframes) ── */
+/* CLINOTES PREMIUM POLISH */
+:root{--accent:#6ea8ff;--accent2:#3b6ff5;--surface:#151923;--surface2:#1b2130;--surface3:#232b3d;--border:#2a3346;--border2:#3a4660;--r-sm:12px;--r:16px;--r-lg:22px;--r-xl:30px;--shadow-sm:0 1px 2px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.14);--shadow:0 2px 4px rgba(0,0,0,.2),0 18px 48px rgba(0,0,0,.28);--shadow-lg:0 4px 10px rgba(0,0,0,.26),0 32px 80px rgba(0,0,0,.38)}
+html{background:var(--bg)}
+body{min-height:100dvh;background:radial-gradient(1000px 540px at 8% -12%,rgba(79,156,255,.12),transparent 58%),radial-gradient(760px 520px at 100% 0,rgba(167,139,250,.08),transparent 52%),var(--bg);letter-spacing:-.006em}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.22;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.92' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.08'/%3E%3C/svg%3E")}
+button,input,textarea,select{font:inherit}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid color-mix(in srgb,var(--accent) 82%,white);outline-offset:3px}
+.topbar{background:color-mix(in srgb,var(--bg-glass) 91%,transparent);border-bottom-color:color-mix(in srgb,var(--border) 72%,transparent);box-shadow:0 1px 0 rgba(255,255,255,.025),0 10px 34px rgba(0,0,0,.16);backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%)}
+.logo,.auth-logo{box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 10px 24px rgba(37,99,235,.28)}
+.home-hero{border-color:color-mix(in srgb,var(--accent) 20%,var(--border));background:linear-gradient(145deg,color-mix(in srgb,var(--surface2) 94%,var(--accent) 6%),var(--surface));box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 28px 70px rgba(0,0,0,.2)}
+.home-title{font-size:clamp(1.4rem,3vw,2rem);letter-spacing:-.035em}.home-copy{max-width:54ch;line-height:1.55}
+.home-action,.toolbtn,.primary-btn,.secondary-btn,.action-item,.folder-btn,.iconbtn,.close-btn{-webkit-tap-highlight-color:transparent}
+.home-action.primary,.primary-btn{background:linear-gradient(135deg,#79b4ff 0%,#4b82ff 48%,#315ee8 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 12px 30px rgba(49,94,232,.28)}
+.folder-card,.topic-card,.home-metric,.resume-card,.editor-section{box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--shadow-sm)}
+.folder-card,.topic-card{transition:transform var(--t-base) var(--ease-out),border-color var(--t-fast),box-shadow var(--t-base),background var(--t-fast)}
+.folder-card:hover,.topic-card:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 42px rgba(0,0,0,.24)}.topic-card.open{box-shadow:0 20px 54px rgba(0,0,0,.26)}
+.sheet,.confirm-sheet{border:1px solid color-mix(in srgb,var(--border2) 74%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),var(--shadow-lg);backdrop-filter:blur(28px) saturate(135%);-webkit-backdrop-filter:blur(28px) saturate(135%)}
+.overlay{background:rgba(4,7,13,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast)}input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(79,156,255,.11)}
+.fab{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 16px 38px rgba(37,99,235,.38)}
+@media(max-width:760px){.home-shell,.home-panel,.container{padding-left:16px;padding-right:16px}.home-hero{border-radius:24px;padding:20px}.sheet{border-radius:28px 28px 0 0}.home-action{min-height:44px}}
+@media(max-width:420px){.home-shell,.home-panel,.container{padding-left:12px;padding-right:12px}.home-hero{padding:18px 16px}.folder-card,.topic-card{border-radius:20px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}}
 </style>
-<body style="--base-font:16px">
+</head><body style="--base-font:16px" class="">
 
 <!-- ── OFFLINE BAR ── -->
 <div id="offline-bar" role="status" aria-live="polite">Sin conexión · Los cambios se guardan localmente</div>
@@ -1235,16 +1268,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   <div class="topbar-row1">
     <div class="brand">
       <h1><span class="clinote-logo">C</span>Clinote</h1>
-      <div class="sub" id="brand-sub">Cargando…</div>
+      <div class="sub" id="brand-sub">Sincronizado · 37 temas · v8.22</div>
     </div>
-    <button class="iconbtn dark-btn" id="dark-btn" onclick="openThemePicker()" title="Tema de lectura"><i class="ic" data-ic="palette"></i></button>
+    <button class="iconbtn top-refresh-btn" id="top-refresh-btn" onclick="refreshAppView(this)" title="Refrescar temas" aria-label="Refrescar temas"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i></button>
+    <button class="iconbtn dark-btn active" id="dark-btn" onclick="openThemePicker()" title="Tema de lectura: Oscuro"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i></button>
     <button class="iconbtn" onclick="openOverlay('shortcuts-overlay')" title="Atajos de teclado" aria-label="Atajos de teclado" style="font-size:.9em;font-weight:900;color:var(--muted)">?</button>
     <div class="user-chip" onclick="showAuthOrPanel()">
-      <div class="user-avatar" id="user-avatar">?</div>
-      <span id="user-chip-label">Entrar</span>
+      <div class="user-avatar" id="user-avatar">J</div>
+      <span id="user-chip-label">juliodaniel140898</span>
     </div>
     <div class="iconbtn sb-status" id="sb-dot-wrap" onclick="openSupabasePanel()" title="Sincronización">
-      <div class="sb-dot" id="sb-dot"></div>
+      <div class="sb-dot ok" id="sb-dot"></div>
     </div>
   </div>
 </div>
@@ -1266,70 +1300,373 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
       <div class="home-title">Organiza tus apuntes médicos con claridad.</div>
       <div class="home-copy">Carpetas, temas, repasos y contenido clínico listos para estudiar sin perder tiempo buscando.</div>
       <div class="home-actions">
-        <button class="home-action primary" onclick="openTopicEditor(null)"><i class="ic" data-ic="file-plus"></i> Nuevo tema</button>
-        <button class="home-action" onclick="openFolderEditor(null)"><i class="ic" data-ic="folder-plus"></i> Nueva carpeta</button>
+        <button class="home-action primary" onclick="openTopicEditor(null)"><i class="ic" data-ic="file-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M9 15h6"></path><path d="M12 18v-6"></path></svg></i> Nuevo tema</button>
+        <button class="home-action" onclick="openFolderEditor(null)"><i class="ic" data-ic="folder-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10v6"></path><path d="M9 13h6"></path><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></i> Nueva carpeta</button>
       </div>
     </div>
     <div class="home-metrics" aria-label="Resumen">
       <div class="home-metric accent">
-        <div class="home-metric-icon"><i class="ic" data-ic="file-text"></i></div>
-        <div class="home-metric-body"><span class="home-metric-value" id="home-topic-count">0</span><span class="home-metric-label">Temas</span></div>
+        <div class="home-metric-icon"><i class="ic" data-ic="file-text" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M16 13H8"></path><path d="M16 17H8"></path><path d="M10 9H8"></path></svg></i></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-topic-count">37</span><span class="home-metric-label">Temas</span></div>
       </div>
       <div class="home-metric">
-        <div class="home-metric-icon"><i class="ic" data-ic="folder"></i></div>
-        <div class="home-metric-body"><span class="home-metric-value" id="home-folder-count">0</span><span class="home-metric-label">Carpetas</span></div>
+        <div class="home-metric-icon"><i class="ic" data-ic="folder" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></i></div>
+        <div class="home-metric-body"><span class="home-metric-value" id="home-folder-count">5</span><span class="home-metric-label">Carpetas</span></div>
       </div>
       <div class="home-metric success">
-        <div class="home-metric-icon"><i class="ic" data-ic="trending-up"></i></div>
+        <div class="home-metric-icon"><i class="ic" data-ic="trending-up" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg></i></div>
         <div class="home-metric-body"><span class="home-metric-value" id="home-progress-count">0%</span><span class="home-metric-label">Avance</span></div>
       </div>
       <button class="home-metric home-metric-trash" id="home-trash-btn" onclick="openTrash()" title="Papelera">
-        <div class="home-metric-icon"><i class="ic" data-ic="trash-2"></i></div>
+        <div class="home-metric-icon"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i></div>
         <div class="home-metric-body"><span class="home-metric-value" id="home-trash-count">0</span><span class="home-metric-label">Papelera</span></div>
       </button>
     </div>
   </section>
   <!-- FASE 7: Continuar estudiando + recientes (se ocultan si no hay historial) -->
-  <section class="home-resume" id="home-resume" style="display:none" aria-label="Continuar estudiando"></section>
+  <section class="home-resume" id="home-resume" style="" aria-label="Continuar estudiando"><div class="resume-label"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i> Continuar estudiando</div><button class="resume-continue" onclick="openTopicFromHome('t_fgdu4cf1_mrzejfgp')">
+    <span class="resume-continue-emoji">⚕️</span>
+    <span class="resume-continue-body">
+      <span class="resume-continue-kicker">Reanudar</span>
+      <span class="resume-continue-title">Patología Quirúrgica de Recto y Ano</span>
+      <span class="resume-continue-meta">Cirugía</span>
+    </span>
+    <span class="resume-continue-go"><i class="ic" data-ic="book-open" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></i> Abrir</span>
+  </button><div class="resume-recent"><button class="resume-chip" onclick="openTopicFromHome('t_j4hu8ebm_ms0w67sn')" title="Antibioticoterapia quirúrgica">
+        <span class="resume-chip-emoji">📄</span>
+        <span class="resume-chip-title">Antibioticoterapia quirúrgica</span>
+      </button><button class="resume-chip" onclick="openTopicFromHome('t_0ezxrris_mrzghanv')" title="Anestesia">
+        <span class="resume-chip-emoji">💉</span>
+        <span class="resume-chip-title">Anestesia</span>
+      </button><button class="resume-chip" onclick="openTopicFromHome('t_uc2olhpz_mryp8qox')" title="Bioseguridad en Cirugía">
+        <span class="resume-chip-emoji">📝</span>
+        <span class="resume-chip-title">Bioseguridad en Cirugía</span>
+      </button><button class="resume-chip" onclick="openTopicFromHome('t_7h4ubxxc_mryob4ny')" title="Clave para el examen · Historia clínica · Preoperatorio · Evaluación por sistemas · Consentimiento · Bioseguridad · Asep">
+        <span class="resume-chip-emoji">🏥</span>
+        <span class="resume-chip-title">Clave para el examen · Historia clínica · Preoperatorio · Evaluación por sistemas · Consentimiento · Bioseguridad · Asep</span>
+      </button><button class="resume-chip" onclick="openTopicFromHome('t_l3lf5bla_mrxddch7')" title="Introducción a la Cirugía">
+        <span class="resume-chip-emoji">📋</span>
+        <span class="resume-chip-title">Introducción a la Cirugía</span>
+      </button></div></section>
 </div>
 
 <!-- ── SEARCH ── -->
 <!-- readonly hasta que el usuario lo toque: los navegadores no autorellenan
      inputs readonly, así Chrome no puede meter el correo guardado aquí -->
-<div class="searchwrap"><span class="search-ic"><i class="ic" data-ic="search"></i></span><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
+<div class="searchwrap"><span class="search-ic"><i class="ic" data-ic="search" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg></i></span><input class="searchbox" type="search" id="search" name="clinote-search" placeholder="Buscar temas, carpetas, mnemotecnias…" oninput="onSearch()" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" role="searchbox" readonly="" onfocus="this.removeAttribute('readonly')" onpointerdown="this.removeAttribute('readonly')" ontouchstart="this.removeAttribute('readonly')"></div>
 
 <!-- ── FOLDER FILTERS ── -->
 <div id="stats-filters-wrap" class="home-panel">
-  <div class="folder-filters" id="folder-filters"></div>
+  <div class="folder-filters" id="folder-filters"><button class="filter-chip active" onclick="setFolderFilter(null)">Todas</button><button class="filter-chip " onclick="setFolderFilter('folder_1780327017093_sxugyu')">🧠 Neurología</button><button class="filter-chip " onclick="setFolderFilter('folder_1780329711955_4c1hlx')">🚨 Simulación Clínica</button><button class="filter-chip " onclick="setFolderFilter('f_o8kw621w_mq75shua')">💉 Terapéutica</button><button class="filter-chip " onclick="setFolderFilter('f_1j90pvyo_mqrnjcje')">🏥 Hospital neurología</button><button class="filter-chip " onclick="setFolderFilter('f_b6f39ozx_mrxdc4c9')">🩺 Cirugía</button></div>
 </div>
 
 <!-- ── TOOLBAR ── -->
 <div class="toolbar">
-  <button class="toolbtn" onclick="openFolderEditor(null)"><i class="ic" data-ic="folder-plus"></i> Carpeta</button>
-  <button class="toolbtn" onclick="openTopicEditor(null)"><i class="ic" data-ic="file-plus"></i> Tema</button>
-  <button class="toolbtn" id="sort-btn" onclick="toggleSortMode()"><i class="ic" data-ic="arrow-up-down"></i> Ordenar</button>
-  <button class="toolbtn sort-name-btn" onclick="sortTopicsByName(null)"><i class="ic" data-ic="arrow-down-az"></i> Nombre</button>
-  <button class="toolbtn" onclick="openActionsOverlay()"><i class="ic" data-ic="more-horizontal"></i> Más</button>
+  <button class="toolbtn" onclick="openFolderEditor(null)"><i class="ic" data-ic="folder-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10v6"></path><path d="M9 13h6"></path><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></i> Carpeta</button>
+  <button class="toolbtn" onclick="openTopicEditor(null)"><i class="ic" data-ic="file-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M9 15h6"></path><path d="M12 18v-6"></path></svg></i> Tema</button>
+  <button class="toolbtn" id="sort-btn" onclick="toggleSortMode()"><i class="ic" data-ic="arrow-up-down" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 16-4 4-4-4"></path><path d="M17 20V4"></path><path d="m3 8 4-4 4 4"></path><path d="M7 4v16"></path></svg></i> Ordenar</button>
+  <button class="toolbtn sort-name-btn" onclick="sortTopicsByName(null)"><i class="ic" data-ic="arrow-down-az" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 16 4 4 4-4"></path><path d="M7 20V4"></path><path d="M20 8h-5"></path><path d="M15 10V6.5a2.5 2.5 0 0 1 5 0V10"></path><path d="M15 14h5l-5 6h5"></path></svg></i> Nombre</button>
+  <button class="toolbtn refresh-btn" onclick="refreshAppView(this)" title="Actualizar temas" aria-label="Actualizar temas"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i> Actualizar</button>
+  <button class="toolbtn" onclick="openActionsOverlay()"><i class="ic" data-ic="more-horizontal" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></i> Más</button>
 </div>
 
 <!-- ── FOLDER LIST ── -->
 <div class="container">
   <div id="search-results" style="display:none"></div>
-  <div class="folder-list" id="folder-list">
-    <!-- skeleton loading -->
-    <div class="skeleton skeleton-folder"></div>
-    <div class="skeleton skeleton-folder"></div>
-    <div class="skeleton skeleton-folder" style="opacity:.6"></div>
+  <div class="folder-list" id="folder-list"><div class="folder-card" style="--folder-color:#10b981" data-folder-id="folder_1780327017093_sxugyu">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('folder_1780327017093_sxugyu')">
+      <div class="drag-handle">⠿</div>
+      <div class="folder-emoji">🧠</div>
+      <div class="folder-info">
+        <div class="folder-name">Neurología</div>
+        <div class="folder-meta">10 temas</div>
+      </div>
+      <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="openStudyMode('folder_1780327017093_sxugyu')" title="Estudiar"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i></button>
+        <button class="folder-btn" onclick="openTopicEditor(null,'folder_1780327017093_sxugyu')" title="+ Tema"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="folder-btn" onclick="openFolderEditor('folder_1780327017093_sxugyu')" title="Editar"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        
+      </div>
+      <div class="folder-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+    </div>
+    <div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="folder_1780327017093_sxugyu" style="width:0%"></div></div><div class="folder-progress-label" data-folder-progress-label="folder_1780327017093_sxugyu">0/10</div>
+    
+  </div><div class="folder-card" style="--folder-color:#f59e0b" data-folder-id="folder_1780329711955_4c1hlx">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('folder_1780329711955_4c1hlx')">
+      <div class="drag-handle">⠿</div>
+      <div class="folder-emoji">🚨</div>
+      <div class="folder-info">
+        <div class="folder-name">Simulación Clínica</div>
+        <div class="folder-meta">15 temas</div>
+      </div>
+      <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="openStudyMode('folder_1780329711955_4c1hlx')" title="Estudiar"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i></button>
+        <button class="folder-btn" onclick="openTopicEditor(null,'folder_1780329711955_4c1hlx')" title="+ Tema"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="folder-btn" onclick="openFolderEditor('folder_1780329711955_4c1hlx')" title="Editar"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        
+      </div>
+      <div class="folder-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+    </div>
+    <div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="folder_1780329711955_4c1hlx" style="width:0%"></div></div><div class="folder-progress-label" data-folder-progress-label="folder_1780329711955_4c1hlx">0/15</div>
+    
+  </div><div class="folder-card" style="--folder-color:#a78bfa" data-folder-id="f_o8kw621w_mq75shua">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('f_o8kw621w_mq75shua')">
+      <div class="drag-handle">⠿</div>
+      <div class="folder-emoji">💉</div>
+      <div class="folder-info">
+        <div class="folder-name">Terapéutica</div>
+        <div class="folder-meta">1 tema</div>
+      </div>
+      <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="openStudyMode('f_o8kw621w_mq75shua')" title="Estudiar"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i></button>
+        <button class="folder-btn" onclick="openTopicEditor(null,'f_o8kw621w_mq75shua')" title="+ Tema"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="folder-btn" onclick="openFolderEditor('f_o8kw621w_mq75shua')" title="Editar"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        
+      </div>
+      <div class="folder-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+    </div>
+    <div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="f_o8kw621w_mq75shua" style="width:0%"></div></div><div class="folder-progress-label" data-folder-progress-label="f_o8kw621w_mq75shua">0/1</div>
+    
+  </div><div class="folder-card" style="--folder-color:#60a5fa" data-folder-id="f_1j90pvyo_mqrnjcje">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('f_1j90pvyo_mqrnjcje')">
+      <div class="drag-handle">⠿</div>
+      <div class="folder-emoji">🏥</div>
+      <div class="folder-info">
+        <div class="folder-name">Hospital neurología</div>
+        <div class="folder-meta">1 tema</div>
+      </div>
+      <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="openStudyMode('f_1j90pvyo_mqrnjcje')" title="Estudiar"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i></button>
+        <button class="folder-btn" onclick="openTopicEditor(null,'f_1j90pvyo_mqrnjcje')" title="+ Tema"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="folder-btn" onclick="openFolderEditor('f_1j90pvyo_mqrnjcje')" title="Editar"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        
+      </div>
+      <div class="folder-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+    </div>
+    <div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="f_1j90pvyo_mqrnjcje" style="width:0%"></div></div><div class="folder-progress-label" data-folder-progress-label="f_1j90pvyo_mqrnjcje">0/1</div>
+    
+  </div><div class="folder-card" style="--folder-color:#2563eb" data-folder-id="f_b6f39ozx_mrxdc4c9">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('f_b6f39ozx_mrxdc4c9')">
+      <div class="drag-handle">⠿</div>
+      <div class="folder-emoji">🩺</div>
+      <div class="folder-info">
+        <div class="folder-name">Cirugía</div>
+        <div class="folder-meta">8 temas</div>
+      </div>
+      <div class="folder-actions" onclick="event.stopPropagation()">
+        <button class="folder-btn" onclick="openStudyMode('f_b6f39ozx_mrxdc4c9')" title="Estudiar"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i></button>
+        <button class="folder-btn" onclick="openTopicEditor(null,'f_b6f39ozx_mrxdc4c9')" title="+ Tema"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="folder-btn" onclick="openFolderEditor('f_b6f39ozx_mrxdc4c9')" title="Editar"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        
+      </div>
+      <div class="folder-arrow open"><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+    </div>
+    <div class="folder-progress"><div class="folder-progress-bar" data-folder-progress="f_b6f39ozx_mrxdc4c9" style="width:0%"></div></div><div class="folder-progress-label" data-folder-progress-label="f_b6f39ozx_mrxdc4c9">0/8</div>
+    
+    <div class="folder-body" data-folder-body="f_b6f39ozx_mrxdc4c9">
+      
+      <div class="topic-card " data-topic-id="t_l3lf5bla_mrxddch7" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_l3lf5bla_mrxddch7" style="--topic-color:#6366f1" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_l3lf5bla_mrxddch7',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">📋</div>
+        <div class="topic-details">
+          <div class="topic-title">Introducción a la Cirugía</div>
+          <div class="topic-session">Módulo I · Semana 1</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_l3lf5bla_mrxddch7">
+        
+      </div>
+    </div>
+  </div><div class="topic-card " data-topic-id="t_7h4ubxxc_mryob4ny" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_7h4ubxxc_mryob4ny" style="--topic-color:#14b8a6" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_7h4ubxxc_mryob4ny',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">🏥</div>
+        <div class="topic-details">
+          <div class="topic-title">Clave para el examen · Historia clínica · Preoperatorio · Evaluación por sistemas · Consentimiento · Bioseguridad · Asep</div>
+          <div class="topic-session">CIRUGÍA · MÓDULO I · SEMANA 1</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_7h4ubxxc_mryob4ny">
+        
+      </div>
+    </div>
+  </div><div class="topic-card " data-topic-id="t_uc2olhpz_mryp8qox" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_uc2olhpz_mryp8qox" style="--topic-color:#22c55e" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_uc2olhpz_mryp8qox',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">📝</div>
+        <div class="topic-details">
+          <div class="topic-title">Bioseguridad en Cirugía</div>
+          
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_uc2olhpz_mryp8qox">
+        
+      </div>
+    </div>
+  </div><div class="topic-card " data-topic-id="t_j56ymsic_mrzayfb9" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_j56ymsic_mrzayfb9" style="--topic-color:#4f9cff" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_j56ymsic_mrzayfb9',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">🩺</div>
+        <div class="topic-details">
+          <div class="topic-title">Hernias de Pared Abdominal</div>
+          <div class="topic-session">Semana 4 · Sesión 02A</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_j56ymsic_mrzayfb9">
+        
+      </div>
+    </div>
+  </div><div class="topic-card open" data-topic-id="t_fgdu4cf1_mrzejfgp" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_fgdu4cf1_mrzejfgp" style="--topic-color:#f87171" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_fgdu4cf1_mrzejfgp',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">⚕️</div>
+        <div class="topic-details">
+          <div class="topic-title">Patología Quirúrgica de Recto y Ano</div>
+          <div class="topic-session">SEMANA 6 · SESIÓN 02</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow open"><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse open" data-collapse="t_fgdu4cf1_mrzejfgp">
+        <div class="topic-inline-html">
+      <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('t_fgdu4cf1_mrzejfgp')" title="Pantalla completa"><i class="ic" data-ic="maximize" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></i></button>
+      <button class="preview-expand" style="right:52px" onclick="event.stopPropagation();toggleTopicExpand('t_fgdu4cf1_mrzejfgp',this)" title="Cerrar"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
+      <iframe class="inline-frame" sandbox="allow-scripts allow-popups" data-tid="t_fgdu4cf1_mrzejfgp" style="min-height: 280px; height: 3222px;"></iframe>
+    </div><div class="topic-actions">
+    <button class="toolbtn" onclick="toggleTopicExpand('t_fgdu4cf1_mrzejfgp',this)"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i> Cerrar</button>
+    <button class="toolbtn refresh-btn" onclick="refreshTopicContent('t_fgdu4cf1_mrzejfgp','inline',this)"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i> Actualizar</button>
+    <button class="toolbtn btn-studied" onclick="toggleStudied('t_fgdu4cf1_mrzejfgp')"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</button>
+    <button class="toolbtn" onclick="openTopicEditor('t_fgdu4cf1_mrzejfgp')"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i> Editar</button>
+    <button class="toolbtn" onclick="openReader('t_fgdu4cf1_mrzejfgp')"><i class="ic" data-ic="book-open" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></i> Leer</button>
+    <button class="toolbtn" onclick="toggleFavorite('t_fgdu4cf1_mrzejfgp')"><i class="ic" data-ic="star" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></i> Favorito</button>
+    <button class="toolbtn" onclick="openTopicMore('t_fgdu4cf1_mrzejfgp')"><i class="ic" data-ic="more-horizontal" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></i> Más</button>
   </div>
+      </div>
+    </div>
+  </div><div class="topic-card " data-topic-id="t_hv78lvig_mrzfz4qk" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_hv78lvig_mrzfz4qk" style="--topic-color:#4f9cff" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_hv78lvig_mrzfz4qk',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">🏥</div>
+        <div class="topic-details">
+          <div class="topic-title">Sondas y Drenes Quirúrgicos</div>
+          <div class="topic-session">SEMANA 3, SESIÓN 02</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_hv78lvig_mrzfz4qk">
+        
+      </div>
+    </div>
+  </div><div class="topic-card " data-topic-id="t_0ezxrris_mrzghanv" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_0ezxrris_mrzghanv" style="--topic-color:#22d3ee" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_0ezxrris_mrzghanv',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">💉</div>
+        <div class="topic-details">
+          <div class="topic-title">Anestesia</div>
+          <div class="topic-session">SEMANA 01 · SESIÓN 03</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse " data-collapse="t_0ezxrris_mrzghanv">
+        
+      </div>
+    </div>
+  </div><div class="topic-card open" data-topic-id="t_j4hu8ebm_ms0w67sn" data-expand-key="topic:f_b6f39ozx_mrxdc4c9:t_j4hu8ebm_ms0w67sn" style="--topic-color:#4f9cff" data-swipe-bound="1">
+    <div class="swipe-delete-layer"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i> Eliminar</div>
+    <div class="topic-fg">
+      <div class="topic-main" onclick="toggleTopicExpand('t_j4hu8ebm_ms0w67sn',this)">
+        <div class="drag-handle">⠿</div>
+        <div class="topic-color-dot"></div>
+        <div class="topic-icon">📄</div>
+        <div class="topic-details">
+          <div class="topic-title">Antibioticoterapia quirúrgica</div>
+          <div class="topic-session">Semana 02 · Sesión 02A</div>
+        </div>
+        
+        <div class="studied-badge" style="display:none"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</div>
+        <div class="topic-arrow open"><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+      </div>
+      <div class="topic-collapse open" data-collapse="t_j4hu8ebm_ms0w67sn">
+        <div class="topic-inline-html">
+      <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('t_j4hu8ebm_ms0w67sn')" title="Pantalla completa"><i class="ic" data-ic="maximize" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></i></button>
+      <button class="preview-expand" style="right:52px" onclick="event.stopPropagation();toggleTopicExpand('t_j4hu8ebm_ms0w67sn',this)" title="Cerrar"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
+      <iframe class="inline-frame" sandbox="allow-scripts allow-popups" data-tid="t_j4hu8ebm_ms0w67sn" style="min-height: 280px; height: 11315px;"></iframe>
+    </div><div class="topic-actions">
+    <button class="toolbtn" onclick="toggleTopicExpand('t_j4hu8ebm_ms0w67sn',this)"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i> Cerrar</button>
+    <button class="toolbtn refresh-btn" onclick="refreshTopicContent('t_j4hu8ebm_ms0w67sn','inline',this)"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i> Actualizar</button>
+    <button class="toolbtn btn-studied" onclick="toggleStudied('t_j4hu8ebm_ms0w67sn')"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Estudiado</button>
+    <button class="toolbtn" onclick="openTopicEditor('t_j4hu8ebm_ms0w67sn')"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i> Editar</button>
+    <button class="toolbtn" onclick="openReader('t_j4hu8ebm_ms0w67sn')"><i class="ic" data-ic="book-open" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path></svg></i> Leer</button>
+    <button class="toolbtn" onclick="toggleFavorite('t_j4hu8ebm_ms0w67sn')"><i class="ic" data-ic="star" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></i> Favorito</button>
+    <button class="toolbtn" onclick="openTopicMore('t_j4hu8ebm_ms0w67sn')"><i class="ic" data-ic="more-horizontal" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg></i> Más</button>
+  </div>
+      </div>
+    </div>
+  </div>
+      
+    </div>
+  </div><div class="folder-card" style="--folder-color:#7a8399">
+        <div class="folder-strip"></div>
+        <div class="folder-head" onclick="toggleFolder('null')">
+          <div class="folder-emoji">📋</div>
+          <div class="folder-info"><div class="folder-name">Sin carpeta</div><div class="folder-meta">2 temas</div></div>
+          <div class="folder-arrow "><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></div>
+        </div>
+        
+      </div></div>
 </div>
 
 <!-- ── FAB ── -->
-<button class="fab" id="fab" onclick="openActionsOverlay()" aria-label="Abrir menú de acciones"><i class="ic" data-ic="plus" aria-hidden="true"></i></button>
+<button class="fab" id="fab" onclick="openActionsOverlay()" aria-label="Abrir menú de acciones"><i class="ic" data-ic="plus" aria-hidden="true" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
 
 <!-- ════════════════════════ OVERLAYS ════════════════════════ -->
 
 <!-- ── AUTH ── -->
-<div class="overlay" id="auth-overlay" style="display:none">
+<div class="overlay" id="auth-overlay" style="display: none;">
   <div id="auth-card-wrap">
     <div class="auth-card" id="auth-card">
       <div class="auth-hero">
@@ -1358,7 +1695,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
           <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Iniciar sesión</button>
           <button class="auth-tab" id="tab-register" onclick="authTab('register')">Registrarse</button>
         </div>
-        <div class="auth-err" id="auth-err"></div>
+        <div class="auth-err show err" id="auth-err" style="display: none;"></div>
         <label class="label">Correo</label>
         <input id="auth-email" type="email" placeholder="tu@correo.com" autocomplete="email">
         <label class="label" style="margin-top:10px">Contraseña</label>
@@ -1372,116 +1709,116 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── ACTIONS ── -->
-<div class="overlay" id="actions-overlay" onclick="if(event.target===this)closeActionsOverlay()">
-  <div class="sheet actions-sheet">
+<div class="overlay" id="actions-overlay" onclick="if(event.target===this)closeActionsOverlay()" style="display: none;">
+  <div class="sheet actions-sheet" role="dialog" aria-modal="true" tabindex="-1">
     <div class="sheet-handle"></div>
     <div class="sheet-title actions-sheet-title">
       <span>Acciones</span>
-      <button class="close-btn" onclick="closeActionsOverlay()"><i class="ic" data-ic="x"></i></button>
+      <button class="close-btn" onclick="closeActionsOverlay()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
     </div>
     <!-- Zoom row pinned at top -->
     <div class="actions-zoom-row">
       <span class="actions-zoom-label">
-        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)"><i class="ic" data-ic="type"></i></span>
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)"><i class="ic" data-ic="type" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" x2="15" y1="20" y2="20"></line><line x1="12" x2="12" y1="4" y2="20"></line></svg></i></span>
         Tamaño de fuente
       </span>
       <span class="zoom-stepper">
-        <button type="button" onclick="changeZoom(-1)" aria-label="Reducir texto"><i class="ic" data-ic="minus"></i></button>
-        <span class="zval" id="zoom-val">100%</span>
-        <button type="button" onclick="changeZoom(1)" aria-label="Aumentar texto"><i class="ic" data-ic="plus"></i></button>
+        <button type="button" onclick="changeZoom(-1)" aria-label="Reducir texto"><i class="ic" data-ic="minus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></i></button>
+        <span class="zval" id="zoom-val">110%</span>
+        <button type="button" onclick="changeZoom(1)" aria-label="Aumentar texto"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
       </span>
     </div>
     <!-- Sección Apariencia -->
     <div class="actions-section-label">Apariencia</div>
     <div class="action-list">
       <button class="action-item" onclick="closeActionsOverlay();openThemePicker()">
-        <span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)"><i class="ic" data-ic="palette"></i></span>
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i></span>
         <span style="flex:1">Tema de lectura</span>
-        <span id="actions-theme-name" style="font-size:.78em;color:var(--muted);font-weight:800;background:var(--surface3);padding:3px 8px;border-radius:999px;border:1px solid var(--border)"></span>
+        <span id="actions-theme-name" style="font-size:.78em;color:var(--muted);font-weight:800;background:var(--surface3);padding:3px 8px;border-radius:999px;border:1px solid var(--border)">Oscuro</span>
       </button>
     </div>
     <!-- Sección Contenido -->
     <div class="actions-section-label">Contenido</div>
     <div class="action-list">
       <button class="action-item" onclick="closeActionsOverlay();openFolderEditor(null)">
-        <span class="actions-section-icon" style="background:rgba(251,191,36,.1);color:var(--warning)"><i class="ic" data-ic="folder-plus"></i></span>Nueva carpeta
+        <span class="actions-section-icon" style="background:rgba(251,191,36,.1);color:var(--warning)"><i class="ic" data-ic="folder-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10v6"></path><path d="M9 13h6"></path><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></i></span>Nueva carpeta
       </button>
       <button class="action-item" onclick="closeActionsOverlay();openTopicEditor(null)">
-        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)"><i class="ic" data-ic="file-plus"></i></span>Nuevo tema
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)"><i class="ic" data-ic="file-plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M9 15h6"></path><path d="M12 18v-6"></path></svg></i></span>Nuevo tema
       </button>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(true)">
-        <span class="actions-section-icon" style="background:rgba(52,211,153,.08);color:var(--success)"><i class="ic" data-ic="chevrons-up-down"></i></span>Expandir todo
+        <span class="actions-section-icon" style="background:rgba(52,211,153,.08);color:var(--success)"><i class="ic" data-ic="chevrons-up-down" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg></i></span>Expandir todo
       </button>
       <button class="action-item" onclick="closeActionsOverlay();expandAllFolders(false)">
-        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)"><i class="ic" data-ic="chevrons-down-up"></i></span>Colapsar todo
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)"><i class="ic" data-ic="chevrons-down-up" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 20 5-5 5 5"></path><path d="m7 4 5 5 5-5"></path></svg></i></span>Colapsar todo
       </button>
     </div>
     <!-- Sección Datos -->
     <div class="actions-section-label">Datos</div>
     <div class="action-list">
       <button class="action-item" onclick="closeActionsOverlay();document.getElementById('file-inp').click()">
-        <span class="actions-section-icon" style="background:rgba(45,212,191,.1);color:var(--teal)"><i class="ic" data-ic="file-code"></i></span>Importar HTML
+        <span class="actions-section-icon" style="background:rgba(45,212,191,.1);color:var(--teal)"><i class="ic" data-ic="file-code" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 12.5 8 15l2 2.5"></path><path d="m14 12.5 2 2.5-2 2.5"></path><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path></svg></i></span>Importar HTML
       </button>
       <button class="action-item" onclick="closeActionsOverlay();importJSON()">
-        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)"><i class="ic" data-ic="file-up"></i></span>Importar JSON
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.1);color:var(--accent)"><i class="ic" data-ic="file-up" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M12 12v6"></path><path d="m9 15 3-3 3 3"></path></svg></i></span>Importar JSON
       </button>
       <button class="action-item" onclick="closeActionsOverlay();exportJSON()">
-        <span class="actions-section-icon" style="background:rgba(52,211,153,.1);color:var(--success)"><i class="ic" data-ic="file-down"></i></span>Exportar JSON
+        <span class="actions-section-icon" style="background:rgba(52,211,153,.1);color:var(--success)"><i class="ic" data-ic="file-down" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7z"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M12 18v-6"></path><path d="m9 15 3 3 3-3"></path></svg></i></span>Exportar JSON
       </button>
       <button class="action-item" onclick="closeActionsOverlay();openSupabasePanel()">
-        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)"><i class="ic" data-ic="refresh-cw"></i></span>Sincronización
+        <span class="actions-section-icon" style="background:rgba(79,156,255,.12);color:var(--accent)"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i></span>Sincronización
       </button>
     </div>
     <!-- Sección App -->
     <div class="actions-section-label">App</div>
     <div class="action-list" style="margin-bottom:4px">
       <button class="action-item" onclick="closeActionsOverlay();downloadAppHTML()">
-        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)"><i class="ic" data-ic="download"></i></span>Descargar app
+        <span class="actions-section-icon" style="background:rgba(167,139,250,.1);color:var(--purple)"><i class="ic" data-ic="download" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg></i></span>Descargar app
       </button>
       <button class="action-item" style="color:var(--danger)" onclick="closeActionsOverlay();askClearAll()">
-        <span class="actions-section-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="alert-triangle"></i></span>Borrar todo
+        <span class="actions-section-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="alert-triangle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></i></span>Borrar todo
       </button>
     </div>
-    <input type="file" id="file-inp" accept=".html,.htm" multiple style="display:none" onchange="dzFile(event)">
+    <input type="file" id="file-inp" accept=".html,.htm" multiple="" style="display:none" onchange="dzFile(event)">
   </div>
 </div>
 
 <!-- ── TOPIC "MÁS" (acciones secundarias de un tema) ── -->
-<div class="overlay" id="topic-more-overlay" onclick="if(event.target===this)closeTopicMore()">
+<div class="overlay" id="topic-more-overlay" onclick="if(event.target===this)closeTopicMore()" style="display: none;">
   <div class="sheet actions-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title actions-sheet-title">
       <span id="topic-more-title">Más acciones</span>
-      <button class="close-btn" onclick="closeTopicMore()"><i class="ic" data-ic="x"></i></button>
+      <button class="close-btn" onclick="closeTopicMore()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
     </div>
     <div class="action-list" id="topic-more-list" style="margin-bottom:4px"></div>
   </div>
 </div>
 
 <!-- ── FOLDER EDITOR ── -->
-<div class="overlay" id="folder-overlay" onclick="if(event.target===this)closeFolderEditor()">
+<div class="overlay" id="folder-overlay" onclick="if(event.target===this)closeFolderEditor()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title"><span id="folder-editor-title">Nueva carpeta</span><button class="close-btn" onclick="closeFolderEditor()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title"><span id="folder-editor-title">Nueva carpeta</span><button class="close-btn" onclick="closeFolderEditor()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <div class="editor-section">
-        <div class="editor-section-title"><i class="ic" data-ic="folder"></i> Identidad</div>
+        <div class="editor-section-title"><i class="ic" data-ic="folder" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path></svg></i> Identidad</div>
         <label class="label">Emoji</label>
         <div class="editor-row" style="margin-bottom:12px">
           <button class="iconbtn" style="font-size:1.5em;width:50px;height:50px" id="folder-emoji-preview" onclick="openEmojiPicker('folder-emoji')">📁</button>
           <input id="folder-emoji" placeholder="Emoji" style="flex:1">
-          <button class="secondary-btn" style="padding:10px 14px;display:inline-flex;align-items:center;gap:6px;width:auto" onclick="openNativeEmoji('folder-emoji')"><i class="ic" data-ic="keyboard"></i> Teclado</button>
+          <button class="secondary-btn" style="padding:10px 14px;display:inline-flex;align-items:center;gap:6px;width:auto" onclick="openNativeEmoji('folder-emoji')"><i class="ic" data-ic="keyboard" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 8h.01"></path><path d="M12 12h.01"></path><path d="M14 8h.01"></path><path d="M16 12h.01"></path><path d="M18 8h.01"></path><path d="M6 8h.01"></path><path d="M7 16h10"></path><path d="M8 12h.01"></path><rect width="20" height="16" x="2" y="4" rx="2"></rect></svg></i> Teclado</button>
         </div>
         <label class="label">Nombre</label>
         <input id="folder-name" placeholder="Ej: Cardiología, Semana 1, Farmacología" maxlength="80">
         <div class="editor-hint">Usa nombres cortos para que las tarjetas se lean mejor en móvil.</div>
       </div>
       <div class="editor-section">
-        <div class="editor-section-title"><i class="ic" data-ic="palette"></i> Color</div>
+        <div class="editor-section-title"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i> Color</div>
         <div class="color-choices" id="folder-colors"></div>
       </div>
       <div class="editor-section">
-        <div class="editor-section-title"><i class="ic" data-ic="map-pin"></i> Ubicación</div>
+        <div class="editor-section-title"><i class="ic" data-ic="map-pin" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg></i> Ubicación</div>
         <div class="editor-hint" style="margin-top:0;margin-bottom:10px">Elige si esta carpeta va en el inicio o dentro de otra carpeta.</div>
         <div id="folder-parent-picker" class="folder-pick-list location-picker"></div>
       </div>
@@ -1495,10 +1832,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── TOPIC EDITOR ── -->
-<div class="overlay" id="topic-overlay" onclick="if(event.target===this)closeTopicEditor()">
+<div class="overlay" id="topic-overlay" onclick="if(event.target===this)closeTopicEditor()" style="display: none;">
   <div class="sheet" style="max-height:97vh">
     <div class="sheet-handle"></div>
-    <div class="sheet-title"><span id="topic-editor-title">Nuevo tema</span><button class="close-btn" onclick="closeTopicEditor()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title"><span id="topic-editor-title">Nuevo tema</span><button class="close-btn" onclick="closeTopicEditor()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <label class="label">Icono</label>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
@@ -1516,7 +1853,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
         <option value="">Sin carpeta</option>
       </select>
       <div class="editor-section">
-        <div class="editor-section-title"><i class="ic" data-ic="brain"></i> Mnemotecnia</div>
+        <div class="editor-section-title"><i class="ic" data-ic="brain" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5a3 3 0 1 0-5.997.142 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M12 5a3 3 0 1 1 5.997.142 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"></path><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"></path></svg></i> Mnemotecnia</div>
         <div class="mnemo-tools">
           <input id="topic-mnemo" placeholder="Ej: NAVEL, CHON, ABCDE…" maxlength="300" oninput="updateMnemoPreview()">
           <button class="secondary-btn" onclick="suggestMnemoFromTitle()">Sugerir</button>
@@ -1524,7 +1861,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
         <div class="mnemo-preview" id="mnemo-preview"></div>
       </div>
       <div class="editor-section">
-        <div class="editor-section-title"><i class="ic" data-ic="tag"></i> Etiquetas</div>
+        <div class="editor-section-title"><i class="ic" data-ic="tag" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r=".5" fill="currentColor"></circle></svg></i> Etiquetas</div>
         <input id="topic-tags" placeholder="cardio, farmaco, quiz…" maxlength="240" oninput="normalizeTagInput(false)">
         <div class="tag-tools" id="tag-tools">
           <button class="tag-suggestion" onclick="addTagSuggestion('examen')">#examen</button>
@@ -1543,7 +1880,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
       <button class="secondary-btn" onclick="addFlashcard()">+ Flashcard</button>
       <label class="label" style="margin-top:14px">Código HTML (opcional)</label>
       <textarea id="topic-html" rows="5" placeholder="Pega aquí el código HTML del tema…"></textarea>
-      <button class="secondary-btn" style="margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="previewTopicHTML()"><i class="ic" data-ic="eye"></i> Previsualizar HTML</button>
+      <button class="secondary-btn" style="margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="previewTopicHTML()"><i class="ic" data-ic="eye" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></i> Previsualizar HTML</button>
       <div class="label" style="margin-top:10px">Tema del contenido</div>
       <select id="topic-reading-theme" style="width:auto;padding:8px 12px">
         <option value="">Seguir ajuste global</option>
@@ -1561,10 +1898,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── MOVE TOPIC ── -->
-<div class="overlay" id="move-overlay" onclick="if(event.target===this)closeMove()">
+<div class="overlay" id="move-overlay" onclick="if(event.target===this)closeMove()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Mover tema<button class="close-btn" onclick="closeMove()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title">Mover tema<button class="close-btn" onclick="closeMove()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <div class="folder-pick-list" id="move-folder-list"></div>
       <input type="hidden" id="move-topic-id">
@@ -1574,10 +1911,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── SHORTCUTS ── -->
-<div class="overlay" id="shortcuts-overlay" onclick="if(event.target===this)closeOverlay('shortcuts-overlay')">
+<div class="overlay" id="shortcuts-overlay" onclick="if(event.target===this)closeOverlay('shortcuts-overlay')" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Atajos de teclado<button class="close-btn" onclick="closeOverlay('shortcuts-overlay')"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title">Atajos de teclado<button class="close-btn" onclick="closeOverlay('shortcuts-overlay')"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body" style="padding:10px 18px 30px">
       <div class="shortcuts-grid">
         <div class="shortcuts-section">Global</div>
@@ -1597,10 +1934,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   </div>
 </div>
 <!-- ── EMOJI PICKER ── -->
-<div class="overlay" id="emoji-overlay" onclick="if(event.target===this)closeEmojiPicker()">
+<div class="overlay" id="emoji-overlay" onclick="if(event.target===this)closeEmojiPicker()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Elige un emoji<button class="close-btn" onclick="closeEmojiPicker()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title">Elige un emoji<button class="close-btn" onclick="closeEmojiPicker()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body" style="padding:8px 12px">
       <div class="emoji-toolbar">
         <button class="emoji-style-btn" id="emoji-native-btn" onclick="setEmojiStyle('native')">Nativo PC/Android/iOS</button>
@@ -1613,7 +1950,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── CONFIRM ── -->
-<div class="overlay" id="confirm-overlay" onclick="if(event.target===this)cancelConfirm()">
+<div class="overlay" id="confirm-overlay" onclick="if(event.target===this)cancelConfirm()" style="display: none;">
   <div class="confirm-sheet">
     <div class="sheet-handle"></div>
     <div class="confirm-title" id="confirm-title">¿Eliminar?</div>
@@ -1626,17 +1963,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── READER — pantalla completa ── -->
-<div class="overlay" id="reader-overlay">
+<div class="overlay" id="reader-overlay" style="display: none;">
   <div class="sheet" style="display:flex;flex-direction:column">
     <div class="sheet-title" id="reader-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
       <span id="reader-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Lectura completa</span>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-        <button class="close-btn" onclick="readerZoom(-1)" title="Reducir texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="minus"></i></button>
+        <button class="close-btn" onclick="readerZoom(-1)" title="Reducir texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="minus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></i></button>
         <span id="reader-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
-        <button class="close-btn" onclick="readerZoom(1)" title="Aumentar texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="plus"></i></button>
-        <button class="close-btn" onclick="openThemePicker()" id="reader-dark-btn" title="Tema de lectura"><i class="ic" data-ic="palette"></i></button>
-        <button class="close-btn" onclick="printTopic(currentReaderTopicId)" id="reader-print-btn" title="Imprimir"><i class="ic" data-ic="printer"></i></button>
-        <button class="close-btn" onclick="closeReader()" title="Cerrar"><i class="ic" data-ic="x"></i></button>
+        <button class="close-btn" onclick="readerZoom(1)" title="Aumentar texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="close-btn active" onclick="openThemePicker()" id="reader-dark-btn" title="Tema de lectura: Oscuro"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i></button>
+        <button class="close-btn" onclick="refreshTopicContent(window.currentReaderTopicId,'reader',this)" title="Recargar contenido" aria-label="Recargar contenido"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i></button>
+        <button class="close-btn" onclick="printTopic(currentReaderTopicId)" id="reader-print-btn" title="Imprimir"><i class="ic" data-ic="printer" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9V2a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v7"></path><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8" rx="1"></rect></svg></i></button>
+        <button class="close-btn" onclick="closeReader()" title="Cerrar"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
       </div>
     </div>
     <div class="sheet-body" id="reader-body" style="flex:1;overflow-y:auto;padding:14px 18px 30px"></div>
@@ -1644,61 +1982,71 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── SOURCE VIEWER ── -->
-<div class="overlay" id="source-overlay" onclick="if(event.target===this)closeSource()">
+<div class="overlay" id="source-overlay" onclick="if(event.target===this)closeSource()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" id="source-title">Código fuente<button class="close-btn" onclick="closeSource()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title" id="source-title">Código fuente<button class="close-btn" onclick="closeSource()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <pre class="source-pre" id="source-pre"></pre>
-      <button class="primary-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="copySource()"><i class="ic" data-ic="copy"></i> Copiar</button>
-      <button class="secondary-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="downloadSource()"><i class="ic" data-ic="download"></i> Descargar</button>
+      <button class="primary-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="copySource()"><i class="ic" data-ic="copy" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg></i> Copiar</button>
+      <button class="secondary-btn" style="display:inline-flex;align-items:center;justify-content:center;gap:7px" onclick="downloadSource()"><i class="ic" data-ic="download" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" x2="12" y1="15" y2="3"></line></svg></i> Descargar</button>
     </div>
   </div>
 </div>
 
 <!-- ── PREVIEW — pantalla completa ── -->
-<div class="overlay" id="preview-overlay">
-  <div class="sheet" style="display:flex;flex-direction:column">
+<div class="overlay" id="preview-overlay" style="display: none;">
+  <div class="sheet" style="display:flex;flex-direction:column" role="dialog" aria-modal="true" tabindex="-1">
     <div class="sheet-title" id="preview-title" style="position:sticky;top:0;background:var(--surface);z-index:2">
-      <span id="preview-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Vista previa</span>
+      <span id="preview-title-text" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Patología Quirúrgica de Recto y Ano</span>
       <div style="display:flex;gap:5px;align-items:center;flex-shrink:0">
-        <button class="close-btn" onclick="previewZoom(-1)" title="Reducir texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="minus"></i></button>
-        <span id="preview-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">100%</span>
-        <button class="close-btn" onclick="previewZoom(1)" title="Aumentar texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="plus"></i></button>
-        <button class="close-btn" onclick="openThemePicker()" id="preview-dark-btn" title="Tema de lectura"><i class="ic" data-ic="palette"></i></button>
-        <button class="close-btn" id="preview-edit-btn" onclick="editPreviewTopic()" title="Editar tema"><i class="ic" data-ic="pencil"></i></button>
-        <button class="close-btn" onclick="closePreview()" title="Cerrar"><i class="ic" data-ic="x"></i></button>
+        <button class="close-btn" onclick="previewZoom(-1)" title="Reducir texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="minus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></i></button>
+        <span id="preview-zoom-val" style="font-size:.72em;color:var(--muted);font-weight:800;min-width:36px;text-align:center">120%</span>
+        <button class="close-btn" onclick="previewZoom(1)" title="Aumentar texto" style="width:auto;padding:0 9px"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
+        <button class="close-btn active" onclick="openThemePicker()" id="preview-dark-btn" title="Tema de lectura: Oscuro"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i></button>
+        <button class="close-btn" onclick="refreshTopicContent(window.currentPreviewTopicId,'preview',this)" title="Recargar contenido" aria-label="Recargar contenido"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i></button>
+        <button class="close-btn" id="preview-edit-btn" onclick="editPreviewTopic()" title="Editar tema"><i class="ic" data-ic="pencil" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg></i></button>
+        <button class="close-btn" onclick="closePreview()" title="Cerrar"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
       </div>
     </div>
-    <div class="frame-wrap loaded" style="flex:1;overflow:hidden;padding:0">
-      <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts allow-popups" style="width:100%;height:100%;min-height:70vh;border:none;border-radius:0;display:block"></iframe>
+    <div class="frame-wrap" id="preview-frame-wrap" style="flex:1;overflow:hidden;padding:0">
+      
     </div>
   </div>
 </div>
 
 <!-- ── SUPABASE PANEL ── -->
-<div class="overlay" id="sb-overlay" onclick="if(event.target===this)closeSbPanel()">
-  <div class="sheet">
+<div class="overlay" id="sb-overlay" onclick="if(event.target===this)closeSbPanel()" style="display: none;">
+  <div class="sheet" role="dialog" aria-modal="true" tabindex="-1">
     <div class="sheet-handle"></div>
     <div class="sheet-title">
       <span style="display:flex;align-items:center;gap:9px">
-        <span class="sb-panel-cloud-icon"><i class="ic" data-ic="refresh-cw"></i></span>
+        <span class="sb-panel-cloud-icon"><i class="ic" data-ic="refresh-cw" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg></i></span>
         Sincronización
       </span>
-      <button class="close-btn" onclick="closeSbPanel()"><i class="ic" data-ic="x"></i></button>
+      <button class="close-btn" onclick="closeSbPanel()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
     </div>
     <div class="sheet-body" style="padding-top:8px">
-      <div id="sb-status-msg" class="sb-status-card"></div>
+      <div id="sb-status-msg" class="sb-status-card" style="background: linear-gradient(135deg, rgba(79, 156, 255, 0.07), rgba(79, 156, 255, 0.02)); border-color: rgba(79, 156, 255, 0.22);">
+        <div style="display:flex;align-items:center;gap:14px;padding:2px 0 12px">
+          <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-size:1.08em;font-weight:900;color:#fff;flex-shrink:0;box-shadow:0 6px 20px rgba(79,156,255,.3),0 0 0 3px rgba(79,156,255,.12)">JU</div>
+          <div style="min-width:0;flex:1">
+            <div style="font-size:.92em;font-weight:900;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px">juliodaniel140898@gmail.com</div>
+            <div style="display:flex;align-items:center;gap:5px"><div class="sb-dot ok"></div><span style="font-size:.74em;color:var(--success);font-weight:800">Conectado</span></div>
+          </div>
+        </div>
+        <div id="sb-sync-status" style="font-size: 0.74em; color: var(--success); padding-top: 10px; border-top: 1px solid var(--border);">16:43:49</div>
+      </div>
       <div class="sb-actions">
         <button class="sb-action-btn sb-push-btn" onclick="sbPush()">
-          <span class="sb-action-icon" style="background:rgba(79,156,255,.15);color:var(--accent)"><i class="ic" data-ic="cloud-upload"></i></span>
+          <span class="sb-action-icon" style="background:rgba(79,156,255,.15);color:var(--accent)"><i class="ic" data-ic="cloud-upload" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 13v8"></path><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="m8 17 4-4 4 4"></path></svg></i></span>
           <span class="sb-action-body">
             <span class="sb-action-title">Subir a la nube</span>
             <span class="sb-action-sub">Guarda tus datos actuales</span>
           </span>
         </button>
         <button class="sb-action-btn sb-pull-btn" onclick="sbPull()">
-          <span class="sb-action-icon" style="background:rgba(52,211,153,.1);color:var(--success)"><i class="ic" data-ic="cloud-download"></i></span>
+          <span class="sb-action-icon" style="background:rgba(52,211,153,.1);color:var(--success)"><i class="ic" data-ic="cloud-download" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 13v8"></path><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="m8 17 4 4 4-4"></path></svg></i></span>
           <span class="sb-action-body">
             <span class="sb-action-title">Descargar de la nube</span>
             <span class="sb-action-sub">Restaura tu última copia guardada</span>
@@ -1706,7 +2054,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
         </button>
         <div style="height:1px;background:var(--border);margin:4px 0"></div>
         <button class="sb-action-btn sb-signout-btn" onclick="signOut()">
-          <span class="sb-action-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="log-out"></i></span>
+          <span class="sb-action-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="log-out" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg></i></span>
           <span class="sb-action-body">
             <span class="sb-action-title" style="color:var(--danger)">Cerrar sesión</span>
             <span class="sb-action-sub">Desconectar esta cuenta</span>
@@ -1718,10 +2066,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── TRASH ── -->
-<div class="overlay" id="trash-overlay" onclick="if(event.target===this)closeTrash()">
+<div class="overlay" id="trash-overlay" onclick="if(event.target===this)closeTrash()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="trash-2"></i></span>Papelera</span><button class="close-btn" onclick="closeTrash()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(248,113,113,.1);color:var(--danger)"><i class="ic" data-ic="trash-2" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg></i></span>Papelera</span><button class="close-btn" onclick="closeTrash()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <p style="font-size:.8em;color:var(--muted);margin-bottom:12px">Los elementos eliminados se guardan aquí 30 días.</p>
       <div id="trash-list"></div>
@@ -1731,50 +2079,50 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 </div>
 
 <!-- ── QUIZ ── -->
-<div class="overlay" id="quiz-overlay" onclick="if(event.target===this)closeQuiz()">
+<div class="overlay" id="quiz-overlay" onclick="if(event.target===this)closeQuiz()" style="display: none;">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">🃏 Quiz<button class="close-btn" onclick="closeQuiz()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title">🃏 Quiz<button class="close-btn" onclick="closeQuiz()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body" id="quiz-card-area"></div>
   </div>
 </div>
 
 <!-- ── THEME PICKER ── -->
-<div class="overlay" id="theme-overlay" onclick="if(event.target===this)closeThemePicker()">
+<div class="overlay" id="theme-overlay" onclick="if(event.target===this)closeThemePicker()" style="display: none;">
   <div class="sheet" style="max-width:540px">
     <div class="sheet-handle"></div>
-    <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)"><i class="ic" data-ic="palette"></i></span>Temas</span><button class="close-btn" onclick="closeThemePicker()"><i class="ic" data-ic="x"></i></button></div>
+    <div class="sheet-title"><span style="display:flex;align-items:center;gap:9px"><span class="actions-section-icon" style="background:rgba(167,139,250,.12);color:var(--purple)"><i class="ic" data-ic="palette" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"></circle><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"></circle><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"></circle><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path></svg></i></span>Temas</span><button class="close-btn" onclick="closeThemePicker()"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button></div>
     <div class="sheet-body">
       <div class="theme-section-label">Apariencia de la app</div>
       <div class="theme-seg" id="app-theme-seg"></div>
       <div class="theme-section-label" style="margin-top:18px">Contenido (lectura)</div>
       <div class="theme-seg" id="theme-seg"></div>
       <div class="theme-list" id="theme-list"></div>
-      <div class="theme-wcag-note"><i class="ic" data-ic="check-circle"></i> Motor WCAG AA activo — contraste automático en todos los documentos</div>
+      <div class="theme-wcag-note"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i> Motor WCAG AA activo — contraste automático en todos los documentos</div>
     </div>
   </div>
 </div>
 
 <!-- ── STUDY ── -->
-<div class="overlay" id="study-overlay" onclick="if(event.target===this)closeStudyMode()">
+<div class="overlay" id="study-overlay" onclick="if(event.target===this)closeStudyMode()" style="display: none;">
   <div class="sheet" id="study-sheet" style="max-height:97vh;display:flex;flex-direction:column">
     <div class="sheet-handle" id="study-handle"></div>
     <div class="sheet-title" id="study-header" style="position:sticky;top:0;background:var(--surface);z-index:2;gap:6px">
       <div class="study-navgroup">
-        <button class="close-btn" id="study-prev" onclick="studyNav(-1)" title="Tema anterior"><i class="ic" data-ic="chevron-left"></i></button>
+        <button class="close-btn" id="study-prev" onclick="studyNav(-1)" title="Tema anterior"><i class="ic" data-ic="chevron-left" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></i></button>
         <span id="study-counter">1 / 1</span>
-        <button class="close-btn" id="study-next" onclick="studyNav(1)" title="Tema siguiente"><i class="ic" data-ic="chevron-right"></i></button>
+        <button class="close-btn" id="study-next" onclick="studyNav(1)" title="Tema siguiente"><i class="ic" data-ic="chevron-right" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg></i></button>
       </div>
-      <span id="study-title-hdr"><i class="ic" data-ic="graduation-cap"></i> Modo estudio</span>
+      <span id="study-title-hdr"><i class="ic" data-ic="graduation-cap" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg></i> Modo estudio</span>
       <div class="study-actgroup">
-        <button class="close-btn" id="study-studied-btn" onclick="studyMarkStudied()" title="Marcar como estudiado"><i class="ic" data-ic="check-circle"></i></button>
+        <button class="close-btn" id="study-studied-btn" onclick="studyMarkStudied()" title="Marcar como estudiado"><i class="ic" data-ic="check-circle" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg></i></button>
         <span class="study-zoom-ctrl" id="study-zoom-ctrl">
-          <button class="close-btn study-zoom-btn" onclick="studyZoom(-1)" title="Reducir texto"><i class="ic" data-ic="minus"></i></button>
+          <button class="close-btn study-zoom-btn" onclick="studyZoom(-1)" title="Reducir texto"><i class="ic" data-ic="minus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></i></button>
           <span id="study-zoom-val" class="study-zoom-pct">100%</span>
-          <button class="close-btn study-zoom-btn" onclick="studyZoom(1)" title="Aumentar texto"><i class="ic" data-ic="plus"></i></button>
+          <button class="close-btn study-zoom-btn" onclick="studyZoom(1)" title="Aumentar texto"><i class="ic" data-ic="plus" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg></i></button>
         </span>
-        <button class="close-btn" id="study-fs-btn" onclick="toggleStudyFullscreen()" title="Pantalla completa"><i class="ic" data-ic="maximize"></i></button>
-        <button class="close-btn" onclick="closeStudyMode()" title="Cerrar"><i class="ic" data-ic="x"></i></button>
+        <button class="close-btn" id="study-fs-btn" onclick="toggleStudyFullscreen()" title="Pantalla completa"><i class="ic" data-ic="maximize" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3"></path><path d="M21 8V5a2 2 0 0 0-2-2h-3"></path><path d="M3 16v3a2 2 0 0 0 2 2h3"></path><path d="M16 21h3a2 2 0 0 0 2-2v-3"></path></svg></i></button>
+        <button class="close-btn" onclick="closeStudyMode()" title="Cerrar"><i class="ic" data-ic="x" data-ic-done="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></i></button>
       </div>
     </div>
     <div id="study-dots" class="study-dots" style="display:none"></div>
@@ -1796,7 +2144,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.19';
+const APP_VERSION='v8.22';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2348,20 +2696,43 @@ function openOverlay(id){
   /* cancelar un cierre pendiente: sin esto, el setTimeout de closeOverlay
      puede ocultar una ventana recién abierta (display:none gana al class) */
   if(el._hideTimer){clearTimeout(el._hideTimer);el._hideTimer=null;}
+  /* Un token impide que un requestAnimationFrame antiguo vuelva a abrir una
+     hoja que el usuario ya cerró, algo especialmente visible en WebKit. */
+  const openToken={};
+  el._openToken=openToken;
   el.style.display='flex';
-  requestAnimationFrame(()=>{el.classList.add('open');_syncScrollLock();});
+  requestAnimationFrame(()=>{
+    if(el._openToken!==openToken) return;
+    el.classList.add('open');
+    _syncScrollLock();
+  });
   _dialogActivate(el);
-  setTimeout(()=>{if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})},60);
+  setTimeout(()=>{
+    if(el._openToken!==openToken||!el.classList.contains('open')) return;
+    if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})
+  },60);
 }
 function closeOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
+  el._openToken=null;
+  if(id==='reader-overlay') window._readerOpenToken=null;
+  if(id==='preview-overlay') window._previewOpenToken=null;
+  if(typeof _cancelFrameLoad==='function'){
+    if(id==='reader-overlay') _cancelFrameLoad(document.querySelector('#reader-body .reader-frame'),'reader-closed');
+    if(id==='preview-overlay') _cancelFrameLoad(document.getElementById('preview-frame'),'preview-closed');
+    if(id==='study-overlay') _cancelFrameLoad(document.querySelector('#study-content .study-frame'),'study-closed');
+  }
   el.classList.remove('open');
   _syncScrollLock();
   _dialogDeactivate();
   if(el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer=setTimeout(()=>{
-    if(!el.classList.contains('open')) el.style.display='none';
+    if(!el.classList.contains('open')){
+      el.style.display='none';
+      if(id==='reader-overlay'&&typeof _disposeReaderFrame==='function') _disposeReaderFrame('reader-hidden');
+      if(id==='preview-overlay'&&typeof _disposePreviewFrame==='function') _disposePreviewFrame('preview-hidden');
+    }
     el._hideTimer=null;
   },280);
 }
@@ -2511,7 +2882,7 @@ function getReadingPalette(topicId){
    y da estilos coherentes a títulos, enlaces, tablas, código y scrollbars. */
 function themeBaseCSS(p){
   return `<style id="__ct_base">
-html{visibility:hidden}
+html{visibility:visible}
 :root{color-scheme:${p.isDark?'dark':'light'};--ct-bg:${p.bg};--ct-surface:${p.surface};--ct-surface2:${p.surface2};--ct-fg:${p.fg};--ct-mut:${p.fgMuted};--ct-head:${p.heading};--ct-link:${p.link};--ct-border:${p.border};--ct-code-bg:${p.codeBg};--ct-code-fg:${p.codeFg};--ct-th:${p.tableHeadBg}}
 html,body{background:${p.bg}!important;color:${p.fg}!important}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif}
@@ -2560,7 +2931,9 @@ setTimeout(_reveal,1500);
 
 function injectReadingTheme(html,pal){
   const head=themeBaseCSS(pal)+'<script>(function(){var T='+JSON.stringify(pal)+';'+READING_ENGINE+'})();<\/script>';
-  if(/<\/head>/i.test(html)) return html.replace(/<\/head>/i,head+'</head>');
+  /* Instalar el motor antes de hojas externas: en WebKit un stylesheet lento
+     puede bloquear cualquier script que aparezca después y frenar el parser. */
+  if(/<head\b[^>]*>/i.test(html)) return html.replace(/<head\b[^>]*>/i,m=>m+head);
   if(/<body[^>]*>/i.test(html)) return html.replace(/<body([^>]*)>/i,`<body$1>${head}`);
   return head+html;
 }
@@ -2570,19 +2943,29 @@ function refreshAllFrames(){
   document.querySelectorAll('.inline-frame[data-tid],.study-frame[data-tid]').forEach(fr=>{
     try{
       const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
-      if(t?.html) fr.srcdoc=buildEmbedDoc(t.html,t.id);
+      if(t?.html) _setFrameSrcdoc(fr,buildEmbedDoc(t.html,t.id));
     }catch(_){}
   });
   try{
-    const rf=document.querySelector('#reader-body .reader-frame');
+    const overlay=document.getElementById('reader-overlay');
     const rt=activeTopics().find(t=>t.id===window.currentReaderTopicId);
-    if(rf&&rt?.html) rf.srcdoc=buildEmbedDoc(rt.html,rt.id);
+    if(overlay?.classList.contains('open')&&rt?.html){
+      const rf=_replaceReaderFrame('reader-theme-refresh');
+      const resultPromise=_setFrameSrcdoc(rf,buildEmbedDoc(rt.html,rt.id));
+      _applyZoomToFrame(rf,readerZoomPct||100);
+      void resultPromise;
+    }
   }catch(_){}
   try{
-    const pf=document.getElementById('preview-frame');
-    if(pf&&window.currentPreviewHtml){
+    const overlay=document.getElementById('preview-overlay');
+    const pt=activeTopics().find(t=>t.id===window.currentPreviewTopicId);
+    const html=pt?.html||window.currentPreviewHtml||'';
+    if(overlay?.classList.contains('open')&&html){
+      window.currentPreviewHtml=html;
+      const pf=_replacePreviewFrame('preview-theme-refresh');
+      const resultPromise=_setFrameSrcdoc(pf,buildEmbedDoc(html,window.currentPreviewTopicId||undefined));
       _applyZoomToFrame(pf,previewZoomPct||100);
-      pf.srcdoc=buildEmbedDoc(window.currentPreviewHtml);
+      void resultPromise;
     }
   }catch(_){}
 }
@@ -2737,7 +3120,9 @@ const IFRAME_ANCHOR_FIX=`<script>(function(){
 const IFRAME_BRIDGE=`<script>(function(){function ps(){if(!document.body)return;var h=Math.max(document.body.scrollHeight||0,document.documentElement.scrollHeight||0);try{parent.postMessage({__clinote:1,type:'size',h:h},'*');}catch(e){}}window.addEventListener('message',function(e){var d=e.data;if(d&&d.__clinote===1&&d.type==='zoom'){try{if(document.body)document.body.style.zoom=(d.pct||100)+'%';}catch(x){}setTimeout(ps,40);}});function init(){ps();window.addEventListener('resize',ps);try{var ro=new ResizeObserver(ps);ro.observe(document.body);}catch(x){}setTimeout(ps,300);setTimeout(ps,1000);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();window.addEventListener('load',ps);}());<\/script>`;
 const _IFRAME_INJECT=IFRAME_ANCHOR_FIX+IFRAME_BRIDGE;
 function _injectAnchorFix(html){
-  if(html.includes('</head>')) return html.replace('</head>',_IFRAME_INJECT+'</head>');
+  /* También debe quedar antes de fuentes/estilos externos por la misma regla
+     de bloqueo del parser en Safari/WebKit. */
+  if(/<head\b[^>]*>/i.test(html)) return html.replace(/<head\b[^>]*>/i,m=>m+_IFRAME_INJECT);
   if(html.includes('<body')) return html.replace(/<body([^>]*)>/i,`<body$1>${_IFRAME_INJECT}`);
   return _IFRAME_INJECT+html;
 }
@@ -2895,6 +3280,9 @@ function _doRender(){
     </div>`;
   }
 
+  /* Resolver cargas pendientes antes de retirar sus nodos evita timers y
+     notificaciones pertenecientes a una vista anterior. */
+  container.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>_cancelFrameLoad(fr,'rerender'));
   container.innerHTML=html;
   /* FASE 14: carga diferida. En vez de inyectar srcdoc en TODOS los iframes
      expandidos de golpe en cada render (recarga costosa, incluido re-init de
@@ -2977,6 +3365,13 @@ function renderHomeResume(){
 function openTopicFromHome(id){
   const t=activeTopics().find(x=>x.id===id);
   if(!t) return;
+  window._lastSelectedTopicId=id;
+  try{localStorage.setItem('clinote-last-topic',id);}catch(_){}
+  /* Un tema reciente puede pertenecer a otra carpeta. Limpiar los filtros evita
+     que el motor lo expanda correctamente pero la UI lo mantenga invisible. */
+  folderFilter=null;
+  const search=document.getElementById('search');
+  if(search) search.value='';
   /* expandir la carpeta del tema y todos sus ancestros */
   let fid=t.folderId||null;
   if(fid===null){expandedTopics['null']=true;}
@@ -2985,15 +3380,41 @@ function openTopicFromHome(id){
     const f=getFolder(fid);
     fid=f?(f.parentId||null):null;
   }
-  expandedTopics[id]=true;
+  const topicKey=_topicExpandKey(id,t.folderId);
+  _closeOtherTopicStates(id,topicKey);
+  expandedTopics[topicKey]=true;
+  window._lastSelectedExpandKey=topicKey;
+  try{localStorage.setItem('clinote-last-topic-key',topicKey);}catch(_){}
   /* registrar apertura (mismo throttle que toggleTopicExpand) */
   const now=Date.now();
   if(!t.lastOpenedAt||now-t.lastOpenedAt>60000){t.lastOpenedAt=now;saveState();}
   render();
-  requestAnimationFrame(()=>setTimeout(()=>{
-    const card=document.querySelector(`[data-topic-id="${id}"]`);
-    if(card) card.scrollIntoView({behavior:'smooth',block:'center'});
-  },120));
+  _revealTopicAfterRender(id);
+}
+
+function _revealTopicAfterRender(id,attempt=0,force=false,preferredKey=null){
+  return new Promise(resolve=>requestAnimationFrame(()=>{
+    const topic=activeTopics().find(t=>t.id===id);
+    const cards=[...document.querySelectorAll(`[data-topic-id="${id}"]`)];
+    const expectedKey=preferredKey||_topicExpandKey(id,topic?.folderId);
+    const card=cards.find(c=>c.dataset.expandKey===expectedKey)||cards[0];
+    if(!card){
+      if(attempt<8){
+        setTimeout(()=>_revealTopicAfterRender(id,attempt+1,force,preferredKey).then(resolve),45+attempt*20);
+      }else{
+        toast('No se pudo mostrar el tema. Pulsa Actualizar para reintentar.','error',4200);
+        resolve({ok:false,reason:'missing-card'});
+      }
+      return;
+    }
+    card.scrollIntoView({behavior:attempt?'auto':'smooth',block:'center'});
+    const fr=card.querySelector('.inline-frame[data-tid]');
+    if(fr){
+      Promise.resolve(_loadInlineFrame(fr,force)).then(resolve);
+    }else{
+      resolve({ok:!!topic&&!topic.html,reason:'no-html-frame'});
+    }
+  }));
 }
 
 function renderFolderFilters(){
@@ -3056,13 +3477,23 @@ function renderFolder(folder,q,parentId){
 /* ─────────────────────────────────────────────────────
    TOPIC CARD
 ───────────────────────────────────────────────────── */
+function _topicExpandKey(topicId,folderId){
+  return `topic:${folderId||'__root__'}:${topicId}`;
+}
+function _closeOtherTopicStates(topicId,keepKey){
+  const suffix=':'+topicId;
+  Object.keys(expandedTopics).forEach(key=>{
+    if(key.startsWith('topic:')&&key.endsWith(suffix)&&key!==keepKey) delete expandedTopics[key];
+  });
+}
 function renderTopic(topic,folderId){
-  const open=!!expandedTopics[topic.id];
+  const expandKey=_topicExpandKey(topic.id,folderId);
+  const open=!!expandedTopics[expandKey];
   const col=topic.color||'var(--accent)';
-  return `<div class="topic-card ${open?'open':''}" data-topic-id="${topic.id}" style="--topic-color:${col}">
+  return `<div class="topic-card ${open?'open':''}" data-topic-id="${topic.id}" data-expand-key="${ha(expandKey)}" style="--topic-color:${col}">
     <div class="swipe-delete-layer">${icon('trash-2')} Eliminar</div>
     <div class="topic-fg">
-      <div class="topic-main" onclick="toggleTopicExpand('${topic.id}')">
+      <div class="topic-main" onclick="toggleTopicExpand('${topic.id}',this)">
         <div class="drag-handle">⠿</div>
         <div class="topic-color-dot"></div>
         <div class="topic-icon">${h(topic.icon||'📄')}</div>
@@ -3088,7 +3519,7 @@ function buildTopicInner(topic){
   if(topic.html){
     inner+=`<div class="topic-inline-html">
       <button class="preview-expand" onclick="event.stopPropagation();openTopicPreview('${topic.id}')" title="Pantalla completa">${icon('maximize')}</button>
-      <button class="preview-expand" style="right:52px" onclick="event.stopPropagation();toggleTopicExpand('${topic.id}')" title="Cerrar">${icon('x')}</button>
+      <button class="preview-expand" style="right:52px" onclick="event.stopPropagation();toggleTopicExpand('${topic.id}',this)" title="Cerrar">${icon('x')}</button>
       <iframe class="inline-frame" sandbox="allow-scripts allow-popups" data-tid="${ha(topic.id)}" style="min-height:280px"></iframe>
     </div>`;
   }
@@ -3132,7 +3563,8 @@ function buildTopicInner(topic){
   /* Actions — acciones primarias visibles; el resto en el menú "Más"
      (reduce la barra de 10 botones/4 filas a 6 botones, UX FASE 6 U1). */
   inner+=`<div class="topic-actions">
-    <button class="toolbtn" onclick="toggleTopicExpand('${topic.id}')">${icon('x')} Cerrar</button>
+    <button class="toolbtn" onclick="toggleTopicExpand('${topic.id}',this)">${icon('x')} Cerrar</button>
+    <button class="toolbtn refresh-btn" onclick="refreshTopicContent('${topic.id}','inline',this)">${icon('refresh-cw')} Actualizar</button>
     <button class="toolbtn btn-studied" onclick="toggleStudied('${topic.id}')">${topic.studied?icon('rotate-ccw')+' No estudiado':icon('check-circle')+' Estudiado'}</button>
     <button class="toolbtn" onclick="openTopicEditor('${topic.id}')">${icon('pencil')} Editar</button>
     <button class="toolbtn" onclick="openReader('${topic.id}')">${icon('book-open')} Leer</button>
@@ -3145,43 +3577,59 @@ function buildTopicInner(topic){
 /* ─────────────────────────────────────────────────────
    FAST TOPIC EXPAND (no full re-render)
 ───────────────────────────────────────────────────── */
-function toggleTopicExpand(id){
-  expandedTopics[id]=!expandedTopics[id];
-  const isOpen=expandedTopics[id];
-  const card=document.querySelector(`[data-topic-id="${id}"]`);
-  if(!card){render();return;}
+function toggleTopicExpand(id,sourceEl){
   const topic=activeTopics().find(t=>t.id===id);
   if(!topic){render();return;}
+  window._lastSelectedTopicId=id;
+  try{localStorage.setItem('clinote-last-topic',id);}catch(_){}
+  const sourceCard=sourceEl?.closest?.('.topic-card');
+  const key=sourceCard?.dataset?.expandKey||_topicExpandKey(id,topic.folderId);
+  window._lastSelectedExpandKey=key;
+  try{localStorage.setItem('clinote-last-topic-key',key);}catch(_){}
+  const isOpen=!expandedTopics[key];
+  if(isOpen){
+    _closeOtherTopicStates(id,key);
+    expandedTopics[key]=true;
+  }else delete expandedTopics[key];
+  const card=sourceCard||document.querySelector(`[data-expand-key="${key}"]`);
+  if(!card){render();if(isOpen)_revealTopicAfterRender(id,0,false,key);return;}
+  if(isOpen){
+    const now=Date.now();
+    if(!topic.lastOpenedAt||now-topic.lastOpenedAt>60000){
+      topic.lastOpenedAt=now;
+      saveState();
+    }
+  }
+  /* Cerrar visualmente cualquier copia duplicada antes de cargar la elegida. */
+  document.querySelectorAll(`[data-topic-id="${id}"]`).forEach(other=>{
+    if(other===card) return;
+    other.classList.remove('open');
+    other.querySelector('.topic-arrow')?.classList.remove('open');
+    const otherCollapse=other.querySelector('.topic-collapse');
+    if(otherCollapse){
+      otherCollapse.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>_cancelFrameLoad(fr,'duplicate-closed'));
+      otherCollapse.classList.remove('open');
+      otherCollapse.innerHTML='';
+    }
+  });
   const collapseEl=card.querySelector('.topic-collapse');
   const arrowEl=card.querySelector('.topic-arrow');
   card.classList.toggle('open',isOpen);
   if(arrowEl) arrowEl.classList.toggle('open',isOpen);
-  if(collapseEl){
-    if(isOpen){
-      /* FASE 7: registra la última apertura para el panel "Continuar
-         estudiando". Throttle de 60s para evitar churn de sync al abrir
-         y cerrar rápido; el guardado usa el debounce de sync existente. */
-      const now=Date.now();
-      if(!topic.lastOpenedAt||now-topic.lastOpenedAt>60000){
-        topic.lastOpenedAt=now;
-        saveState();
-      }
-      collapseEl.innerHTML=buildTopicInner(topic);
-      /* Set srcdoc directly from the topic object in memory — no HTML
-         attribute encoding roundtrip, no double-encoding, works on all
-         browsers including iOS Safari */
-      if(topic.html){
-        /* el tema recién expandido es visible → cargar ya (marca data-loaded) */
-        const fr=collapseEl.querySelector('.inline-frame');
-        if(fr) _loadInlineFrame(fr);
-      }
-      collapseEl.classList.add('open');
-      sizeInlineFrames(card);
-      parseEmoji(card);
-    }else{
-      collapseEl.classList.remove('open');
-      setTimeout(()=>{if(!expandedTopics[id]&&collapseEl)collapseEl.innerHTML=''},220);
+  if(!collapseEl) return;
+  if(isOpen){
+    collapseEl.innerHTML=buildTopicInner(topic);
+    collapseEl.classList.add('open');
+    if(topic.html){
+      const fr=collapseEl.querySelector('.inline-frame');
+      if(fr) _loadInlineFrame(fr);
     }
+    sizeInlineFrames(card);
+    parseEmoji(card);
+  }else{
+    collapseEl.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>_cancelFrameLoad(fr,'topic-closed'));
+    collapseEl.classList.remove('open');
+    setTimeout(()=>{if(!expandedTopics[key]&&collapseEl)collapseEl.innerHTML=''},220);
   }
 }
 
@@ -3199,17 +3647,9 @@ function toggleFavorite(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
   if(!t) return;
   t.favorite=!t.favorite;touch(t);saveState();
-  const card=document.querySelector(`[data-topic-id="${topicId}"]`);
-  if(card){
-    /* rebuild inner since favorite affects card header */
-    if(expandedTopics[topicId]){const col=card.querySelector('.topic-collapse');if(col){col.innerHTML=buildTopicInner(t);const fr=col.querySelector('.inline-frame[data-tid]');if(fr)_loadInlineFrame(fr);}}
-    const favBadge=card.querySelector('.fav-badge');
-    if(t.favorite&&!favBadge){
-      /* insert fav badge before studied badge */
-      const main=card.querySelector('.topic-main');
-      if(main){const badge=document.createElement('span');badge.className='fav-badge ic-fill';badge.innerHTML=icon('star');main.insertBefore(badge,main.querySelector('.studied-badge'));}
-    }else if(!t.favorite&&favBadge){favBadge.remove();}
-  }
+  /* El tema puede existir en dos secciones; un render único mantiene ambas
+     representaciones sincronizadas y evita badges/iframes obsoletos. */
+  render();
   toast(t.favorite?'Añadido a favoritos':'Quitado de favoritos',t.favorite?'fav':'unfav');
 }
 
@@ -3221,9 +3661,119 @@ function toggleFavorite(topicId){
    altura por postMessage; este listener la aplica al iframe correspondiente,
    identificándolo por contentWindow===event.source (sí accesible sin same-origin).
    Solo auto-ajusta inline/study; lector y preview son de altura fija por CSS. */
+function _frameForMessage(source){
+  const frames=document.querySelectorAll('.inline-frame,.study-frame,.reader-frame,.preview-frame');
+  for(const fr of frames){if(fr.contentWindow===source) return fr;}
+  return null;
+}
+function _cancelFrameLoad(fr,reason='cancelled'){
+  if(!fr) return;
+  clearTimeout(fr._clinoteLoadTimer);
+  clearTimeout(fr._clinoteLoadFallbackTimer);
+  const resolve=fr._clinoteResolve;
+  fr._clinoteResolve=null;
+  if(fr.dataset.loading==='1'){
+    fr.dataset.loading='0';
+    if(resolve) resolve({ok:false,stale:true,reason});
+  }
+}
+function _completeFrameLoad(fr,token,ok,reason){
+  if(!fr||fr.dataset.loadToken!==token||fr.dataset.loading!=='1') return null;
+  clearTimeout(fr._clinoteLoadTimer);
+  clearTimeout(fr._clinoteLoadFallbackTimer);
+  const assigned=reason!=='assignment-error';
+  fr.dataset.loading='0';
+  fr.dataset.loaded=(ok||assigned)?'1':'0';
+  fr.dataset.verified=ok?'1':'0';
+  if(ok) delete fr.dataset.loadError;
+  else fr.dataset.loadError='1';
+  const wrap=fr.parentElement;
+  if(wrap&&wrap.classList.contains('frame-wrap')){
+    wrap.classList.add('loaded');
+    wrap.removeAttribute('aria-busy');
+  }
+  const result={ok:!!ok,verified:!!ok,unverified:!ok&&assigned,error:!ok&&!assigned,reason:reason||null};
+  const resolve=fr._clinoteResolve;
+  fr._clinoteResolve=null;
+  if(resolve) resolve(result);
+  return result;
+}
+/* Reader y preview usan un iframe nuevo en cada apertura/recarga. Reutilizar
+   el mismo srcdoc deja documentos antiguos retenidos en WebKit y puede
+   producir una pantalla blanca al cambiar a vista completa. */
+function _createReaderFrame(){
+  const fr=document.createElement('iframe');
+  fr.className='reader-frame';
+  fr.setAttribute('sandbox','allow-scripts allow-popups');
+  fr.style.cssText='height:calc(100dvh - 120px);width:100%;border:none;border-radius:var(--r);display:block';
+  return fr;
+}
+function _replaceReaderFrame(reason='reader-replaced'){
+  const old=document.querySelector('#reader-body .reader-frame');
+  const wrap=old?.parentElement;
+  if(!old||!wrap) return null;
+  _cancelFrameLoad(old,reason);
+  const fr=_createReaderFrame();
+  wrap.replaceChild(fr,old);
+  if(wrap.classList.contains('frame-wrap')){
+    wrap.classList.remove('loaded');
+    wrap.setAttribute('aria-busy','true');
+  }
+  return fr;
+}
+function _disposeReaderFrame(reason='reader-disposed'){
+  const body=document.getElementById('reader-body');
+  if(!body) return;
+  const fr=body.querySelector('.reader-frame');
+  if(fr) _cancelFrameLoad(fr,reason);
+  body.innerHTML='';
+}
+function _createPreviewFrame(){
+  const fr=document.createElement('iframe');
+  fr.className='preview-frame';
+  fr.id='preview-frame';
+  fr.setAttribute('sandbox','allow-scripts allow-popups');
+  fr.style.cssText='width:100%;height:100%;min-height:0;border:none;border-radius:0;display:block';
+  return fr;
+}
+function _replacePreviewFrame(reason='preview-replaced'){
+  const wrap=document.getElementById('preview-frame-wrap')||document.querySelector('#preview-overlay .frame-wrap');
+  if(!wrap) return null;
+  const old=document.getElementById('preview-frame');
+  if(old){
+    _cancelFrameLoad(old,reason);
+    old.remove();
+  }
+  const fr=_createPreviewFrame();
+  wrap.appendChild(fr);
+  wrap.classList.remove('loaded');
+  wrap.setAttribute('aria-busy','true');
+  return fr;
+}
+function _disposePreviewFrame(reason='preview-disposed'){
+  const old=document.getElementById('preview-frame');
+  if(old){
+    _cancelFrameLoad(old,reason);
+    old.remove();
+  }
+  const wrap=document.getElementById('preview-frame-wrap');
+  if(wrap){
+    wrap.classList.remove('loaded');
+    wrap.removeAttribute('aria-busy');
+  }
+}
 function _onFrameMessage(e){
   const d=e.data;
   if(!d||d.__clinote!==1) return;
+  if(d.type==='ready'){
+    const fr=_frameForMessage(e.source);
+    if(!fr||d.token!==fr.dataset.loadToken||d.hasContent===false) return;
+    if((fr.matches('.inline-frame,.study-frame'))&&d.h){
+      fr.style.height=Math.max(200,(d.h||0)+8)+'px';
+    }
+    _completeFrameLoad(fr,d.token,true,'ready');
+    return;
+  }
   if(d.type==='size'){
     const frames=document.querySelectorAll('.inline-frame,.study-frame');
     for(const fr of frames){
@@ -3268,13 +3818,27 @@ function sizeInlineFrames(root){}
    Solo se inyecta srcdoc cuando el iframe se acerca al viewport, no en cada
    render para todos los temas expandidos. Coste de render casi constante.
 ───────────────────────────────────────────────────── */
-function _loadInlineFrame(fr){
-  if(!fr||fr.dataset.loaded==='1') return;
+function _loadInlineFrame(fr,force=false){
+  if(!fr) return Promise.resolve({ok:false,reason:'missing-frame'});
+  if(!force&&fr.dataset.loading==='1'){
+    return fr._clinotePromise||Promise.resolve({ok:false,reason:'already-loading'});
+  }
+  if(!force&&fr.dataset.loaded==='1'){
+    return Promise.resolve({ok:fr.dataset.verified==='1',verified:fr.dataset.verified==='1',unverified:fr.dataset.verified!=='1',reason:'already-loaded'});
+  }
   const t=activeTopics().find(x=>x.id===fr.getAttribute('data-tid'));
   if(t&&t.html){
-    fr.dataset.loaded='1';
-    fr.srcdoc=buildEmbedDoc(t.html,t.id);
+    if(_frameObserver) _frameObserver.unobserve(fr);
+    delete fr.dataset.loaded;
+    try{
+      return _setFrameSrcdoc(fr,buildEmbedDoc(t.html,t.id));
+    }catch(_){
+      fr.dataset.loading='0';
+      fr.dataset.loadError='1';
+      return Promise.resolve({ok:false,error:true,reason:'build-error'});
+    }
   }
+  return Promise.resolve({ok:false,reason:'missing-content'});
 }
 const _frameObserver=(typeof IntersectionObserver!=='undefined')
   ? new IntersectionObserver((entries,obs)=>{
@@ -3284,7 +3848,7 @@ const _frameObserver=(typeof IntersectionObserver!=='undefined')
     },{rootMargin:'600px 0px'}) /* precarga 600px antes de ser visible */
   : null;
 function observeInlineFrame(fr){
-  if(!fr||fr.dataset.loaded==='1') return;
+  if(!fr||fr.dataset.loaded==='1'||fr.dataset.loading==='1') return;
   if(_frameObserver) _frameObserver.observe(fr);
   else _loadInlineFrame(fr); /* fallback navegadores sin IntersectionObserver */
 }
@@ -3717,17 +4281,28 @@ function openReader(topicId){
     html+=`</div></div>`;
   }
   if(topic.tags?.length){html+=`<div style="display:flex;gap:5px;flex-wrap:wrap;margin:8px 0">${topic.tags.map(tag=>`<span style="font-size:.72em;background:var(--surface3);border:1px solid var(--border);border-radius:999px;padding:3px 8px;color:var(--muted);font-weight:700">#${h(tag)}</span>`).join('')}</div>`;}
+  _cancelFrameLoad(body.querySelector('.reader-frame'),'reader-replaced');
   body.innerHTML=html;
   body.style.fontSize=readerZoomPct+'%';
-  if(topic.html){
-    const rf=body.querySelector('.reader-frame');
-    if(rf){
-      _applyZoomToFrame(rf,readerZoomPct);
-      _setFrameSrcdoc(rf,buildEmbedDoc(topic.html,topic.id));
-    }
-  }
+  const rf=topic.html?body.querySelector('.reader-frame'):null;
+  const openToken={};
+  window._readerOpenToken=openToken;
   sizeInlineFrames(body);
+  /* Primero hacemos visible la hoja y en el siguiente frame navegamos el
+     iframe. Safari/iPad puede aplazar un srcdoc asignado dentro de display:none. */
   openOverlay('reader-overlay');
+  if(rf){
+    requestAnimationFrame(()=>{
+      if(window._readerOpenToken!==openToken||rf.isConnected===false) return;
+      const resultPromise=_setFrameSrcdoc(rf,buildEmbedDoc(topic.html,topic.id));
+      _applyZoomToFrame(rf,readerZoomPct);
+      resultPromise.then(result=>{
+        if(window._readerOpenToken!==openToken||rf.isConnected===false) return;
+        if(result?.error) toast('No se pudo abrir el tema','error',3600);
+        else if(result?.unverified) toast('El tema tardó en responder; pulsa Actualizar si no aparece','error',4600);
+      });
+    });
+  }
 }
 /* Zoom propio del lector: escala el texto del cuerpo Y el contenido del iframe
    (el zoom global de la app no alcanza al contenido dentro de iframes) */
@@ -3743,14 +4318,152 @@ function _applyZoomToFrame(fr,pct){
   send();
   fr.addEventListener('load',send,{once:true});
 }
-/* FASE 17: establece srcdoc y gestiona el spinner de carga en el wrapper */
+/* Protocolo de carga verificable. El probe se instala al principio del head,
+   antes de fuentes/estilos externos, y confirma que el body contiene contenido.
+   El padre nunca vuelve a navegar el iframe automáticamente: una pulsación =
+   una sola asignación de srcdoc, también en iPad/WebKit. */
+function _injectFrameReadyProbe(doc,token){
+  const probe=`<script>(function(){var token=${JSON.stringify(token)},tries=0,done=false,scheduled=false;function sized(n){var r=n&&n.getBoundingClientRect?n.getBoundingClientRect():null;return !!(r&&r.width>1&&r.height>1);}function media(root){var i,n,list=root.querySelectorAll('img[src]');for(i=0;i<list.length;i++){n=list[i];if(n.complete&&n.naturalWidth>1&&sized(n))return true;}list=root.querySelectorAll('video');for(i=0;i<list.length;i++){n=list[i];if(n.readyState>=2&&n.videoWidth>1&&sized(n))return true;}list=root.querySelectorAll('svg');for(i=0;i<list.length;i++){n=list[i];if(n.querySelector('path,rect,circle,ellipse,line,polyline,polygon,text,image,use')&&sized(n))return true;}list=root.querySelectorAll('[role="img"][aria-label]');for(i=0;i<list.length;i++){n=list[i];if((n.getAttribute('aria-label')||'').trim()&&sized(n))return true;}return false;}function visible(root){if(!root)return false;var txt=(root.innerText||'').replace(/\\s+/g,'');return !!(txt.length||media(root));}function schedule(ms){if(done||scheduled)return;scheduled=true;setTimeout(function(){scheduled=false;ping();},ms);}function ping(){if(done)return;var b=document.body,has=false,h=0;if(b){var root=document.getElementById('root')||b;has=visible(root);h=Math.max(b.scrollHeight||0,document.documentElement.scrollHeight||0);}try{parent.postMessage({__clinote:1,type:'ready',token:token,hasContent:has,h:h},'*');}catch(e){}done=has;if(!done&&tries++<24)schedule(250);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){schedule(0);},{once:true});else schedule(0);window.addEventListener('load',function(){schedule(0);},{once:true});schedule(40);}());<\/script>`;
+  if(/<head\b[^>]*>/i.test(doc)) return doc.replace(/<head\b[^>]*>/i,m=>m+probe);
+  if(/<html\b[^>]*>/i.test(doc)) return doc.replace(/<html\b[^>]*>/i,m=>m+probe);
+  return probe+doc;
+}
+
+/* FASE 17: establece srcdoc, espera confirmación real y libera el spinner si
+   el tema no responde. El contenido nunca queda oculto. */
 function _setFrameSrcdoc(fr,doc){
-  if(!fr) return;
+  if(!fr) return Promise.resolve({ok:false,reason:'missing-frame'});
+  _cancelFrameLoad(fr,'superseded');
   const wrap=fr.parentElement;
-  if(wrap&&wrap.classList.contains('frame-wrap')) wrap.classList.remove('loaded');
-  const onLoad=()=>{if(wrap&&wrap.classList.contains('frame-wrap')) wrap.classList.add('loaded');};
-  fr.addEventListener('load',onLoad,{once:true});
-  fr.srcdoc=doc;
+  if(wrap&&wrap.classList.contains('frame-wrap')){
+    wrap.classList.remove('loaded');
+    wrap.setAttribute('aria-busy','true');
+  }
+  const token=String(Date.now())+'_'+Math.random().toString(36).slice(2,8);
+  fr.dataset.loadToken=token;
+  fr.dataset.loading='1';
+  delete fr.dataset.loaded;
+  delete fr.dataset.verified;
+  delete fr.dataset.loadError;
+  delete fr.dataset.domLoaded;
+  const promise=new Promise(resolve=>{fr._clinoteResolve=resolve;});
+  fr._clinotePromise=promise;
+  fr.addEventListener('load',()=>{
+    if(fr.dataset.loadToken!==token||fr.dataset.loading!=='1') return;
+    fr.dataset.domLoaded='1';
+  },{once:true});
+  fr._clinoteLoadTimer=setTimeout(()=>{
+    if(fr.dataset.loadToken===token&&fr.dataset.loading==='1'){
+      _completeFrameLoad(fr,token,false,'timeout');
+    }
+  },6700);
+  try{
+    fr.srcdoc=_injectFrameReadyProbe(doc,token);
+  }catch(_){
+    _completeFrameLoad(fr,token,false,'assignment-error');
+  }
+  return promise;
+}
+
+function _refreshStillCurrent(btn,uiToken,fr,surface){
+  if(btn&&(btn.dataset.refreshToken!==uiToken||btn.isConnected===false)) return false;
+  if(fr&&fr.isConnected===false) return false;
+  if(surface==='reader'&&!document.getElementById('reader-overlay')?.classList.contains('open')) return false;
+  if(surface==='preview'&&!document.getElementById('preview-overlay')?.classList.contains('open')) return false;
+  return true;
+}
+
+async function refreshTopicContent(topicId,surface='inline',btn){
+  const topic=topicId?activeTopics().find(t=>t.id===topicId):null;
+  let fr=null,html=topic?.html||'';
+  if(surface==='reader') fr=html?_replaceReaderFrame('reader-refresh'):document.querySelector('#reader-body .reader-frame');
+  else if(surface==='preview'){
+    /* El tema actual es la fuente de verdad. El caché solo cubre previews del
+       editor que aún no pertenecen a un tema guardado. */
+    html=topic?.html||window.currentPreviewHtml||'';
+    if(html) window.currentPreviewHtml=html;
+    fr=_replacePreviewFrame('preview-refresh');
+  }else{
+    const card=btn?.closest?.('.topic-card')||(topicId?document.querySelector(`[data-topic-id="${topicId}"]`):null);
+    fr=card?.querySelector('.inline-frame[data-tid]')||null;
+  }
+  if(!fr||!html){
+    if(topicId) openTopicFromHome(topicId);
+    toast('Preparando el tema para mostrarlo…','refresh');
+    return;
+  }
+  const uiToken=String(Date.now())+Math.random();
+  if(btn){btn.dataset.refreshToken=uiToken;btn.classList.add('is-refreshing');}
+  try{
+    const resultPromise=_setFrameSrcdoc(fr,buildEmbedDoc(html,topicId||undefined));
+    if(surface==='reader') _applyZoomToFrame(fr,readerZoomPct||100);
+    if(surface==='preview') _applyZoomToFrame(fr,previewZoomPct||100);
+    const result=await resultPromise;
+    if(result?.stale||!_refreshStillCurrent(btn,uiToken,fr,surface)) return;
+    if(result?.ok) toast('Contenido actualizado y verificado','success');
+    else if(result?.unverified) toast('No se pudo verificar el contenido; intenta Actualizar de nuevo','error',4200);
+    else toast('No se pudo abrir el contenido','error',3600);
+  }finally{
+    if(btn?.dataset.refreshToken===uiToken){
+      btn.classList.remove('is-refreshing');
+      delete btn.dataset.refreshToken;
+    }
+  }
+}
+
+async function refreshAppView(btn){
+  const uiToken=String(Date.now())+Math.random();
+  if(btn){btn.dataset.refreshToken=uiToken;btn.classList.add('is-refreshing');}
+  folderFilter=null;
+  const search=document.getElementById('search');
+  if(search) search.value='';
+  document.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>{
+    try{_frameObserver?.unobserve(fr);}catch(_){}
+  });
+  const lastId=window._lastSelectedTopicId||(()=>{try{return localStorage.getItem('clinote-last-topic')}catch(_){return null}})();
+  const lastTopic=lastId?activeTopics().find(t=>t.id===lastId):null;
+  let selectedKey=null;
+  if(lastTopic){
+    const rememberedKey=window._lastSelectedExpandKey||(()=>{try{return localStorage.getItem('clinote-last-topic-key')}catch(_){return null}})();
+    const actualKey=_topicExpandKey(lastTopic.id,lastTopic.folderId);
+    const favoriteKey=_topicExpandKey(lastTopic.id,'__fav__');
+    selectedKey=(lastTopic.favorite&&rememberedKey===favoriteKey)?favoriteKey:actualKey;
+    _closeOtherTopicStates(lastTopic.id,selectedKey);
+    expandedTopics[selectedKey]=true;
+    if(selectedKey===favoriteKey){
+      expandedTopics['__fav__']=true;
+    }else{
+      let fid=lastTopic.folderId||null;
+      if(fid===null) expandedTopics['null']=true;
+      while(fid){expandedTopics[fid]=true;fid=getFolder(fid)?.parentId||null;}
+    }
+    window._lastSelectedExpandKey=selectedKey;
+    try{localStorage.setItem('clinote-last-topic-key',selectedKey);}catch(_){}
+  }
+  _renderScheduled=false;
+  _doRender();
+  requestAnimationFrame(()=>{
+    hydrateIcons(document);
+    parseEmojiDebounced();
+  });
+  try{
+    if(lastTopic){
+      /* El render creó un iframe nuevo: carga normal, sin una segunda navegación. */
+      const result=await _revealTopicAfterRender(lastTopic.id,0,false,selectedKey);
+      if(result?.stale||!_refreshStillCurrent(btn,uiToken,null,'app')) return;
+      if(result?.ok) toast('Tema actualizado y verificado','success');
+      else if(result?.unverified) toast('No se pudo verificar el tema; intenta Actualizar de nuevo','error',4200);
+      else toast('No se pudo recargar el tema','error',3600);
+    }else{
+      requestAnimationFrame(()=>document.querySelectorAll('.inline-frame[data-tid]').forEach(observeInlineFrame));
+      if(_refreshStillCurrent(btn,uiToken,null,'app')) toast('Vista actualizada','success');
+    }
+  }finally{
+    if(btn?.dataset.refreshToken===uiToken){
+      btn.classList.remove('is-refreshing');
+      delete btn.dataset.refreshToken;
+    }
+  }
 }
 
 function readerZoom(d){
@@ -3786,9 +4499,28 @@ function openTopicSource(topicId){
   document.getElementById('source-pre').textContent=t.html;
   openOverlay('source-overlay');
 }
+function _serializeCleanApp(){
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelectorAll('iframe').forEach(fr=>{
+    fr.removeAttribute('srcdoc');
+    ['data-load-token','data-loading','data-loaded','data-verified','data-load-error','data-dom-loaded'].forEach(a=>fr.removeAttribute(a));
+  });
+  clone.querySelectorAll('.frame-wrap.loaded').forEach(w=>w.classList.remove('loaded'));
+  clone.querySelectorAll('[aria-busy="true"]').forEach(el=>el.removeAttribute('aria-busy'));
+  clone.querySelectorAll('[data-refresh-token]').forEach(el=>{
+    el.removeAttribute('data-refresh-token');
+    el.classList.remove('is-refreshing');
+  });
+  clone.querySelectorAll('.overlay').forEach(el=>{
+    el.classList.remove('open');
+    el.style.display='none';
+  });
+  clone.querySelector('body')?.classList.remove('overlay-open');
+  return '<!DOCTYPE html>\n'+clone.outerHTML;
+}
 function openAppSource(){
   currentSourceName='clinotes.html';
-  currentSourceText=document.documentElement.outerHTML;
+  currentSourceText=_serializeCleanApp();
   document.getElementById('source-title').innerHTML=`Código fuente<button class="close-btn" onclick="closeSource()">${icon('x')}</button>`;
   document.getElementById('source-pre').textContent=currentSourceText.slice(0,8000)+(currentSourceText.length>8000?'\n\n[... truncado ...]':'');
   openOverlay('source-overlay');
@@ -3816,12 +4548,23 @@ function openPreview(html,title='Vista previa'){
   previewZoomPct=parseInt(localStorage.getItem(PREVIEW_ZOOM_KEY)||'100')||100;
   const pzv=document.getElementById('preview-zoom-val');
   if(pzv) pzv.textContent=previewZoomPct+'%';
-  const fr=document.getElementById('preview-frame');
-  if(fr){
-    _applyZoomToFrame(fr,previewZoomPct);
-    _setFrameSrcdoc(fr,buildEmbedDoc(html));
-  }
+  const fr=_replacePreviewFrame('preview-open');
+  if(!fr){toast('No se pudo preparar la vista completa','error',3600);return;}
+  const openToken={};
+  window._previewOpenToken=openToken;
+  /* El overlay debe abandonar display:none antes de asignar srcdoc. Esta
+     secuencia evita el fallo de carga de iframes ocultos en Safari/iPad. */
   openOverlay('preview-overlay');
+  requestAnimationFrame(()=>{
+    if(window._previewOpenToken!==openToken||fr.isConnected===false) return;
+    const resultPromise=_setFrameSrcdoc(fr,buildEmbedDoc(html,window.currentPreviewTopicId||undefined));
+    _applyZoomToFrame(fr,previewZoomPct);
+    resultPromise.then(result=>{
+      if(window._previewOpenToken!==openToken||fr.isConnected===false) return;
+      if(result?.error) toast('No se pudo abrir la vista completa','error',3600);
+      else if(result?.unverified) toast('La vista tardó en responder; pulsa Actualizar si no aparece','error',4600);
+    });
+  });
 }
 function editPreviewTopic(){
   const id=window.currentPreviewTopicId;
@@ -3848,7 +4591,7 @@ function openPreviewSource(){
   openOverlay('source-overlay');
 }
 function downloadAppHTML(){
-  const blob=new Blob([document.documentElement.outerHTML],{type:'text/html'});
+  const blob=new Blob([_serializeCleanApp()],{type:'text/html'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='clinotes.html';a.click();
   toast('App descargada','download');
 }
@@ -4641,6 +5384,7 @@ function renderStudyMode(){
     html+=`</div>`;
   });}
   if(topic.mnemo) html+=`<div class="mnemo-chip">${h(topic.mnemo)}</div>`;
+  _cancelFrameLoad(container.querySelector('.study-frame'),'study-navigation');
   container.innerHTML=html;
   if(topic.html){
     const sf=container.querySelector('.study-frame');
@@ -4826,5 +5570,7 @@ async function init(){
 
 document.addEventListener('DOMContentLoaded',init);
 </script>
-</body>
-</html>
+
+
+
+</body></html>
