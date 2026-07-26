@@ -552,7 +552,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   border-radius:50%;animation:spin .7s linear infinite;
   opacity:1;transition:opacity .2s;
 }
-.frame-wrap.loaded::before{opacity:0;}
+/* FASE 24: opacity:0 NO detiene una animación infinita — el spinner seguía
+   girando (y componiendo un frame) para siempre detrás de cada tema cargado.
+   animation:none corta el tick; visibility:hidden lo saca del compositor. */
+.frame-wrap.loaded::before{opacity:0;animation:none;visibility:hidden;}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* FASE 16: barra offline */
 #offline-bar{
@@ -636,6 +639,16 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
   width:100vw;max-width:none;overflow:hidden;
   border-radius:0;animation:fadeIn .2s var(--ease-out);
   padding:0;margin:0;
+}
+/* FASE 24: a pantalla completa la hoja es OPACA y cubre el 100% del viewport,
+   así que los dos backdrop-filter apilados (el del overlay y el de .sheet)
+   difuminan un fondo que nunca se ve: coste máximo, efecto visual nulo. En
+   Chromium de escritorio cada uno obliga a rasterizar el viewport entero por
+   frame; en Safari/iPad la ruta es nativa de GPU y por eso allí no se nota.
+   Las hojas normales conservan su efecto vidrio intacto. */
+#reader-overlay,#preview-overlay,
+#reader-overlay .sheet,#preview-overlay .sheet{
+  backdrop-filter:none;-webkit-backdrop-filter:none;
 }
 #reader-overlay .sheet-title,#preview-overlay .sheet-title{flex:0 0 auto}
 #reader-overlay .sheet-body{flex:1 1 auto;min-height:0}
