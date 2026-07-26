@@ -2894,7 +2894,12 @@ function getReadingPalette(topicId){
 /* Capa base de tokens — pinta el marco al instante (sin parpadeo blanco)
    y da estilos coherentes a títulos, enlaces, tablas, código y scrollbars. */
 function themeBaseCSS(p){
-  return `<style id="__ct_base">
+  return `<style id="__ct_base">${themeBaseInner(p)}</style>`;
+}
+/* FASE 26: el cuerpo del CSS se genera aparte para poder reenviarlo por
+   postMessage al cambiar de tema sin reconstruir el documento del iframe. */
+function themeBaseInner(p){
+  return `
 html{visibility:visible}
 :root{color-scheme:${p.isDark?'dark':'light'};--ct-bg:${p.bg};--ct-surface:${p.surface};--ct-surface2:${p.surface2};--ct-fg:${p.fg};--ct-mut:${p.fgMuted};--ct-head:${p.heading};--ct-link:${p.link};--ct-border:${p.border};--ct-code-bg:${p.codeBg};--ct-code-fg:${p.codeFg};--ct-th:${p.tableHeadBg}}
 html,body{background:${p.bg}!important;color:${p.fg}!important}
@@ -2912,7 +2917,7 @@ pre{border:1px solid ${p.codeBorder}}
 ::-webkit-scrollbar{width:9px;height:9px}
 ::-webkit-scrollbar-track{background:${p.surface}}
 ::-webkit-scrollbar-thumb{background:${p.border};border-radius:5px}
-</style>`;
+`;
 }
 
 /* Motor de contraste (corre DENTRO del iframe). Sin backticks ni etiquetas
@@ -2931,6 +2936,7 @@ var tcache={};
 function fixText(fg,bg){var key=S(fg)+'|'+S(bg);if(key in tcache)return tcache[key];if(ratio(fg,bg)>=MINC){tcache[key]=null;return null;}var hsl=toHsl(fg),out;if(hsl.s<0.18){out=FG;}else{var step=DARK?0.045:-0.045,l=hsl.l,best=null;for(var i=0;i<26;i++){l=Math.min(0.97,Math.max(0.05,l+step));var cand=toRgb(hsl.h,Math.min(0.92,hsl.s),l);if(ratio(cand,bg)>=MINC){best=cand;break;}}out=best||FG;}tcache[key]=out;return out;}
 function fixBg(bg){var l=L(bg),hsl=toHsl(bg);if(DARK){if(l<=0.22)return null;if(hsl.s<0.12)return parse(l>0.85?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.5,hsl.s),0.19);}else{if(l>=0.82)return null;if(hsl.s<0.12)return parse(l<0.2?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.42,hsl.s),0.88);}}
 var MARK='data-ct-'+(DARK?'d':'l');
+var ORIG='data-ct-o'; /* FASE 26: style original, para revertir al cambiar paleta */
 var SKIP={SCRIPT:1,STYLE:1,IMG:1,SVG:1,svg:1,VIDEO:1,CANVAS:1,PICTURE:1,IFRAME:1,NOSCRIPT:1};
 /* FASE 25: process() en DOS FASES. Antes intercalaba lecturas de
    getComputedStyle con escrituras de style.setProperty dentro del mismo bucle;
@@ -2979,11 +2985,43 @@ function process(root){
   /* FASE DE ESCRITURA — no se lee estilo calculado */
   for(var j=0;j<jobs.length;j++){
     var it=jobs[j],e2=it[0];
-    if(it[1])e2.style.setProperty('background-color',S(it[1]),'important');
-    if(it[2])e2.style.setProperty('color',S(it[2]),'important');
+    if(it[1]||it[2]){
+      /* FASE 26: guarda el style ORIGINAL la primera vez que se toca el
+         elemento, para poder revertirlo con exactitud al cambiar de paleta. */
+      if(!e2.hasAttribute(ORIG))e2.setAttribute(ORIG,e2.getAttribute('style')||'');
+      if(it[1])e2.style.setProperty('background-color',S(it[1]),'important');
+      if(it[2])e2.style.setProperty('color',S(it[2]),'important');
+    }
     e2.setAttribute(MARK,'1');
   }
 }
+/* FASE 26: re-tiñe EN CALIENTE con una paleta nueva, sin recargar el documento.
+   Antes, cambiar de tema reconstruia el srcdoc de cada iframe: recarga visible,
+   spinner y perdida de la posicion de scroll. Ahora es instantaneo y el lector
+   se queda donde estaba. Se revierten los estilos aplicados antes de recalcular
+   porque el motor escribe con !important y, si no, la medida de contraste
+   partiria de los colores ya forzados. */
+function retheme(np,css){
+  if(!np)return;
+  T=np;DARK=!!T.isDark;MINC=4.5;
+  FG=parse(T.fg);BG=parse(T.bg);tcache={};
+  var old=document.querySelectorAll('['+ORIG+']');
+  for(var i=0;i<old.length;i++){
+    var el=old[i],o=el.getAttribute(ORIG);
+    if(o)el.setAttribute('style',o);else el.removeAttribute('style');
+    el.removeAttribute(ORIG);
+  }
+  var m=document.querySelectorAll('[data-ct-d],[data-ct-l]');
+  for(var j=0;j<m.length;j++){m[j].removeAttribute('data-ct-d');m[j].removeAttribute('data-ct-l');}
+  MARK='data-ct-'+(DARK?'d':'l');
+  if(css){var st=document.getElementById('__ct_base');if(st)st.textContent=css;}
+  try{process();}catch(e){}
+  _reveal();
+}
+window.addEventListener('message',function(e){
+  var d=e.data;
+  if(d&&d.__clinote===1&&d.type==='theme'){retheme(d.pal,d.css);}
+});
 function _reveal(){try{document.documentElement.style.visibility='visible';}catch(_){}}
 function run(){try{process();}catch(e){}_reveal();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
@@ -3029,10 +3067,24 @@ function injectReadingTheme(html,pal){
 }
 
 /* Refresca el contenido de TODOS los iframes abiertos con la paleta actual */
+/* FASE 26: intenta re-teñir EN CALIENTE por postMessage. Devuelve true si el
+   iframe estaba listo para recibirlo. Reconstruir el srcdoc (el camino antiguo)
+   provocaba recarga visible, spinner y perdida de la posicion de scroll. */
+function _pushThemeToFrame(fr,topicId){
+  if(!fr||!fr.contentWindow) return false;
+  if(fr.dataset.loading==='1'||!fr.dataset.loadToken) return false;
+  try{
+    const pal=getReadingPalette(topicId);
+    fr.contentWindow.postMessage({__clinote:1,type:'theme',pal:pal,css:themeBaseInner(pal)},'*');
+    return true;
+  }catch(_){ return false; }
+}
 function refreshAllFrames(){
   document.querySelectorAll('.inline-frame[data-tid],.study-frame[data-tid]').forEach(fr=>{
     try{
-      const t=activeTopics().find(t=>t.id===fr.getAttribute('data-tid'));
+      const tid=fr.getAttribute('data-tid');
+      if(_pushThemeToFrame(fr,tid)) return;
+      const t=activeTopics().find(t=>t.id===tid);
       if(t?.html) _setFrameSrcdoc(fr,buildEmbedDoc(t.html,t.id));
     }catch(_){}
   });
@@ -3040,10 +3092,13 @@ function refreshAllFrames(){
     const overlay=document.getElementById('reader-overlay');
     const rt=activeTopics().find(t=>t.id===window.currentReaderTopicId);
     if(overlay?.classList.contains('open')&&rt?.html){
-      const rf=_replaceReaderFrame('reader-theme-refresh');
-      const resultPromise=_setFrameSrcdoc(rf,buildEmbedDoc(rt.html,rt.id));
-      _applyZoomToFrame(rf,readerZoomPct||100);
-      void resultPromise;
+      const cur=document.querySelector('#reader-body .reader-frame');
+      if(!_pushThemeToFrame(cur,rt.id)){
+        const rf=_replaceReaderFrame('reader-theme-refresh');
+        const resultPromise=_setFrameSrcdoc(rf,buildEmbedDoc(rt.html,rt.id));
+        _applyZoomToFrame(rf,readerZoomPct||100);
+        void resultPromise;
+      }
     }
   }catch(_){}
   try{
@@ -3052,10 +3107,13 @@ function refreshAllFrames(){
     const html=pt?.html||window.currentPreviewHtml||'';
     if(overlay?.classList.contains('open')&&html){
       window.currentPreviewHtml=html;
-      const pf=_replacePreviewFrame('preview-theme-refresh');
-      const resultPromise=_setFrameSrcdoc(pf,buildEmbedDoc(html,window.currentPreviewTopicId||undefined));
-      _applyZoomToFrame(pf,previewZoomPct||100);
-      void resultPromise;
+      const cur=document.getElementById('preview-frame');
+      if(!_pushThemeToFrame(cur,window.currentPreviewTopicId||undefined)){
+        const pf=_replacePreviewFrame('preview-theme-refresh');
+        const resultPromise=_setFrameSrcdoc(pf,buildEmbedDoc(html,window.currentPreviewTopicId||undefined));
+        _applyZoomToFrame(pf,previewZoomPct||100);
+        void resultPromise;
+      }
     }
   }catch(_){}
 }
