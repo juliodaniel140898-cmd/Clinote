@@ -2203,7 +2203,11 @@ function normalizeStateShape(p){
 /* FASE 11: Sincronización por fusión a nivel de elemento.
    touch — sella updatedAt en un objeto modificado (tema/carpeta). Llamado en
    cada punto de mutación para que la fusión sepa cuál versión es más reciente. */
-function touch(o){if(o&&typeof o==='object')o.updatedAt=Date.now();return o;}
+/* FASE 28: invalida SOLO la entrada del elemento modificado. Antes cada
+   saveState() vaciaba el cache entero, asi que un cambio de metadatos
+   (favorito, estudiado, reordenar) obligaba a la siguiente busqueda a volver a
+   extraer el texto del HTML COMPLETO de todos los temas (stripHtml). */
+function touch(o){if(o&&typeof o==='object'){o.updatedAt=Date.now();if(o.id)_searchCache.delete(o.id);}return o;}
 /* Marca de tiempo efectiva de un elemento: updatedAt > createdAt > 0.
    Datos antiguos sin updatedAt cuentan como los más viejos, así cualquier
    edición explícita (que sí sella updatedAt) gana sobre ellos. */
@@ -2413,9 +2417,28 @@ function _toastDoAction(){
    STORAGE  (localStorage primary, IndexedDB emergency)
    ═══════════════════════════════════════════════════════ */
 let _localSaveOk=true; // FASE 10: rastrea si el último guardado local tuvo éxito
+/* FASE 28: la escritura a localStorage se agrupa. Antes, cada saveState()
+   serializaba TODO el estado (temas con su HTML completo, potencialmente
+   megabytes) de forma sincrona y bloqueaba el hilo principal; hay 29 puntos de
+   llamada, muchos en rutas calientes (marcar estudiado, favorito, reordenar,
+   lastOpenedAt). Ahora se agrupa en una sola escritura tras 400 ms de calma.
+   La durabilidad se garantiza con un flush sincrono en pagehide /
+   visibilitychange / beforeunload, ademas del estado de emergencia que ya
+   existia. Nada lee localStorage durante la sesion (solo loadState() al
+   arrancar), asi que diferir la escritura no puede devolver datos obsoletos. */
+let _saveTimer=null,_savePending=false;
 function saveState(){
-  _searchCache.clear(); // invalidate search cache on state change
   STATE.updatedAt=Date.now();
+  _savePending=true;
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(flushState,400);
+  triggerAutoExport();
+  triggerSbSync();
+}
+function flushState(){
+  clearTimeout(_saveTimer);_saveTimer=null;
+  if(!_savePending) return;
+  _savePending=false;
   let saved=false;
   try{
     localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));
@@ -2435,8 +2458,6 @@ function saveState(){
     _localSaveOk=false;
     try{toast('Almacenamiento local lleno: tus cambios podrían no guardarse en este dispositivo. Sincroniza con la nube o libera espacio.','error',5500);}catch(_){}
   }
-  triggerAutoExport();
-  triggerSbSync();
 }
 
 function loadState(){
@@ -5753,11 +5774,20 @@ async function init(){
   try{ await initAuth(); }catch(err){ console.warn('[Clinote] initAuth failed:',err); }
   /* beforeunload: save locally + flush any pending cloud sync */
   window.addEventListener('beforeunload',()=>{
+    try{ flushState(); }catch(_){}
     try{
       localStorage.setItem(EMERGENCY_KEY,JSON.stringify(STATE));
       localStorage.setItem('medstudy_emergency_ts',Date.now());
     }catch(_){}
     try{ triggerSbSync.flush(); }catch(_){}
+  });
+  /* FASE 28: garantiza la durabilidad de la escritura agrupada. En iOS/iPadOS
+     Safari 'beforeunload' a menudo NO se dispara al cambiar de app o cerrar la
+     pestaña; 'pagehide' y 'visibilitychange' si. Ambos hacen un flush SINCRONO,
+     asi que no puede perderse nada por el retardo de 400 ms. */
+  window.addEventListener('pagehide',()=>{ try{ flushState(); }catch(_){} });
+  document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){ try{ flushState(); }catch(_){} try{ triggerSbSync.flush(); }catch(_){} }
   });
   /* Parse all emojis */
   parseEmojiDebounced();
