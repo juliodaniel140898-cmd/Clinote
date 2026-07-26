@@ -2144,7 +2144,7 @@ input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-f
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.22';
+const APP_VERSION='v8.23';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -3117,7 +3117,24 @@ const IFRAME_ANCHOR_FIX=`<script>(function(){
 /* FASE 12: Bridge de aislamiento. Con sandbox SIN allow-same-origin el padre ya
    no puede leer contentDocument, así que el iframe publica su tamaño y recibe el
    zoom por postMessage. Se inyecta en TODO documento embebido. */
-const IFRAME_BRIDGE=`<script>(function(){function ps(){if(!document.body)return;var h=Math.max(document.body.scrollHeight||0,document.documentElement.scrollHeight||0);try{parent.postMessage({__clinote:1,type:'size',h:h},'*');}catch(e){}}window.addEventListener('message',function(e){var d=e.data;if(d&&d.__clinote===1&&d.type==='zoom'){try{if(document.body)document.body.style.zoom=(d.pct||100)+'%';}catch(x){}setTimeout(ps,40);}});function init(){ps();window.addEventListener('resize',ps);try{var ro=new ResizeObserver(ps);ro.observe(document.body);}catch(x){}setTimeout(ps,300);setTimeout(ps,1000);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();window.addEventListener('load',ps);}());<\/script>`;
+const IFRAME_BRIDGE=`<script>(function(){var _lh=-1;
+/* FASE 23: mide la EXTENSIÓN REAL DEL CONTENIDO, no el alto del <body>.
+   body.scrollHeight queda acoplado al viewport en cuanto el tema usa
+   html,body{min-height:100vh} (patrón muy común): el padre fija la altura,
+   el body crece hasta ella, el iframe la reporta de vuelta y el par
+   padre/iframe entra en un bucle infinito de crecimiento. Medir el borde
+   inferior de los hijos del body es inmune a ese acoplamiento. */
+function ch(){var b=document.body;if(!b)return 0;var k=b.children,m=0,sy=window.scrollY||window.pageYOffset||0;for(var i=0;i<k.length;i++){var el=k[i];if(!el.getBoundingClientRect)continue;var cs=getComputedStyle(el);if(cs.display==='none'||cs.position==='fixed')continue;var bo=el.getBoundingClientRect().bottom+sy;if(bo>m)m=bo;}var bs=getComputedStyle(b);m+=parseFloat(bs.paddingBottom)||0;m+=parseFloat(bs.marginBottom)||0;return Math.ceil(m);}
+function ps(){if(!document.body)return;var h=ch();if(h<=0)h=document.body.scrollHeight||0;if(Math.abs(h-_lh)<2)return;_lh=h;try{parent.postMessage({__clinote:1,type:'size',h:h},'*');}catch(e){}}window.addEventListener('message',function(e){var d=e.data;if(d&&d.__clinote===1&&d.type==='zoom'){try{var v=(d.pct||100)+'%';if(document.body&&document.body.style.zoom!==v){document.body.style.zoom=v;_lh=-1;setTimeout(ps,40);}}catch(x){}}});var _mt=0;function psd(){clearTimeout(_mt);_mt=setTimeout(ps,120);}
+function init(){ps();window.addEventListener('resize',ps);
+/* ResizeObserver por sí solo no basta: con body{min-height:100vh} la caja del
+   body queda pinchada a la altura que fija el padre, así que al ELIMINAR
+   contenido no se dispara y el iframe se quedaría alto para siempre. El
+   observador de mutaciones detecta el cambio real de contenido. ps() ya
+   descarta las medidas iguales, así que el coste es despreciable. */
+try{var ro=new ResizeObserver(psd);ro.observe(document.body);}catch(x){}
+try{var mo=new MutationObserver(psd);mo.observe(document.body,{childList:true,subtree:true});}catch(x){}
+setTimeout(ps,300);setTimeout(ps,1000);}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();window.addEventListener('load',ps);}());<\/script>`;
 const _IFRAME_INJECT=IFRAME_ANCHOR_FIX+IFRAME_BRIDGE;
 function _injectAnchorFix(html){
   /* También debe quedar antes de fuentes/estilos externos por la misma regla
@@ -3762,6 +3779,32 @@ function _disposePreviewFrame(reason='preview-disposed'){
     wrap.removeAttribute('aria-busy');
   }
 }
+/* FASE 23: aplica la altura publicada por el iframe cortando el bucle de
+   realimentación. El bridge mide sólo el contenido del <body>, pero los temas
+   con `body{min-height:100vh}` siguen midiendo el viewport que fija el padre;
+   por eso, si el iframe reporta prácticamente la altura ya aplicada, no se
+   vuelve a crecer sobre ella. Los cambios reales de contenido (acordeones,
+   pestañas) superan la banda y sí se aplican. */
+const MAX_FRAME_H=12000;
+function _applyFrameHeight(fr,h){
+  if(!fr||fr.dataset.hLocked==='1') return;
+  const raw=Math.max(0,h||0);
+  const cur=parseFloat(fr.dataset.appliedH||'0')||0;
+  const next=Math.min(MAX_FRAME_H,Math.max(200,raw+8));
+  if(Math.abs(next-cur)<3) return;
+  /* Red de seguridad: si un tema patológico sigue creciendo a pasitos pese a
+     la medición por contenido, se corta. Al fijar la altura el iframe pasa a
+     tener scroll interno propio, que IFRAME_ANCHOR_FIX ya contempla. */
+  if(next>cur){
+    const grows=(parseInt(fr.dataset.hGrows||'0',10)||0)+1;
+    fr.dataset.hGrows=String(grows);
+    if(grows>10){fr.dataset.hLocked='1';return;}
+  }else{
+    fr.dataset.hGrows='0';
+  }
+  fr.dataset.appliedH=String(next);
+  fr.style.height=next+'px';
+}
 function _onFrameMessage(e){
   const d=e.data;
   if(!d||d.__clinote!==1) return;
@@ -3769,19 +3812,14 @@ function _onFrameMessage(e){
     const fr=_frameForMessage(e.source);
     if(!fr||d.token!==fr.dataset.loadToken||d.hasContent===false) return;
     if((fr.matches('.inline-frame,.study-frame'))&&d.h){
-      fr.style.height=Math.max(200,(d.h||0)+8)+'px';
+      _applyFrameHeight(fr,d.h);
     }
     _completeFrameLoad(fr,d.token,true,'ready');
     return;
   }
   if(d.type==='size'){
-    const frames=document.querySelectorAll('.inline-frame,.study-frame');
-    for(const fr of frames){
-      if(fr.contentWindow===e.source){
-        fr.style.height=Math.max(200,(d.h||0)+8)+'px';
-        return;
-      }
-    }
+    const fr=_frameForMessage(e.source);
+    if(fr&&fr.matches('.inline-frame,.study-frame')) _applyFrameHeight(fr,d.h);
     return;
   }
   /* FASE 19: el iframe de auto-altura (inline/estudio) no tiene scroll interno;
@@ -4346,6 +4384,10 @@ function _setFrameSrcdoc(fr,doc){
   delete fr.dataset.verified;
   delete fr.dataset.loadError;
   delete fr.dataset.domLoaded;
+  /* FASE 23: contenido nuevo → altura y contador de crecimiento desde cero */
+  delete fr.dataset.appliedH;
+  delete fr.dataset.hGrows;
+  delete fr.dataset.hLocked;
   const promise=new Promise(resolve=>{fr._clinoteResolve=resolve;});
   fr._clinotePromise=promise;
   fr.addEventListener('load',()=>{
