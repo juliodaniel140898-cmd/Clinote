@@ -2930,15 +2930,92 @@ var FG=parse(T.fg),BG=parse(T.bg);
 var tcache={};
 function fixText(fg,bg){var key=S(fg)+'|'+S(bg);if(key in tcache)return tcache[key];if(ratio(fg,bg)>=MINC){tcache[key]=null;return null;}var hsl=toHsl(fg),out;if(hsl.s<0.18){out=FG;}else{var step=DARK?0.045:-0.045,l=hsl.l,best=null;for(var i=0;i<26;i++){l=Math.min(0.97,Math.max(0.05,l+step));var cand=toRgb(hsl.h,Math.min(0.92,hsl.s),l);if(ratio(cand,bg)>=MINC){best=cand;break;}}out=best||FG;}tcache[key]=out;return out;}
 function fixBg(bg){var l=L(bg),hsl=toHsl(bg);if(DARK){if(l<=0.22)return null;if(hsl.s<0.12)return parse(l>0.85?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.5,hsl.s),0.19);}else{if(l>=0.82)return null;if(hsl.s<0.12)return parse(l<0.2?T.surface2:T.surface);return toRgb(hsl.h,Math.min(0.42,hsl.s),0.88);}}
-function effBg(el){var n=el;while(n&&n!==document.documentElement){var c=parse(getComputedStyle(n).backgroundColor);if(c)return c;n=n.parentElement;}return BG;}
 var MARK='data-ct-'+(DARK?'d':'l');
 var SKIP={SCRIPT:1,STYLE:1,IMG:1,SVG:1,svg:1,VIDEO:1,CANVAS:1,PICTURE:1,IFRAME:1,NOSCRIPT:1};
-function process(){var els=document.body?document.body.querySelectorAll('*'):[];var n=els.length;var heavy=n>5000;for(var i=0;i<n;i++){var el=els[i];if(el.getAttribute(MARK))continue;if(SKIP[el.tagName]){el.setAttribute(MARK,'1');continue;}var cs=getComputedStyle(el);var ownBg=parse(cs.backgroundColor);if(ownBg){var nb=fixBg(ownBg);if(nb)el.style.setProperty('background-color',S(nb),'important');}if(!heavy){var hasText=false,cn=el.childNodes;for(var k=0;k<cn.length;k++){if(cn[k].nodeType===3&&cn[k].textContent.trim()){hasText=true;break;}}if(hasText){var fg=parse(cs.color);if(fg){var bgT=ownBg?(fixBg(ownBg)||ownBg):effBg(el);var nf=fixText(fg,bgT);if(nf)el.style.setProperty('color',S(nf),'important');}}}el.setAttribute(MARK,'1');}}
+/* FASE 25: process() en DOS FASES. Antes intercalaba lecturas de
+   getComputedStyle con escrituras de style.setProperty dentro del mismo bucle;
+   cada escritura ensucia el elemento (y su subarbol, porque color se hereda) y
+   el getComputedStyle siguiente obliga a Blink a recalcular todo lo pendiente.
+   Separar lectura y escritura elimina ese recalculo forzado.
+   'root' acota el trabajo al subarbol realmente afectado por una mutacion.
+   'pend' preserva la semantica original: effBg veia el fondo YA corregido de
+   los ancestros; ahora lo consulta ahi. 'ebc' memoiza el ascenso por ancestros,
+   que era el mayor centro de coste. */
+function process(root){
+  var scope=(root&&root.nodeType===1&&root.isConnected&&root!==document.body)?root:document.body;
+  if(!scope)return;
+  var sub=scope.querySelectorAll('*');
+  var els=(scope===document.body)?sub:[scope].concat(Array.prototype.slice.call(sub));
+  var n=els.length;var heavy=n>5000;
+  var pend=new Map(),ebc=new Map(),jobs=[];
+  function eff(el){
+    if(!el||el===document.documentElement||el===document)return BG;
+    if(ebc.has(el))return ebc.get(el);
+    var r,pv=pend.has(el)?pend.get(el):null;
+    if(pv)r=pv;
+    else{var c=parse(getComputedStyle(el).backgroundColor);r=c?c:eff(el.parentElement);}
+    ebc.set(el,r);return r;
+  }
+  /* FASE DE LECTURA — no se toca el DOM */
+  for(var i=0;i<n;i++){
+    var el=els[i];
+    if(el.getAttribute(MARK))continue;
+    if(SKIP[el.tagName]){jobs.push([el,null,null]);continue;}
+    var cs=getComputedStyle(el);
+    var ownBg=parse(cs.backgroundColor);
+    var nb=ownBg?fixBg(ownBg):null;
+    pend.set(el,nb||ownBg||null);
+    var nf=null;
+    if(!heavy){
+      var hasText=false,cn=el.childNodes;
+      for(var k=0;k<cn.length;k++){if(cn[k].nodeType===3&&cn[k].textContent.trim()){hasText=true;break;}}
+      if(hasText){
+        var fg=parse(cs.color);
+        if(fg){var bgT=ownBg?(nb||ownBg):eff(el);nf=fixText(fg,bgT);}
+      }
+    }
+    jobs.push([el,nb,nf]);
+  }
+  /* FASE DE ESCRITURA — no se lee estilo calculado */
+  for(var j=0;j<jobs.length;j++){
+    var it=jobs[j],e2=it[0];
+    if(it[1])e2.style.setProperty('background-color',S(it[1]),'important');
+    if(it[2])e2.style.setProperty('color',S(it[2]),'important');
+    e2.setAttribute(MARK,'1');
+  }
+}
 function _reveal(){try{document.documentElement.style.visibility='visible';}catch(_){}}
 function run(){try{process();}catch(e){}_reveal();}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 setTimeout(run,250);setTimeout(run,800);
-try{var to=null,last=Date.now();var mo=new MutationObserver(function(ml){last=Date.now();clearTimeout(to);var act=false;for(var i=0;i<ml.length;i++){var m=ml[i];if(m.type==='childList'&&m.addedNodes.length){act=true;}else if(m.type==='attributes'&&m.target&&m.target.nodeType===1){m.target.removeAttribute(MARK);var sub=m.target.querySelectorAll('['+MARK+']');for(var j=0;j<sub.length;j++)sub[j].removeAttribute(MARK);act=true;}}if(act)try{process();}catch(e){}to=setTimeout(run,350);});mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});(function chk(){setTimeout(function(){if(Date.now()-last>5000)mo.disconnect();else chk();},2200);})();}catch(e){}
+/* FASE 25: el observador ya no reprocesa el documento entero en cada cambio de
+   clase. Un toggle de pestaña costaba un pase completo (medido: 15-53 ms segun
+   tamaño); ahora solo se reprocesa el subarbol del elemento mutado. El camino
+   childList (nodos nuevos) sigue siendo un pase completo y SINCRONO, porque es
+   el unico sensible a parpadeo: un nodo recien insertado se veria un frame con
+   su color original. process() escribe en 'style' y en MARK, ninguno de los
+   cuales esta en attributeFilter, asi que no puede realimentarse. */
+try{var to=null,last=Date.now();var mo=new MutationObserver(function(ml){
+  last=Date.now();clearTimeout(to);
+  var roots=[],full=false;
+  for(var i=0;i<ml.length;i++){
+    var m=ml[i];
+    if(m.type==='childList'){if(m.addedNodes.length)full=true;}
+    else if(m.type==='attributes'&&m.target&&m.target.nodeType===1){
+      var t=m.target;
+      t.removeAttribute(MARK);
+      var sub=t.querySelectorAll('['+MARK+']');
+      for(var j=0;j<sub.length;j++)sub[j].removeAttribute(MARK);
+      roots.push(t);
+    }
+  }
+  try{
+    if(full)process();
+    else if(roots.length&&roots.length<=48){for(var q=0;q<roots.length;q++)process(roots[q]);}
+    else if(roots.length)process();
+  }catch(e){}
+  to=setTimeout(run,350);
+});mo.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});(function chk(){setTimeout(function(){if(Date.now()-last>5000)mo.disconnect();else chk();},2200);})();}catch(e){}
 setTimeout(_reveal,1500);
 `;
 
