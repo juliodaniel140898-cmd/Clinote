@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centro Quirúrgico, Esterilización y Desinfección, Asepsia y Antisepsia</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   TOKENS
+   Regla estricta de contraste:
+   · Fondos claros (--paper, --card, --lec-soft, --alerta-soft)
+     SIEMPRE texto oscuro (--ink / --ink-soft).
+   · Fondos oscuros (--navy #1B2C4E, --navy-2, --alerta)
+     SIEMPRE texto blanco o claro (#fff / #EAF1FA).
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#F4F7FB;
+  --card:#FFFFFF;
+  --lec-soft:#E7F0FA;
+  --alerta-soft:#FDEBEA;
+  --ok-soft:#E6F4EE;
+  --ink:#12233F;
+  --ink-soft:#44567A;
+  --navy:#1B2C4E;
+  --navy-2:#24406E;
+  --acento:#2C6FB8;
+  --alerta:#B3261E;
+  --ok:#12664A;
+  --linea:#D3DEEC;
+  --linea-2:#BCCCE0;
+  --r:14px;
+  --r-sm:10px;
+  --sombra:0 1px 2px rgba(18,35,63,.06),0 6px 18px rgba(18,35,63,.07);
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:18px 16px 40px;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;
+  line-height:1.6;
+  -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1080px;margin:0 auto}
+h1,h2,h3,h4{line-height:1.25;margin:0}
+p{margin:0 0 10px}
+ul,ol{margin:0 0 10px;padding-left:20px}
+li{margin:3px 0}
+b,strong{font-weight:700}
+small{font-size:.82em}
+
+/* ═══════════ 1. HERO (fondo oscuro → texto claro) ═══════════ */
+.hero{
+  background:linear-gradient(150deg,var(--navy) 0%,var(--navy-2) 100%);
+  color:#fff;
+  border-radius:var(--r);
+  padding:24px 22px;
+  box-shadow:var(--sombra);
+  margin-bottom:18px;
+}
+.hero .kicker{
+  display:inline-block;
+  background:rgba(255,255,255,.14);
+  color:#EAF1FA;
+  border:1px solid rgba(255,255,255,.26);
+  font-size:.7rem;
+  font-weight:800;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  padding:5px 11px;
+  border-radius:999px;
+  margin-bottom:12px;
+}
+.hero h1{font-size:1.62rem;color:#fff;margin-bottom:8px;letter-spacing:-.01em}
+.hero .sub{color:#EAF1FA;font-weight:600;font-size:.95rem;margin-bottom:12px}
+.hero .intro{color:#EAF1FA;font-size:.93rem;margin:0;opacity:.95}
+.hero .meta{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;
+  padding-top:14px;border-top:1px solid rgba(255,255,255,.2);
+}
+.hero .meta span{
+  background:rgba(255,255,255,.1);color:#EAF1FA;
+  font-size:.76rem;font-weight:700;
+  padding:4px 10px;border-radius:var(--r-sm);
+}
+
+/* ═══════════ ÍNDICE ═══════════ */
+.toc{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r);
+  padding:14px 16px;margin-bottom:18px;box-shadow:var(--sombra);
+}
+.toc h4{
+  font-size:.72rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px;
+}
+.toc ol{margin:0;padding-left:18px;columns:2;column-gap:24px}
+.toc a{color:var(--acento);text-decoration:none;font-weight:600;font-size:.9rem}
+.toc a:hover{text-decoration:underline}
+@media(max-width:620px){.toc ol{columns:1}}
+
+/* ═══════════ TÍTULOS DE SECCIÓN ═══════════ */
+.sec{margin:26px 0 12px;display:flex;align-items:center;gap:11px}
+.sec .n{
+  flex:0 0 auto;width:29px;height:29px;border-radius:9px;
+  background:var(--navy);color:#fff;
+  font-size:.84rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.sec h2{font-size:1.14rem;color:var(--ink);letter-spacing:-.01em}
+
+/* ═══════════ 2. BLOQUES TEÓRICOS ═══════════ */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:13px}
+.c{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-left:4px solid var(--acento);
+  border-radius:var(--r);padding:15px 16px;box-shadow:var(--sombra);
+}
+.c h3{
+  font-size:.97rem;color:var(--ink);margin-bottom:9px;
+  display:flex;align-items:center;gap:7px;
+}
+.c h3 .tag{
+  background:var(--lec-soft);color:var(--ink-soft);
+  font-size:.64rem;font-weight:800;letter-spacing:.05em;
+  text-transform:uppercase;padding:2px 7px;border-radius:6px;
+}
+.c ul{padding-left:17px}
+.c li{font-size:.9rem;color:var(--ink)}
+.c li b{color:var(--ink)}
+.c p{font-size:.9rem;color:var(--ink)}
+.c.acento-ok{border-left-color:var(--ok)}
+.c.acento-alerta{border-left-color:var(--alerta)}
+.c .def{
+  background:var(--lec-soft);color:var(--ink);
+  border-radius:var(--r-sm);padding:9px 11px;
+  font-size:.88rem;margin-bottom:10px;
+}
+.c .def b{color:var(--ink)}
+
+/* Nota (fondo claro → texto oscuro) */
+.nota{
+  background:var(--lec-soft);color:var(--ink);
+  border-left:4px solid var(--acento);border-radius:var(--r-sm);
+  padding:11px 13px;margin:12px 0 0;font-size:.87rem;
+}
+.nota::before{
+  content:'NOTA CLAVE';display:block;
+  font-size:.63rem;font-weight:800;letter-spacing:.09em;
+  color:var(--ink-soft);margin-bottom:4px;
+}
+.nota.rec::before{content:'ALTO RENDIMIENTO'}
+.nota b{color:var(--ink)}
+
+/* Tablas */
+.tabla-wrap{
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+  background:var(--card);border:1px solid var(--linea);
+  border-radius:var(--r);box-shadow:var(--sombra);margin:13px 0;
+}
+.tabla-wrap table{width:100%;min-width:520px;border-collapse:collapse;font-size:.87rem}
+.tabla-wrap caption{
+  caption-side:top;text-align:left;
+  background:var(--card);color:var(--ink);
+  font-size:.92rem;font-weight:800;padding:13px 14px 9px;
+}
+.tabla-wrap th{
+  background:var(--navy);color:#fff;
+  text-align:left;font-size:.72rem;font-weight:800;
+  letter-spacing:.05em;text-transform:uppercase;
+  padding:9px 12px;white-space:nowrap;
+}
+.tabla-wrap td{
+  background:var(--card);color:var(--ink);
+  padding:9px 12px;border-top:1px solid var(--linea);vertical-align:top;
+}
+.tabla-wrap tbody tr:nth-child(even) td{background:var(--paper);color:var(--ink)}
+.tabla-wrap td b{color:var(--ink)}
+.pill{
+  display:inline-block;font-size:.7rem;font-weight:800;
+  padding:2px 8px;border-radius:999px;white-space:nowrap;
+}
+.pill.est{background:var(--navy);color:#fff}
+.pill.dan{background:var(--acento);color:#fff}
+.pill.baja{background:var(--lec-soft);color:var(--ink)}
+
+/* ═══════════ 3. RED FLAGS ═══════════ */
+.flags{
+  background:var(--alerta-soft);color:var(--ink);
+  border:1px solid #F3C6C2;border-left:5px solid var(--alerta);
+  border-radius:var(--r);padding:16px 17px;box-shadow:var(--sombra);
+}
+.flags h3{
+  font-size:1rem;color:var(--ink);margin-bottom:4px;
+  display:flex;align-items:center;gap:8px;
+}
+.flags h3 .badge{
+  background:var(--alerta);color:#fff;
+  font-size:.63rem;font-weight:800;letter-spacing:.08em;
+  padding:3px 8px;border-radius:6px;text-transform:uppercase;
+}
+.flags .lead{font-size:.86rem;color:var(--ink-soft);margin-bottom:12px}
+.flags ul{list-style:none;padding:0;margin:0}
+.flags li{
+  background:var(--card);color:var(--ink);
+  border:1px solid #F0CFCB;border-radius:var(--r-sm);
+  padding:10px 12px;margin:0 0 8px;font-size:.88rem;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.flags li:last-child{margin-bottom:0}
+.flags li .mk{
+  flex:0 0 auto;width:20px;height:20px;border-radius:50%;
+  background:var(--alerta);color:#fff;
+  font-size:.7rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;
+}
+.flags li b{color:var(--ink)}
+.flags .cierre{
+  background:var(--navy);color:#fff;
+  border-radius:var(--r-sm);padding:11px 13px;margin-top:12px;font-size:.87rem;
+}
+.flags .cierre b{color:#fff}
+
+/* ═══════════ 4. MNEMOTECNIAS ═══════════ */
+.memo{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:13px}
+.memo .m{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r);
+  overflow:hidden;box-shadow:var(--sombra);
+}
+.memo .m .cab{
+  background:var(--navy);color:#fff;padding:12px 15px;
+}
+.memo .m .cab .sigla{
+  font-size:1.2rem;font-weight:800;color:#fff;
+  letter-spacing:.05em;display:block;
+}
+.memo .m .cab .para{
+  font-size:.74rem;font-weight:700;color:#EAF1FA;
+  text-transform:uppercase;letter-spacing:.06em;margin-top:3px;display:block;
+}
+.memo .m .cuerpo{background:var(--card);color:var(--ink);padding:13px 15px}
+.memo .m .frase{
+  background:var(--lec-soft);color:var(--ink);
+  border-radius:var(--r-sm);padding:9px 11px;
+  font-size:.88rem;font-style:italic;font-weight:600;margin-bottom:11px;
+}
+.memo .m dl{
+  display:grid;grid-template-columns:auto 1fr;
+  gap:7px 10px;margin:0;font-size:.87rem;align-items:start;
+}
+.memo .m dt{font-weight:800;color:var(--acento);line-height:1.6}
+.memo .m dd{margin:0;color:var(--ink)}
+
+/* ═══════════ 5. ECOE ═══════════ */
+.ecoe{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea-2);border-radius:var(--r);
+  overflow:hidden;box-shadow:var(--sombra);
+}
+.ecoe .cab{background:var(--navy);color:#fff;padding:17px 18px}
+.ecoe .cab .tira{
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-bottom:9px;
+}
+.ecoe .cab .tira span{
+  background:rgba(255,255,255,.13);color:#EAF1FA;
+  border:1px solid rgba(255,255,255,.24);
+  font-size:.68rem;font-weight:800;letter-spacing:.06em;
+  text-transform:uppercase;padding:3px 9px;border-radius:999px;
+}
+.ecoe .cab h3{font-size:1.06rem;color:#fff;margin-bottom:6px}
+.ecoe .cab p{color:#EAF1FA;font-size:.89rem;margin:0}
+.ecoe .cuerpo{background:var(--card);color:var(--ink);padding:16px 18px}
+.ecoe .consigna{
+  background:var(--lec-soft);color:var(--ink);
+  border-left:4px solid var(--acento);border-radius:var(--r-sm);
+  padding:11px 13px;font-size:.88rem;margin-bottom:14px;
+}
+.ecoe .consigna b{color:var(--ink)}
+.ecoe h4.blk{
+  font-size:.71rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);margin:16px 0 9px;
+}
+
+/* Constantes vitales */
+.vitals{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:9px}
+.vitals .v{
+  background:var(--paper);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r-sm);
+  padding:10px 11px;text-align:center;
+}
+.vitals .v .et{
+  font-size:.63rem;font-weight:800;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-soft);display:block;
+}
+.vitals .v .val{
+  font-size:1.08rem;font-weight:800;color:var(--ink);
+  display:block;margin-top:3px;
+}
+.vitals .v .un{font-size:.68rem;font-weight:700;color:var(--ink-soft)}
+.vitals .v.alt{background:var(--alerta-soft);color:var(--ink);border-color:#F0CFCB}
+.vitals .v.alt .val{color:var(--alerta)}
+.vitals .v.alt .et{color:var(--ink-soft)}
+
+/* Pasos colapsables */
+.pasos{margin-top:6px}
+.pasos details{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r-sm);
+  margin-bottom:9px;overflow:hidden;
+}
+.pasos details[open]{border-color:var(--linea-2)}
+.pasos summary{
+  background:var(--paper);color:var(--ink);
+  padding:11px 13px;cursor:pointer;
+  font-size:.91rem;font-weight:800;
+  display:flex;align-items:center;gap:10px;list-style:none;
+}
+.pasos summary::-webkit-details-marker{display:none}
+.pasos summary::after{
+  content:'+';margin-left:auto;
+  font-size:1.1rem;font-weight:800;color:var(--acento);
+}
+.pasos details[open] summary::after{content:'−'}
+.pasos details[open] summary{background:var(--lec-soft);color:var(--ink)}
+.pasos summary .np{
+  flex:0 0 auto;width:23px;height:23px;border-radius:7px;
+  background:var(--navy);color:#fff;
+  font-size:.76rem;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+}
+.pasos .contenido{
+  background:var(--card);color:var(--ink);
+  padding:12px 14px;font-size:.88rem;
+  border-top:1px solid var(--linea);
+}
+.pasos .contenido ul{padding-left:18px}
+.pasos .contenido li{color:var(--ink)}
+.pasos .contenido b{color:var(--ink)}
+.pasos .contenido .sub{
+  font-size:.68rem;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-soft);margin:12px 0 6px;
+}
+.pasos .contenido .sub:first-child{margin-top:0}
+.dx{
+  background:var(--ok-soft);color:var(--ink);
+  border-left:4px solid var(--ok);border-radius:var(--r-sm);
+  padding:10px 12px;margin-bottom:11px;font-size:.89rem;
+}
+.dx b{color:var(--ink)}
+
+/* ═══════════ 6. FLASHCARDS ═══════════ */
+.deck{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r);
+  padding:16px;box-shadow:var(--sombra);
+}
+.deck .barra{
+  display:flex;align-items:center;gap:10px;
+  flex-wrap:wrap;margin-bottom:12px;
+}
+.deck .cont{
+  background:var(--navy);color:#fff;
+  font-size:.74rem;font-weight:800;
+  padding:5px 11px;border-radius:999px;
+}
+.deck .prog{
+  flex:1 1 90px;height:5px;min-width:70px;
+  background:var(--lec-soft);border-radius:3px;overflow:hidden;
+}
+.deck .prog i{display:block;height:100%;width:0;background:var(--acento);transition:width .25s ease}
+.deck .tarjeta{
+  background:var(--paper);color:var(--ink);
+  border:1.5px solid var(--linea-2);border-radius:var(--r);
+  padding:18px 16px;min-height:172px;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:border-color .18s ease,background .18s ease;
+}
+.deck .tarjeta:hover{border-color:var(--acento)}
+.deck .tarjeta .lado{
+  font-size:.63rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:9px;
+}
+.deck .tarjeta .txt{font-size:1rem;font-weight:700;color:var(--ink);line-height:1.5}
+.deck .tarjeta.rev{background:var(--lec-soft);color:var(--ink);border-color:var(--acento)}
+.deck .tarjeta.rev .txt{font-weight:600;font-size:.94rem}
+.deck .tarjeta .txt ul{margin:8px 0 0;padding-left:19px}
+.deck .tarjeta .txt li{font-size:.9rem;color:var(--ink);margin:4px 0}
+.deck .tarjeta .txt b{color:var(--ink);font-weight:800}
+.deck .pie{
+  font-size:.75rem;font-weight:700;color:var(--ink-soft);
+  text-align:center;margin:10px 0 12px;
+}
+.deck .btns{display:flex;gap:9px}
+.deck button{
+  flex:1;font:inherit;font-size:.86rem;font-weight:800;
+  padding:11px 10px;border-radius:var(--r-sm);cursor:pointer;
+  border:1px solid var(--linea-2);
+  background:var(--card);color:var(--ink);
+}
+.deck button:hover{border-color:var(--acento);color:var(--acento)}
+.deck button.pri{background:var(--navy);color:#fff;border-color:var(--navy)}
+.deck button.pri:hover{background:var(--navy-2);color:#fff;border-color:var(--navy-2)}
+.deck button:disabled{opacity:.45;cursor:not-allowed}
+
+/* ═══════════ PIE ═══════════ */
+.fuentes{
+  background:var(--card);color:var(--ink);
+  border:1px solid var(--linea);border-radius:var(--r);
+  padding:14px 16px;margin-top:20px;font-size:.82rem;color:var(--ink-soft);
+}
+.fuentes h4{
+  font-size:.68rem;font-weight:800;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px;
+}
+.fuentes ul{padding-left:18px;margin:0}
+.fuentes li{color:var(--ink-soft);margin:4px 0}
+
+@media(max-width:520px){
+  body{padding:14px 12px 32px;font-size:15px}
+  .hero{padding:19px 16px}
+  .hero h1{font-size:1.36rem}
+  .sec h2{font-size:1.05rem}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ═══════════ 1. HERO ═══════════ -->
+<header class="hero">
+  <span class="kicker">Cirugía · Semana 01 · Sesión 02B</span>
+  <h1>Centro Quirúrgico, Esterilización y Desinfección, Asepsia y Antisepsia</h1>
+  <p class="sub">Carrera de Medicina Humana · Ciclo Académico 2026&nbsp;–&nbsp;1</p>
+  <p class="intro">
+    La esterilización y la desinfección no son trámites técnicos: son barreras activas
+    contra la infección del sitio quirúrgico. Un autoclave sobrecargado o un tiempo de
+    contacto insuficiente convierten material «procesado» en material contaminado, y el
+    error se descubre en el paciente. Esta sesión ordena el razonamiento en tres ejes:
+    <b>dónde</b> se opera (zonificación del centro quirúrgico), <b>cómo</b> se protege el
+    campo (asepsia y antisepsia) y <b>con qué criterio</b> se procesa cada material
+    (Spaulding, método, control de calidad y detección de fallas).
+  </p>
+  <div class="meta">
+    <span>Asepsia vs. antisepsia</span>
+    <span>Clasificación de Spaulding</span>
+    <span>Autoclave 121–134 °C</span>
+    <span>Indicador biológico</span>
+    <span>Checklist OMS</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h4>Contenido de la sesión</h4>
+  <ol>
+    <li><a href="#centro">Centro quirúrgico y zonificación</a></li>
+    <li><a href="#asepsia">Asepsia, antisepsia y checklist OMS</a></li>
+    <li><a href="#esteriliza">Esterilización vs. desinfección</a></li>
+    <li><a href="#metodos">Métodos y niveles (tablas)</a></li>
+    <li><a href="#control">Control de calidad y fallas</a></li>
+    <li><a href="#flags">Signos de alarma</a></li>
+    <li><a href="#memo">Mnemotecnias</a></li>
+    <li><a href="#ecoe">Estación ECOE</a></li>
+    <li><a href="#deck">Flashcards</a></li>
+  </ol>
+</nav>
+
+<!-- ═══════════ 2. BLOQUES TEÓRICOS ═══════════ -->
+<div class="sec" id="centro"><div class="n">1</div><h2>Centro quirúrgico: definición y zonificación</h2></div>
+
+<div class="grid">
+  <div class="c">
+    <h3>Definición y objetivos <span class="tag">Base</span></h3>
+    <div class="def">
+      Área hospitalaria especializada donde se realizan procedimientos quirúrgicos en
+      condiciones de <b>asepsia, seguridad y control</b>, para brindar atención integral
+      al paciente quirúrgico.
+    </div>
+    <ul>
+      <li>Garantizar condiciones óptimas de <b>asepsia y antisepsia</b>.</li>
+      <li>Disminuir el riesgo de <b>infecciones</b>.</li>
+      <li>Brindar seguridad al paciente <b>y</b> al equipo quirúrgico.</li>
+      <li>Facilitar procedimientos quirúrgicos eficientes.</li>
+    </ul>
+  </div>
+
+  <div class="c">
+    <h3>Las tres zonas <span class="tag">High-yield</span></h3>
+    <ul>
+      <li><b>No restringida:</b> acceso general, admisión, vestidores. Ropa de calle permitida.</li>
+      <li><b>Semirrestringida:</b> circulación interna, lavado quirúrgico, preparación del personal.</li>
+      <li><b>Restringida:</b> salas de operaciones y área estéril. <b>Máximo control de asepsia.</b></li>
+    </ul>
+    <div class="nota rec">
+      La zonificación es una <b>gradiente de restricción progresiva</b>: a cada paso hacia
+      la sala de operaciones aumentan las barreras y disminuye la circulación permitida.
+    </div>
+  </div>
+
+  <div class="c">
+    <h3>Sala de operaciones <span class="tag">Ambiente</span></h3>
+    <ul>
+      <li>Espacio donde se ejecuta el acto quirúrgico; <b>ambiente estéril</b>.</li>
+      <li>Iluminación adecuada y equipamiento especializado.</li>
+      <li>Control de <b>temperatura y ventilación</b>.</li>
+    </ul>
+  </div>
+
+  <div class="c">
+    <h3>Equipo quirúrgico <span class="tag">Roles</span></h3>
+    <ul>
+      <li>Cirujano principal</li>
+      <li>Ayudantes</li>
+      <li>Anestesiólogo</li>
+      <li>Enfermera <b>instrumentista</b> (estéril, maneja el instrumental)</li>
+      <li>Enfermera <b>circulante</b> (no estéril, enlace con el exterior)</li>
+    </ul>
+    <div class="nota">
+      Distinguir instrumentista de circulante es un clásico de examen: solo la
+      <b>instrumentista</b> está vestida estéril y toca el campo.
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="asepsia"><div class="n">2</div><h2>Asepsia, antisepsia y seguridad del paciente</h2></div>
+
+<div class="grid">
+  <div class="c">
+    <h3>Asepsia <span class="tag">Prevenir</span></h3>
+    <div class="def">
+      Conjunto de medidas destinadas a <b>prevenir la contaminación</b> por
+      microorganismos en el paciente, el equipo quirúrgico y el ambiente.
+    </div>
+    <p><b>Principios:</b></p>
+    <ul>
+      <li>Todo material estéril debe <b>mantenerse</b> estéril.</li>
+      <li>Evitar contacto entre áreas estériles y no estériles.</li>
+      <li>Mantener el campo quirúrgico controlado.</li>
+      <li>Movimientos dentro del quirófano <b>limitados</b>.</li>
+      <li>Uso adecuado de barreras estériles.</li>
+    </ul>
+  </div>
+
+  <div class="c acento-ok">
+    <h3>Antisepsia <span class="tag">Tejido vivo</span></h3>
+    <div class="def">
+      Proceso que <b>elimina o reduce microorganismos en tejidos vivos</b> mediante
+      sustancias químicas llamadas antisépticos.
+    </div>
+    <p><b>Principales antisépticos:</b></p>
+    <ul>
+      <li><b>Clorhexidina</b></li>
+      <li><b>Povidona yodada</b></li>
+      <li><b>Alcohol al 70 %</b></li>
+    </ul>
+    <div class="nota rec">
+      Diferencia conceptual que decide la pregunta: la <b>antisepsia</b> actúa sobre
+      <b>tejido vivo</b> (piel del paciente, manos del cirujano); la <b>desinfección</b>
+      actúa sobre <b>objetos inanimados</b>.
+    </div>
+  </div>
+
+  <div class="c">
+    <h3>Checklist quirúrgico (OMS) <span class="tag">3 momentos</span></h3>
+    <ul>
+      <li><b>1. Sign In</b> — antes de la anestesia: identificación del paciente,
+          consentimiento informado, verificación del sitio quirúrgico.</li>
+      <li><b>2. Time Out</b> — antes de la incisión: confirmación del equipo,
+          procedimiento correcto, <b>profilaxis antibiótica</b>.</li>
+      <li><b>3. Sign Out</b> — antes de salir del quirófano: <b>conteo de instrumental</b>,
+          registro del procedimiento, plan postoperatorio.</li>
+    </ul>
+    <div class="nota">
+      Herramienta de seguridad que <b>reduce errores</b>. Ubicar cada ítem en su momento
+      es más rentable que memorizar la lista suelta.
+    </div>
+  </div>
+
+  <div class="c">
+    <h3>Seguridad del paciente <span class="tag">Ejes</span></h3>
+    <ul>
+      <li>Prevención de errores quirúrgicos</li>
+      <li>Identificación correcta del paciente</li>
+      <li>Control de infecciones</li>
+      <li><b>Comunicación efectiva</b> del equipo</li>
+    </ul>
+    <div class="nota">
+      Importancia en cirugía: prevención de <b>infección del sitio quirúrgico</b>,
+      seguridad del paciente, seguridad del personal y cumplimiento de las normas de
+      bioseguridad.
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="esteriliza"><div class="n">3</div><h2>Esterilización vs. desinfección</h2></div>
+
+<div class="grid">
+  <div class="c">
+    <h3>Esterilización <span class="tag">TODO</span></h3>
+    <div class="def">
+      Proceso físico o químico que elimina <b>TODAS</b> las formas de vida microbiana:
+      bacterias, virus, hongos <b>y esporas</b>.
+    </div>
+    <p>Es un concepto <b>absoluto</b>: no existe «parcialmente estéril».</p>
+  </div>
+
+  <div class="c acento-alerta">
+    <h3>Desinfección <span class="tag">Reduce</span></h3>
+    <div class="def">
+      Proceso que elimina la <b>mayoría</b> de microorganismos patógenos, pero
+      <b>NO necesariamente las esporas bacterianas</b>.
+    </div>
+    <div class="nota rec">
+      La <b>espora</b> es el discriminador. Toda pregunta que contraste ambos procesos se
+      resuelve preguntando: ¿mata esporas? Sí → esterilización. No garantizado →
+      desinfección.
+    </div>
+  </div>
+
+  <div class="c">
+    <h3>Clasificación de Spaulding <span class="tag">Decide el método</span></h3>
+    <ul>
+      <li><b>Crítico</b> → requiere <b>esterilización</b>. Ej.: instrumental quirúrgico.</li>
+      <li><b>Semicrítico</b> → <b>desinfección de alto nivel</b>. Ej.: endoscopios.</li>
+      <li><b>No crítico</b> → desinfección de <b>bajo o intermedio</b> nivel.</li>
+    </ul>
+    <div class="nota rec">
+      Spaulding no clasifica el objeto por su forma sino por el <b>tejido que contacta</b>:
+      a mayor esterilidad del tejido invadido, mayor exigencia del proceso.
+    </div>
+  </div>
+</div>
+
+<div class="sec" id="metodos"><div class="n">4</div><h2>Métodos de esterilización y niveles de desinfección</h2></div>
+
+<div class="tabla-wrap">
+  <table>
+    <caption>Métodos de esterilización: parámetros e indicaciones</caption>
+    <thead>
+      <tr><th>Método</th><th>Agente / equipo</th><th>Parámetros</th><th>Indicaciones</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Calor húmedo</b></td>
+        <td><b>Autoclave</b> (vapor)<br><small>Método <b>más usado</b>, alta eficacia</small></td>
+        <td><b>121 – 134 °C</b></td>
+        <td>Instrumental quirúrgico · textiles · material metálico</td>
+      </tr>
+      <tr>
+        <td><b>Calor seco</b></td>
+        <td><b>Estufa</b> (aire caliente)</td>
+        <td><b>160 – 180 °C</b></td>
+        <td>Vidrio · instrumentos metálicos · material que no tolera humedad
+            (sustancias oleosas, grasas, metales no inoxidables, envases plásticos)</td>
+      </tr>
+      <tr>
+        <td><b>Química</b></td>
+        <td><b>Óxido de etileno</b><br><b>Plasma de peróxido de hidrógeno</b></td>
+        <td>Baja temperatura</td>
+        <td>Material <b>termosensible</b> · equipos electrónicos · endoscopios</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="nota rec" style="max-width:100%">
+  El criterio de elección es la <b>tolerancia del material al calor y a la humedad</b>:
+  si tolera vapor → autoclave (más eficaz, económico y rápido); si no tolera humedad pero
+  sí calor → estufa; si no tolera calor → química a baja temperatura.
+</div>
+
+<div class="tabla-wrap">
+  <table>
+    <caption>Niveles de desinfección y correlación con Spaulding</caption>
+    <thead>
+      <tr><th>Nivel</th><th>Agentes</th><th>Material (Spaulding)</th><th>Ejemplo</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="pill dan">Alto nivel</span></td>
+        <td><b>Glutaraldehído</b> · <b>Ortoftalaldehído</b></td>
+        <td><b>Semicrítico</b></td>
+        <td>Endoscopios</td>
+      </tr>
+      <tr>
+        <td><span class="pill baja">Intermedio</span></td>
+        <td><b>Alcohol</b> · <b>Yodóforos</b></td>
+        <td>No crítico</td>
+        <td>Superficies y equipos de contacto con piel intacta</td>
+      </tr>
+      <tr>
+        <td><span class="pill baja">Bajo nivel</span></td>
+        <td><b>Amonios cuaternarios</b></td>
+        <td>No crítico</td>
+        <td>Superficies y equipos no críticos</td>
+      </tr>
+      <tr>
+        <td><span class="pill est">Esterilización</span></td>
+        <td>Autoclave · estufa · óxido de etileno · plasma de H₂O₂</td>
+        <td><b>Crítico</b></td>
+        <td>Instrumental quirúrgico</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="sec" id="control"><div class="n">5</div><h2>Control de calidad y fallas del proceso</h2></div>
+
+<div class="grid">
+  <div class="c">
+    <h3>Indicadores de control <span class="tag">3 tipos</span></h3>
+    <ul>
+      <li><b>Físicos:</b> registran parámetros del ciclo (tiempo, temperatura, presión).</li>
+      <li><b>Químicos:</b> viran de color al exponerse a las condiciones del ciclo.</li>
+      <li><b>Biológicos:</b> contienen <b>esporas bacterianas</b> que se someten al ciclo;
+          si las esporas mueren, la esterilización fue exitosa.
+          Ej.: <b>Geobacillus stearothermophilus</b>.</li>
+    </ul>
+    <div class="nota rec">
+      El <b>indicador biológico</b> es el <b>método más confiable</b>: es el único que
+      demuestra letalidad real sobre la forma microbiana más resistente (la espora),
+      no solo que el ciclo «pareció» correcto.
+    </div>
+  </div>
+
+  <div class="c acento-alerta">
+    <h3>Fallas de esterilización <span class="tag">4</span></h3>
+    <ul>
+      <li><b>Sobrecarga</b> del autoclave</li>
+      <li><b>Empaquetado incorrecto</b></li>
+      <li><b>Tiempo insuficiente</b></li>
+      <li><b>Temperatura inadecuada</b></li>
+    </ul>
+    <div class="nota">
+      Todas comparten un mecanismo único: <b>el vapor no alcanza cada superficie el
+      tiempo necesario</b>. Sobrecarga y mal empaque bloquean la penetración; tiempo y
+      temperatura bajos no completan la letalidad.
+    </div>
+  </div>
+
+  <div class="c acento-alerta">
+    <h3>Fallas de desinfección <span class="tag">3</span></h3>
+    <ul>
+      <li><b>Concentración incorrecta</b> del desinfectante</li>
+      <li><b>Tiempo de contacto insuficiente</b></li>
+      <li><b>Presencia de materia orgánica</b></li>
+    </ul>
+    <div class="nota rec">
+      La <b>materia orgánica inactiva el desinfectante</b> y actúa como barrera física:
+      sin <b>limpieza previa</b> ningún nivel de desinfección es válido. La biocarga se
+      reduce antes, no durante.
+    </div>
+  </div>
+
+  <div class="c acento-ok">
+    <h3>Prevención de fallas <span class="tag">Sistema</span></h3>
+    <ul>
+      <li><b>Capacitación</b> del personal</li>
+      <li><b>Protocolos estandarizados</b></li>
+      <li><b>Monitoreo</b> de procesos</li>
+      <li><b>Registro y trazabilidad:</b> limpieza → desinfección → empaque →
+          esterilización → uso</li>
+    </ul>
+    <div class="nota">
+      Aplicación clínica: la correcta esterilización del instrumental <b>reduce
+      significativamente las infecciones del sitio quirúrgico</b>. La trazabilidad es lo
+      que permite, ante una falla, saber <b>qué lote y qué pacientes</b> quedaron
+      expuestos.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ 3. SIGNOS DE ALARMA ═══════════ -->
+<div class="sec" id="flags"><div class="n">6</div><h2>Signos de alarma del proceso</h2></div>
+
+<section class="flags">
+  <h3><span class="badge">Red flags</span> Detener y no usar el material</h3>
+  <p class="lead">
+    Cada punto obliga a <b>retirar el material del uso clínico</b> y reprocesarlo. Ante
+    duda razonable sobre la esterilidad, el material se considera <b>contaminado</b>.
+  </p>
+  <ul>
+    <li><span class="mk">1</span><div><b>Indicador biológico positivo</b> (las esporas
+        sobrevivieron): el ciclo <b>falló</b>. Es la alarma de mayor jerarquía —
+        cuarentena del lote, retiro de todo el material del ciclo y notificación
+        inmediata.</div></li>
+    <li><span class="mk">2</span><div><b>Indicador químico que no viró de color:</b> no
+        hay evidencia de que se alcanzaran las condiciones del ciclo. <b>No se puede
+        utilizar</b> el instrumental: se reprocesa.</div></li>
+    <li><span class="mk">3</span><div><b>Registro físico del ciclo fuera de rango</b>
+        (temperatura &lt; 121 °C en autoclave o tiempo acortado): ciclo no válido, aunque
+        el paquete «parezca» correcto.</div></li>
+    <li><span class="mk">4</span><div><b>Empaque roto, abierto, húmedo o caído al
+        suelo:</b> la barrera estéril se perdió. Material estéril que deja de estar
+        protegido deja de ser estéril.</div></li>
+    <li><span class="mk">5</span><div><b>Materia orgánica visible</b> (sangre, restos de
+        tejido) en instrumental «procesado»: falla de limpieza previa. Invalida la
+        desinfección y compromete la esterilización.</div></li>
+    <li><span class="mk">6</span><div><b>Autoclave sobrecargado</b> o paquetes comprimidos
+        entre sí: el vapor no penetra. Sospechar en fallas repetidas del mismo
+        equipo.</div></li>
+    <li><span class="mk">7</span><div><b>Error de Spaulding:</b> material <b>crítico</b>
+        (instrumental que penetra tejido) sometido solo a desinfección de alto nivel. El
+        nivel de proceso quedó por debajo del riesgo del tejido invadido.</div></li>
+    <li><span class="mk">8</span><div><b>Lote sin trazabilidad:</b> si no se puede
+        identificar el ciclo, el equipo ni los pacientes expuestos, la falla no se puede
+        contener.</div></li>
+  </ul>
+  <div class="cierre">
+    <b>Regla de oro:</b> ante indicador dudoso o barrera comprometida, el material
+    <b>NO se usa</b>. El costo de reprocesar un lote es siempre menor que el de una
+    infección del sitio quirúrgico.
+  </div>
+</section>
+
+<!-- ═══════════ 4. MNEMOTECNIAS ═══════════ -->
+<div class="sec" id="memo"><div class="n">7</div><h2>Mnemotecnias</h2></div>
+
+<section class="memo">
+
+  <div class="m">
+    <div class="cab">
+      <span class="sigla">CORTA · SALUDA · ROZA</span>
+      <span class="para">Clasificación de Spaulding</span>
+    </div>
+    <div class="cuerpo">
+      <div class="frase">«Si <b>corta</b>, esteriliza; si <b>saluda</b> a la mucosa, alto nivel; si solo <b>roza</b> la piel, bajo nivel.»</div>
+      <dl>
+        <dt>C</dt><dd><b>CORTA</b> — penetra tejido estéril o vascular → <b>material crítico</b> → <b>esterilización</b> (instrumental quirúrgico).</dd>
+        <dt>S</dt><dd><b>SALUDA</b> — contacta mucosas o piel no intacta → <b>semicrítico</b> → <b>desinfección de alto nivel</b> (endoscopios).</dd>
+        <dt>R</dt><dd><b>ROZA</b> — contacta solo piel intacta → <b>no crítico</b> → desinfección de <b>bajo o intermedio</b> nivel.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m">
+    <div class="cab">
+      <span class="sigla">T · E · M · P · O</span>
+      <span class="para">Las 5 fallas del reprocesamiento</span>
+    </div>
+    <div class="cuerpo">
+      <div class="frase">«Sin <b>TEMPO</b> no hay esterilidad.»</div>
+      <dl>
+        <dt>T</dt><dd><b>Tiempo</b> insuficiente (ciclo o contacto acortado).</dd>
+        <dt>E</dt><dd><b>Empaquetado</b> incorrecto (el vapor no penetra la barrera).</dd>
+        <dt>M</dt><dd><b>Mucha</b> carga → <b>sobrecarga del autoclave</b>.</dd>
+        <dt>P</dt><dd><b>Parámetros</b> inadecuados: temperatura fuera de rango y concentración errónea del desinfectante.</dd>
+        <dt>O</dt><dd><b>Orgánica</b>: presencia de materia orgánica por limpieza previa deficiente.</dd>
+      </dl>
+      <div class="nota">Cubre las <b>4 fallas de esterilización</b> (T, E, M, P) y las <b>3 de desinfección</b> (T, P, O) en una sola palabra.</div>
+    </div>
+  </div>
+
+  <div class="m">
+    <div class="cab">
+      <span class="sigla">NADIE SIN ROPA</span>
+      <span class="para">Zonas del centro quirúrgico, en orden</span>
+    </div>
+    <div class="cuerpo">
+      <div class="frase">«<b>Nadie</b> entra <b>Sin</b> <b>Ropa</b> estéril a la sala.»</div>
+      <dl>
+        <dt>N</dt><dd><b>NADIE</b> → área <b>No restringida</b>: acceso general, admisión, vestidores.</dd>
+        <dt>S</dt><dd><b>SIN</b> → área <b>Semirrestringida</b>: circulación interna, lavado quirúrgico, preparación del personal.</dd>
+        <dt>R</dt><dd><b>ROPA</b> → área <b>Restringida</b>: salas de operaciones y área estéril, máximo control de asepsia.</dd>
+      </dl>
+      <div class="nota">El orden de la frase reproduce la <b>gradiente de restricción</b>: de la calle al campo estéril.</div>
+    </div>
+  </div>
+
+  <div class="m">
+    <div class="cab">
+      <span class="sigla">I · C · C</span>
+      <span class="para">Checklist quirúrgico de la OMS</span>
+    </div>
+    <div class="cuerpo">
+      <div class="frase">«<b>I</b>dentifico, <b>C</b>onfirmo, <b>C</b>uento.»</div>
+      <dl>
+        <dt>I</dt><dd><b>Identifico</b> — <b>Sign In</b>, antes de la anestesia: identidad del paciente, consentimiento informado, sitio quirúrgico.</dd>
+        <dt>C</dt><dd><b>Confirmo</b> — <b>Time Out</b>, antes de la incisión: equipo, procedimiento correcto, profilaxis antibiótica.</dd>
+        <dt>C</dt><dd><b>Cuento</b> — <b>Sign Out</b>, antes de salir: conteo de instrumental, registro del procedimiento, plan postoperatorio.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="m">
+    <div class="cab">
+      <span class="sigla">GEO no miente</span>
+      <span class="para">Indicador biológico del autoclave</span>
+    </div>
+    <div class="cuerpo">
+      <div class="frase">«El físico registra, el químico colorea, <b>GEO</b> demuestra.»</div>
+      <dl>
+        <dt>G</dt><dd><b>Geobacillus stearothermophilus</b> — germen del indicador biológico del calor húmedo.</dd>
+        <dt>E</dt><dd><b>Esporas</b> — es lo que se somete al ciclo; si mueren, el ciclo fue exitoso.</dd>
+        <dt>O</dt><dd><b>Óptimo</b> — es el método de control <b>más confiable</b> de los tres.</dd>
+      </dl>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════ 5. CASO CLÍNICO ECOE ═══════════ -->
+<div class="sec" id="ecoe"><div class="n">8</div><h2>Estación ECOE simulada</h2></div>
+
+<section class="ecoe">
+  <div class="cab">
+    <div class="tira">
+      <span>Estación ECOE</span>
+      <span>10 minutos</span>
+      <span>Cirugía general</span>
+      <span>Bioseguridad</span>
+    </div>
+    <h3>Varón de 42 años, 5.º día postoperatorio de herniorrafia inguinal, con secreción en la herida</h3>
+    <p>
+      Paciente operado hace 5 días de <b>hernia inguinal derecha</b> (cirugía menor
+      programada, sin complicaciones intraoperatorias). Acude a emergencia por dolor
+      creciente, enrojecimiento y salida de material purulento por la herida. Mientras
+      lo evalúa, la <b>Central de Esterilización</b> comunica que el lote de instrumental
+      utilizado en su cirugía tenía el <b>indicador químico sin viraje</b> y que el
+      <b>indicador biológico resultó positivo</b>.
+    </p>
+  </div>
+
+  <div class="cuerpo">
+    <div class="consigna">
+      <b>Consigna al estudiante (10 min):</b> realice la evaluación dirigida de la herida,
+      solicite e interprete los exámenes auxiliares pertinentes, establezca el diagnóstico
+      probable y sus diferenciales, y plantee el manejo del paciente <b>y</b> la conducta
+      institucional frente a la falla del proceso de esterilización.
+    </div>
+
+    <h4 class="blk">Constantes vitales al ingreso</h4>
+    <div class="vitals">
+      <div class="v alt"><span class="et">Temperatura</span><span class="val">38.7</span><span class="un">°C</span></div>
+      <div class="v alt"><span class="et">Frec. cardíaca</span><span class="val">104</span><span class="un">lpm</span></div>
+      <div class="v"><span class="et">Frec. respiratoria</span><span class="val">20</span><span class="un">rpm</span></div>
+      <div class="v"><span class="et">Presión arterial</span><span class="val">118/72</span><span class="un">mmHg</span></div>
+      <div class="v"><span class="et">SatO₂ (FiO₂ 21 %)</span><span class="val">97</span><span class="un">%</span></div>
+      <div class="v alt"><span class="et">Dolor (EVA)</span><span class="val">6/10</span><span class="un">herida</span></div>
+    </div>
+
+    <h4 class="blk">Desarrollo de la estación</h4>
+    <div class="pasos">
+
+      <details>
+        <summary><span class="np">1</span>Hallazgos al examen físico</summary>
+        <div class="contenido">
+          <div class="sub">Examen general</div>
+          <ul>
+            <li>Paciente lúcido, orientado, <b>febril</b>, con taquicardia leve. Sin hipotensión ni signos de hipoperfusión.</li>
+            <li>Sin compromiso respiratorio; abdomen blando, depresible, <b>sin signos de peritonismo</b>.</li>
+          </ul>
+          <div class="sub">Herida quirúrgica inguinal derecha</div>
+          <ul>
+            <li><b>Eritema perilesional</b> que se extiende más de 2 cm desde los bordes, con <b>calor local</b> e induración.</li>
+            <li><b>Dehiscencia parcial</b> del tercio medio de la incisión, con <b>salida de secreción purulenta</b> a la expresión suave.</li>
+            <li>Bordes edematosos, dolorosos a la palpación; <b>fluctuación</b> localizada que sugiere colección superficial.</li>
+            <li><b>Ausencia</b> de crepitación, de necrosis cutánea, de bullas hemorrágicas y de dolor desproporcionado al examen
+                (datos que, si estuvieran presentes, obligarían a descartar infección necrosante).</li>
+            <li>Sin adenopatías inguinales dolorosas de nueva aparición; sin compromiso testicular.</li>
+          </ul>
+          <div class="nota">
+            El cuadro corresponde a compromiso de <b>piel y tejido celular subcutáneo</b>
+            con colección: infección del sitio quirúrgico <b>incisional superficial</b>.
+            La aponeurosis y el plano de la malla, si se colocó, deben evaluarse
+            explícitamente al abrir la herida.
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="np">2</span>Exámenes auxiliares</summary>
+        <div class="contenido">
+          <div class="sub">Del paciente</div>
+          <ul>
+            <li><b>Hemograma completo:</b> se espera <b>leucocitosis con desviación izquierda</b>.</li>
+            <li><b>Reactantes de fase aguda</b> (PCR, VSG): apoyan actividad inflamatoria y sirven de seguimiento.</li>
+            <li><b>Cultivo de la secreción con antibiograma</b> — tomado <b>antes</b> de iniciar el antibiótico. Es el examen que dirige el tratamiento definitivo.</li>
+            <li><b>Hemocultivos</b> (dos series) por la fiebre y la taquicardia, para descartar bacteriemia.</li>
+            <li><b>Ecografía de partes blandas</b> de la región inguinal: confirma y delimita colección, diferencia seroma/hematoma de absceso, y guía el drenaje.</li>
+            <li><b>Glucemia</b> y función renal: control metabólico y ajuste de dosis del antibiótico.</li>
+            <li>Si hubiera sospecha de compromiso profundo o de gas en tejidos: <b>tomografía</b> con contraste.</li>
+          </ul>
+          <div class="sub">Del proceso (auditoría de esterilización)</div>
+          <ul>
+            <li><b>Revisión del registro y la trazabilidad del lote:</b> limpieza → desinfección → empaque → esterilización → uso. Identificar <b>qué otros pacientes</b> recibieron material del mismo ciclo.</li>
+            <li><b>Indicadores del ciclo:</b> físicos (gráfica de tiempo, temperatura y presión), químicos (viraje) y <b>biológico</b> (positivo: esporas viables).</li>
+            <li><b>Verificación del equipo y la técnica:</b> descartar sobrecarga del autoclave, empaquetado incorrecto, tiempo insuficiente y temperatura inadecuada.</li>
+            <li>Notificación al <b>comité de infecciones asociadas a la atención de salud (IAAS)</b>.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="np">3</span>Diagnóstico probable y diferencial</summary>
+        <div class="contenido">
+          <div class="dx">
+            <b>Diagnóstico probable:</b> <b>Infección del sitio quirúrgico incisional
+            superficial</b> con colección, en 5.º día postoperatorio de herniorrafia
+            inguinal derecha, <b>asociada a falla del proceso de esterilización</b>
+            (indicador químico sin viraje e indicador biológico positivo en el lote
+            utilizado).
+          </div>
+          <div class="sub">Diagnóstico diferencial</div>
+          <ul>
+            <li><b>Seroma o hematoma de pared sobreinfectado</b> — colección postoperatoria frecuente; la ecografía y el aspecto del material drenado los diferencian.</li>
+            <li><b>Celulitis de pared sin colección</b> — eritema y calor sin fluctuación ni drenaje purulento; no requiere apertura.</li>
+            <li><b>Absceso de pared / infección incisional profunda</b> — compromiso por debajo de la aponeurosis; obliga a exploración quirúrgica.</li>
+            <li><b>Infección necrosante de partes blandas</b> — emergencia a descartar activamente: dolor desproporcionado, crepitación, bullas, necrosis, inestabilidad hemodinámica.</li>
+            <li><b>Infección asociada a material protésico (malla)</b> — evolución tórpida y recidivante; puede requerir retiro del material.</li>
+            <li><b>Reacción inflamatoria a material de sutura</b> — inflamación localizada al punto, sin repercusión sistémica.</li>
+          </ul>
+          <div class="nota rec">
+            El razonamiento clave de la estación: la falla documentada del ciclo aporta el
+            <b>nexo causal</b> y obliga a una respuesta institucional, pero <b>no cambia</b>
+            la conducta inmediata sobre la herida, que se guía por el hallazgo clínico.
+          </div>
+        </div>
+      </details>
+
+      <details>
+        <summary><span class="np">4</span>Manejo</summary>
+        <div class="contenido">
+          <div class="sub">A. Manejo del paciente</div>
+          <ul>
+            <li><b>Apertura y drenaje de la herida</b> (control del foco): retirar puntos del segmento comprometido, evacuar la colección, <b>lavado abundante</b> y desbridamiento del tejido no viable.</li>
+            <li><b>Toma de cultivo</b> del material purulento antes del antibiótico.</li>
+            <li><b>Explorar la aponeurosis</b> para descartar compromiso profundo o de la malla.</li>
+            <li><b>Antibioticoterapia empírica</b> con cobertura de flora cutánea, principalmente <b>Staphylococcus aureus</b> (considerar cobertura para SAMR según epidemiología local), con <b>desescalamiento dirigido por el antibiograma</b>.</li>
+            <li><b>Curaciones periódicas</b>, cierre por <b>segunda intención</b>, analgesia y control de la glucemia.</li>
+            <li><b>Reevaluación en 24 – 48 h:</b> si hay progresión, fiebre persistente o deterioro hemodinámico, reexplorar y descartar infección necrosante o compromiso protésico.</li>
+            <li><b>Profilaxis antitetánica</b> según antecedente vacunal y registro en historia clínica.</li>
+          </ul>
+          <div class="sub">B. Manejo de la falla del proceso — respuesta a las preguntas de la clase</div>
+          <ul>
+            <li><b>¿Se puede utilizar ese instrumental?</b> <b>NO.</b> Sin viraje del indicador químico no hay evidencia de que se alcanzaran las condiciones del ciclo; con indicador biológico positivo el ciclo <b>falló</b> de forma demostrada.</li>
+            <li><b>¿Qué indica la falla del indicador?</b> Que el material <b>no cumplió los parámetros</b> de esterilización — el químico advierte que el ciclo no fue válido y el biológico prueba que las <b>esporas sobrevivieron</b>: el material se considera <b>contaminado</b>.</li>
+            <li><b>Acciones del equipo de salud:</b> <b>cuarentena y retiro inmediato</b> de todo el material del ciclo afectado; <b>reprocesamiento</b> completo (limpieza → empaque → esterilización con nuevo control); <b>suspensión del autoclave</b> hasta su verificación técnica; revisión de <b>causa raíz</b> (sobrecarga, empaquetado, tiempo, temperatura); <b>trazabilidad</b> para identificar pacientes expuestos y vigilarlos; <b>notificación</b> al comité de IAAS; <b>capacitación</b> del personal y refuerzo de protocolos estandarizados y monitoreo.</li>
+            <li><b>Riesgos para el paciente:</b> <b>infección del sitio quirúrgico</b>, absceso de pared, infección de material protésico, dehiscencia, bacteriemia y sepsis, reintervención, estancia hospitalaria prolongada y mayor morbimortalidad.</li>
+          </ul>
+          <div class="nota rec">
+            Cierre esperado en la estación: el estudiante debe <b>tratar al paciente y
+            corregir el sistema</b>. Quedarse solo en el drenaje de la herida —sin
+            cuarentena del lote, trazabilidad ni notificación— deja activa la causa que
+            puede afectar a los demás pacientes del mismo ciclo.
+          </div>
+        </div>
+      </details>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 6. FLASHCARDS ═══════════ -->
+<div class="sec" id="deck"><div class="n">9</div><h2>Flashcards — recuerdo activo</h2></div>
+
+<section class="deck">
+  <div class="barra">
+    <span class="cont" id="fc-cont">1 / 15</span>
+    <span class="prog"><i id="fc-prog"></i></span>
+    <button type="button" id="fc-mezclar" style="flex:0 0 auto;padding:5px 12px;font-size:.75rem">Mezclar</button>
+  </div>
+
+  <div class="tarjeta" id="fc-tarjeta" role="button" tabindex="0" aria-live="polite">
+    <span class="lado" id="fc-lado">Pregunta</span>
+    <div class="txt" id="fc-txt"></div>
+  </div>
+
+  <p class="pie">Toca la tarjeta (o pulsa Espacio) para ver la respuesta</p>
+
+  <div class="btns">
+    <button type="button" id="fc-prev">← Anterior</button>
+    <button type="button" class="pri" id="fc-flip">Voltear</button>
+    <button type="button" id="fc-next">Siguiente →</button>
+  </div>
+</section>
+
+<footer class="fuentes">
+  <h4>Referencias de la sesión</h4>
+  <ul>
+    <li>Townsend, C. (2021). <i>Sabiston. Tratado de Cirugía</i> (21.ª ed.). Barcelona: Elsevier.</li>
+    <li>Brunicardi, Ch. (2019). <i>Schwartz: Principios de Cirugía</i> (11.ª ed.). México D.F.: McGraw-Hill Interamericana.</li>
+    <li><i>Revista de Medicina Intensiva</i>. 2019; 43(S1).</li>
+    <li>Contenido base: PPT Cirugía — Semana 01, Sesión 02B, Ciclo 2026-1 (09-04-2026).</li>
+  </ul>
+</footer>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   TARJETAS — mazo de recuerdo activo (15 preguntas)
+   ═══════════════════════════════════════════════════════════════ */
+var TARJETAS = [
+  {
+    q: "Diferencia conceptual entre esterilización y desinfección. ¿Cuál es el elemento que las discrimina?",
+    a: "<b>Esterilización:</b> proceso físico o químico que elimina <b>TODAS</b> las formas de vida microbiana — bacterias, virus, hongos y <b>esporas</b>.<ul><li><b>Desinfección:</b> elimina la <b>mayoría</b> de microorganismos patógenos, pero <b>NO necesariamente las esporas bacterianas</b>.</li><li>El discriminador es la <b>espora</b>: la esterilización es un concepto absoluto, la desinfección es una reducción de carga.</li></ul>"
+  },
+  {
+    q: "Enuncie la clasificación de Spaulding y el proceso que exige cada categoría.",
+    a: "Clasifica el material según el <b>tejido que contacta</b>:<ul><li><b>Crítico</b> → requiere <b>esterilización</b>. Ej.: instrumental quirúrgico.</li><li><b>Semicrítico</b> → <b>desinfección de alto nivel</b>. Ej.: endoscopios.</li><li><b>No crítico</b> → desinfección de <b>bajo o intermedio</b> nivel.</li></ul>Mnemotecnia: <b>CORTA</b> (esteriliza) · <b>SALUDA</b> a la mucosa (alto nivel) · <b>ROZA</b> la piel (bajo nivel)."
+  },
+  {
+    q: "Esterilización por calor húmedo: equipo, rango de temperatura e indicaciones.",
+    a: "<b>Autoclave</b> (vapor) — el <b>método más usado</b>, de alta eficacia.<ul><li><b>Temperatura: 121 – 134 °C</b>.</li><li><b>Indicaciones:</b> instrumental quirúrgico, textiles y material metálico.</li></ul>"
+  },
+  {
+    q: "Esterilización por calor seco: equipo, temperatura e indicaciones.",
+    a: "<b>Estufa</b> de aire caliente, a <b>160 – 180 °C</b>.<ul><li><b>Vidrio</b></li><li><b>Instrumentos metálicos</b></li><li>Material que <b>no tolera humedad</b>: sustancias oleosas, grasas, metales no inoxidables y envases plásticos.</li></ul>"
+  },
+  {
+    q: "Esterilización química: ¿qué agentes se usan y para qué materiales?",
+    a: "Agentes de <b>baja temperatura</b>:<ul><li><b>Óxido de etileno</b></li><li><b>Plasma de peróxido de hidrógeno</b></li></ul><b>Indicaciones:</b> material <b>termosensible</b>, equipos electrónicos y endoscopios."
+  },
+  {
+    q: "Enumere los tres niveles de desinfección con sus agentes y la categoría de Spaulding que le corresponde a cada uno.",
+    a: "<ul><li><b>Alto nivel:</b> <b>glutaraldehído</b> y <b>ortoftalaldehído</b> → material <b>semicrítico</b> (ej.: endoscopios).</li><li><b>Nivel intermedio:</b> <b>alcohol</b> y <b>yodóforos</b> → material no crítico.</li><li><b>Bajo nivel:</b> <b>amonios cuaternarios</b> → superficies y equipos <b>no críticos</b>.</li></ul>"
+  },
+  {
+    q: "Mencione los tres tipos de indicadores del control de calidad de la esterilización. ¿Cuál es el más confiable y por qué?",
+    a: "<ul><li><b>Indicadores físicos:</b> registran los parámetros del ciclo (tiempo, temperatura, presión).</li><li><b>Indicadores químicos:</b> viran de color al exponerse a las condiciones del ciclo.</li><li><b>Indicadores biológicos:</b> contienen <b>esporas bacterianas</b> que se someten al ciclo; si las esporas mueren, la esterilización fue exitosa.</li></ul>El <b>biológico</b> es el <b>más confiable</b>: es el único que demuestra letalidad real sobre la forma microbiana más resistente."
+  },
+  {
+    q: "¿Qué microorganismo se utiliza como indicador biológico del autoclave?",
+    a: "<b>Geobacillus stearothermophilus</b>.<ul><li>Se somete al ciclo en forma de <b>esporas</b>; si mueren, el ciclo fue exitoso.</li><li>Si las esporas sobreviven (indicador <b>positivo</b>), el ciclo <b>falló</b> y el lote debe retirarse.</li></ul>"
+  },
+  {
+    q: "Enumere las cuatro fallas frecuentes de la esterilización.",
+    a: "<ul><li><b>Sobrecarga</b> del autoclave</li><li><b>Empaquetado incorrecto</b></li><li><b>Tiempo insuficiente</b></li><li><b>Temperatura inadecuada</b></li></ul>Todas comparten un mecanismo: <b>el vapor no alcanza cada superficie el tiempo necesario</b>."
+  },
+  {
+    q: "Enumere las tres fallas frecuentes de la desinfección. ¿Por qué la materia orgánica es determinante?",
+    a: "<ul><li><b>Concentración incorrecta</b> del desinfectante</li><li><b>Tiempo de contacto insuficiente</b></li><li><b>Presencia de materia orgánica</b></li></ul>La materia orgánica <b>inactiva el desinfectante</b> y actúa como <b>barrera física</b>: sin <b>limpieza previa</b> ningún nivel de desinfección es válido."
+  },
+  {
+    q: "¿En qué zonas se divide el centro quirúrgico y qué corresponde a cada una?",
+    a: "Tres zonas de restricción progresiva:<ul><li><b>No restringida:</b> acceso general, admisión, vestidores.</li><li><b>Semirrestringida:</b> circulación interna, lavado quirúrgico, preparación del personal.</li><li><b>Restringida:</b> salas de operaciones y área estéril — <b>máximo control de asepsia</b>.</li></ul>Mnemotecnia: <b>NADIE SIN ROPA</b> estéril entra a la sala."
+  },
+  {
+    q: "Defina asepsia y antisepsia, y nombre los principales antisépticos.",
+    a: "<ul><li><b>Asepsia:</b> conjunto de medidas destinadas a <b>prevenir la contaminación</b> por microorganismos en el paciente, el equipo quirúrgico y el ambiente.</li><li><b>Antisepsia:</b> proceso que elimina o reduce microorganismos en <b>tejidos vivos</b> mediante antisépticos.</li></ul><b>Principales antisépticos:</b> <b>clorhexidina</b>, <b>povidona yodada</b> y <b>alcohol al 70 %</b>.<br>Clave: la antisepsia actúa sobre <b>tejido vivo</b>; la desinfección, sobre <b>objetos inanimados</b>."
+  },
+  {
+    q: "Checklist quirúrgico de la OMS: nombre los tres momentos y el contenido de cada uno.",
+    a: "<ul><li><b>1. Sign In</b> — antes de la anestesia: identificación del paciente, consentimiento informado, verificación del sitio quirúrgico.</li><li><b>2. Time Out</b> — antes de la incisión: confirmación del equipo, procedimiento correcto, <b>profilaxis antibiótica</b>.</li><li><b>3. Sign Out</b> — antes de salir del quirófano: <b>conteo de instrumental</b>, registro del procedimiento, plan postoperatorio.</li></ul>Mnemotecnia: <b>I</b>dentifico · <b>C</b>onfirmo · <b>C</b>uento."
+  },
+  {
+    q: "Durante una cirugía menor se usó instrumental procesado en autoclave y luego se detecta que el indicador químico no cambió de color. ¿Se puede usar? ¿Qué conducta corresponde?",
+    a: "<b>NO se puede utilizar.</b> Sin viraje no hay evidencia de que se alcanzaran las condiciones del ciclo, por lo que el material se considera <b>contaminado</b>.<ul><li><b>Cuarentena y retiro</b> de todo el material del ciclo afectado.</li><li><b>Reprocesamiento</b> completo con nuevo control; verificación técnica del autoclave.</li><li>Revisión de <b>causa raíz</b>: sobrecarga, empaquetado, tiempo o temperatura.</li><li><b>Trazabilidad</b> del lote para identificar y vigilar a los pacientes expuestos, y <b>notificación</b> al comité de IAAS.</li><li><b>Riesgos:</b> infección del sitio quirúrgico, absceso de pared, bacteriemia y sepsis, reintervención y estancia prolongada.</li></ul>"
+  },
+  {
+    q: "¿Cuáles son las cuatro medidas de prevención de fallas y qué etapas abarca la trazabilidad?",
+    a: "<ul><li><b>Capacitación</b> del personal</li><li><b>Protocolos estandarizados</b></li><li><b>Monitoreo</b> de procesos</li><li><b>Registro y trazabilidad</b></li></ul>La trazabilidad abarca: <b>limpieza → desinfección → empaque → esterilización → uso</b>. Es lo que permite, ante una falla, saber <b>qué lote y qué pacientes</b> quedaron expuestos."
+  }
+];
+
+/* ═══════════ Motor del mazo ═══════════ */
+(function(){
+  var orden = TARJETAS.map(function(_, i){ return i; });
+  var pos = 0, revelada = false;
+
+  var elTxt   = document.getElementById('fc-txt');
+  var elLado  = document.getElementById('fc-lado');
+  var elCard  = document.getElementById('fc-tarjeta');
+  var elCont  = document.getElementById('fc-cont');
+  var elProg  = document.getElementById('fc-prog');
+  var btnPrev = document.getElementById('fc-prev');
+  var btnNext = document.getElementById('fc-next');
+  var btnFlip = document.getElementById('fc-flip');
+  var btnMix  = document.getElementById('fc-mezclar');
+
+  function pintar(){
+    var t = TARJETAS[orden[pos]];
+    elTxt.innerHTML = revelada ? t.a : t.q;
+    elLado.textContent = revelada ? 'Respuesta' : 'Pregunta';
+    elCard.className = revelada ? 'tarjeta rev' : 'tarjeta';
+    elCont.textContent = (pos + 1) + ' / ' + orden.length;
+    elProg.style.width = ((pos + 1) / orden.length * 100) + '%';
+    btnFlip.textContent = revelada ? 'Ver pregunta' : 'Voltear';
+    btnPrev.disabled = (pos === 0);
+    btnNext.disabled = (pos === orden.length - 1);
+  }
+  function ir(d){
+    var n = pos + d;
+    if(n < 0 || n >= orden.length) return;
+    pos = n; revelada = false; pintar();
+  }
+  function voltear(){ revelada = !revelada; pintar(); }
+
+  elCard.addEventListener('click', voltear);
+  elCard.addEventListener('keydown', function(e){
+    if(e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); voltear(); }
+  });
+  btnFlip.addEventListener('click', voltear);
+  btnPrev.addEventListener('click', function(){ ir(-1); });
+  btnNext.addEventListener('click', function(){ ir(1); });
+  btnMix.addEventListener('click', function(){
+    for(var i = orden.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = orden[i]; orden[i] = orden[j]; orden[j] = tmp;
+    }
+    pos = 0; revelada = false; pintar();
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'ArrowRight'){ ir(1); }
+    else if(e.key === 'ArrowLeft'){ ir(-1); }
+  });
+
+  pintar();
+}());
+</script>
+</body>
+</html>
