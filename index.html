@@ -7,10 +7,19 @@
 <meta name="apple-mobile-web-app-title" content="Clinotes">
 <meta name="theme-color" content="#0f1117">
 <title>Clinotes</title>
+<!-- FASE 30: los dos scripts de CDN eran SINCRONOS y bloqueaban el parser:
+     DOMContentLoaded, init(), el primer render y el primer paint esperaban 1:1
+     a la red (A/B medido: con 2000ms de latencia de CDN la app tardaba 2.3-3.0s
+     en ser interactiva; con async, 0.3-1.0s). En un Windows con DNS lento o
+     antivirus inspeccionando HTTPS eso eran segundos de pantalla en blanco;
+     en iPad con cache/red rapida no se notaba. 'defer' NO sirve (medido:
+     sigue bloqueando DOMContentLoaded). initAuth espera a supabase con
+     window._sbLoaded; twemoji re-parsea al llegar y ya esta guardado con
+     typeof en todos sus usos. -->
 <!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" onload="window._sbLoaded&&window._sbLoaded()"></script>
 <!-- Twemoji — emojis consistentes en todas las plataformas -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous"></script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/twemoji.min.js" crossorigin="anonymous" onload="try{parseEmojiDebounced&&parseEmojiDebounced()}catch(_){}"></script>
 <style>
 /* ═══════════════════════════════════════════════════
    CLINOTE v2  —  Design System
@@ -5113,6 +5122,9 @@ function triggerAutoExport(){
    SUPABASE AUTH & SYNC
    ═══════════════════════════════════════════════════════ */
 function getSB(){
+  /* FASE 30: con el script del CDN en async puede no haber llegado aun (o no
+     llegar nunca sin red). Mensaje claro en vez de TypeError criptico. */
+  if(!window.supabase) throw new Error('Sin conexión con el servidor de cuentas. Comprueba tu red e inténtalo de nuevo.');
   if(!_sbClient) _sbClient=window.supabase.createClient(SB_URL,SB_ANON);
   return _sbClient;
 }
@@ -5161,6 +5173,7 @@ function hideAuthScreen(){
   setTimeout(()=>document.getElementById('auth-overlay').style.display='none',300);
 }
 function skipAuth(){
+  window._authSkipped=true; /* FASE 30: initAuth no debe re-mostrar el login */
   hideAuthScreen();
   toast('Usando sin cuenta — datos solo locales');
 }
@@ -5415,7 +5428,23 @@ function updateSbStatus(user){
     ?`Sincronizado · ${n} temas · ${APP_VERSION}`
     :`${n} temas · ${APP_VERSION}`;
 }
+/* FASE 30: puente con el <script async> de supabase. Si el script llega tarde
+   (despues del timeout de initAuth), reintenta la restauracion de sesion. */
+window._sbLoaded=function(){
+  const r=window._sbReady;
+  window._sbReady=null;
+  if(r) r();
+  else if(!window._sbAuthed){ try{ initAuth(); }catch(_){} }
+};
 async function initAuth(){
+  if(!window.supabase){
+    /* la lista ya esta renderizada (render() corre antes en init); esta espera
+       solo retrasa la pantalla de cuenta, no la app */
+    await new Promise(res=>{ window._sbReady=res; setTimeout(res,3000); });
+    window._sbReady=null;
+  }
+  if(!window.supabase){ if(!window._authSkipped) showAuthScreen(); return; }
+  window._sbAuthed=true;
   const sb=getSB();
   const{data:{session}}=await sb.auth.getSession().catch(()=>({data:{session:null}}));
   if(session){
@@ -5423,7 +5452,7 @@ async function initAuth(){
     updateUserChip(session.user);
     updateSbStatus(session.user);
     await sbPullSilent();
-  }else{
+  }else if(!window._authSkipped){
     showAuthScreen();
   }
   sb.auth.onAuthStateChange(async(event,session)=>{
@@ -5784,8 +5813,10 @@ async function init(){
     console.warn('[Clinote] unhandledrejection:',e.reason);
     e.preventDefault();
   });
-  /* Auth */
-  try{ await initAuth(); }catch(err){ console.warn('[Clinote] initAuth failed:',err); }
+  /* FASE 30: los listeners de durabilidad se registran ANTES de esperar a
+     initAuth — con el CDN en async, initAuth puede tardar segundos (o 3s de
+     timeout sin red) y cerrar la pestaña en esa ventana perderia la escritura
+     agrupada pendiente. No dependen de auth en nada. */
   /* beforeunload: save locally + flush any pending cloud sync */
   window.addEventListener('beforeunload',()=>{
     try{ flushState(); }catch(_){}
@@ -5805,6 +5836,8 @@ async function init(){
   });
   /* Parse all emojis */
   parseEmojiDebounced();
+  /* Auth (al final: puede esperar a la red sin bloquear nada de lo anterior) */
+  try{ await initAuth(); }catch(err){ console.warn('[Clinote] initAuth failed:',err); }
 }
 
 document.addEventListener('DOMContentLoaded',init);
