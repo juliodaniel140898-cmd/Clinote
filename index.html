@@ -638,9 +638,23 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 
 /* ── EMOJI GRID ── */
 .emoji-grid{
-  display:grid;grid-template-columns:repeat(8,1fr);gap:4px;max-height:260px;
-  overflow-y:auto;padding:4px;
+  display:block;max-height:260px;overflow-y:auto;padding:4px;
 }
+/* FASE 36: cabeceras de categoria pegajosas + filas en rejilla */
+.emoji-row{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.emoji-cat{
+  position:sticky;top:0;z-index:1;background:var(--surface);
+  font-size:.7em;font-weight:900;letter-spacing:.6px;text-transform:uppercase;
+  color:var(--muted);padding:8px 4px 5px;margin-top:2px;
+}
+.emoji-cat:first-child{margin-top:0}
+.emoji-empty{padding:22px 8px;text-align:center;color:var(--muted);font-size:.82em;font-weight:700}
+.emoji-search{
+  width:100%;margin:0 0 8px;padding:9px 12px;border-radius:var(--r);
+  background:var(--surface2);border:1.5px solid var(--border);color:var(--text);
+  font-size:.86em;font-weight:600;
+}
+.emoji-search:focus{border-color:var(--accent);outline:none}
 .emoji-btn{
   width:100%;aspect-ratio:1;border-radius:var(--r-sm);font-size:1.4em;
   display:flex;align-items:center;justify-content:center;
@@ -1255,9 +1269,9 @@ body.ov-fs-open .home-hero::before{animation-play-state:paused;
 .color-choices{gap:8px}.color-chip{width:34px;height:34px;border-radius:12px;box-shadow:0 1px 0 rgba(255,255,255,.08) inset,0 8px 18px rgba(0,0,0,.14)}.color-chip.selected{border-color:#fff;transform:scale(1.08);box-shadow:0 0 0 3px rgba(255,255,255,.08),0 12px 24px rgba(0,0,0,.22)}
 .tag-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.tag-suggestion{border:1px solid var(--border);background:var(--surface3);border-radius:999px;padding:6px 9px;font-size:.74em;font-weight:800;color:var(--text2);transition:all var(--t-fast)}.tag-suggestion:hover{border-color:var(--accent);color:var(--text);transform:translateY(-1px)}
 .mnemo-tools{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.mnemo-tools .secondary-btn{width:auto;margin:0;white-space:nowrap}.mnemo-preview{margin-top:8px;padding:10px 12px;border-radius:14px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);font-size:.82em;font-weight:800;display:none}.mnemo-preview.show{display:block}
-.emoji-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:2px 4px 10px}.emoji-style-btn{border:1.5px solid var(--border);background:var(--surface2);border-radius:999px;padding:8px 11px;font-size:.78em;font-weight:900;color:var(--text2)}.emoji-style-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}.emoji-note{font-size:.74em;color:var(--muted);font-weight:700;line-height:1.45;padding:0 4px 10px}.emoji-grid{grid-template-columns:repeat(9,1fr);max-height:310px;gap:5px}.emoji-btn{background:rgba(255,255,255,.025);border:1px solid transparent}.emoji-btn:hover{background:var(--surface3);border-color:var(--border2)}
+.emoji-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:2px 4px 10px}.emoji-style-btn{border:1.5px solid var(--border);background:var(--surface2);border-radius:999px;padding:8px 11px;font-size:.78em;font-weight:900;color:var(--text2)}.emoji-style-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff}.emoji-note{font-size:.74em;color:var(--muted);font-weight:700;line-height:1.45;padding:0 4px 10px}.emoji-grid{max-height:310px}.emoji-row{grid-template-columns:repeat(9,1fr);gap:5px}.emoji-btn{background:rgba(255,255,255,.025);border:1px solid transparent}.emoji-btn:hover{background:var(--surface3);border-color:var(--border2)}
 .sort-name-btn{color:var(--accent)}
-@media(max-width:520px){.editor-row,.mnemo-tools{grid-template-columns:1fr;display:grid}.editor-row .secondary-btn,.mnemo-tools .secondary-btn{width:100%}.emoji-grid{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:520px){.editor-row,.mnemo-tools{grid-template-columns:1fr;display:grid}.editor-row .secondary-btn,.mnemo-tools .secondary-btn{width:100%}.emoji-row{grid-template-columns:repeat(6,1fr)}}
 /* ── ICON SYSTEM — Lucide line icons, una sola familia ── */
 .ic{display:inline-flex;align-items:center;justify-content:center;width:1.15em;height:1.15em;flex-shrink:0;vertical-align:-.16em;line-height:0}
 .ic svg{width:100%;height:100%;display:block;stroke:currentColor;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;fill:none;overflow:visible}
@@ -1997,6 +2011,7 @@ input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-f
         <button class="emoji-style-btn" id="emoji-twemoji-btn" onclick="setEmojiStyle('twemoji')">Twemoji uniforme</button>
       </div>
       <div class="emoji-note" id="emoji-style-note">Nativo muestra el emoji según el dispositivo: Windows, Android o iOS.</div>
+      <input id="emoji-search" class="emoji-search" type="search" autocomplete="off" placeholder="Buscar: riñón, fiebre, sangre, dosis…" oninput="onEmojiSearch(this.value)" aria-label="Buscar emoji">
       <div class="emoji-grid" id="emoji-grid"></div>
     </div>
   </div>
@@ -2197,7 +2212,7 @@ input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-f
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.24';
+const APP_VERSION='v8.25';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
@@ -2300,7 +2315,188 @@ let _autoExportTimer=null;
 let autoExportEnabled=false;
 
 const COLORS=['#4f9cff','#2563eb','#60a5fa','#22d3ee','#2dd4bf','#14b8a6','#34d399','#22c55e','#84cc16','#fbbf24','#f59e0b','#fb923c','#f97316','#f87171','#ef4444','#f472b6','#ec4899','#a78bfa','#8b5cf6','#818cf8','#6366f1','#94a3b8','#64748b','#f8fafc'];
-const EMOJIS=['📋','📄','📁','🗂','🗃','📚','📖','📑','📝','✏️','🔖','📌','📍','🧠','🧩','💡','🎯','🏆','⭐','✅','🔥','⚡','🩺','💊','💉','🧪','🔬','🧬','🩻','🫀','🫁','🦷','👁️','🦴','🩸','🧫','🧴','🏥','⚕️','🚑','🩹','🌡️','🧻','🧾','📊','📈','🔭','🔎','🧮','⏱️','📅','🗓️','🔑','🔐','🗝','💎','🌈','☀️','🌙','💜','❤️','💙','💚','💛','🧡'];
+/* FASE 36: catálogo de emoji para estudiantes de medicina, por categorías y con
+   palabras clave en español para poder buscarlos ("riñón" → 🫘).
+   Nota honesta sobre anatomía: Unicode NO tiene emoji de páncreas, hígado,
+   colon/intestino, estómago, bazo ni tiroides — no existen, no es una omisión
+   de la app. Sí existe 🫘 (alubia), que es la representación que se usa
+   habitualmente para riñón/nefrología por su forma, y 🧴 para piel/dermatología.
+   Para esos órganos sin emoji, las palabras clave apuntan al más cercano. */
+const EMOJI_CATS=[
+  {n:'Anatomía',it:[
+    ['🧠','cerebro neuro encefalo neurologia sistema nervioso'],
+    ['🫀','corazon cardio cardiologia miocardio infarto'],
+    ['🫁','pulmon pulmones respiratorio neumologia torax asma epoc'],
+    ['🫘','riñon rinon renal nefro nefrologia alubia judia frijol urologia'],
+    ['🦴','hueso oseo esqueleto traumatologia fractura ortopedia'],
+    ['🦷','diente dental odontologia muela caries'],
+    ['👁️','ojo ocular oftalmologia vision retina'],
+    ['👀','ojos vision oftalmologia observar'],
+    ['👂','oreja oido otorrino audicion otitis'],
+    ['🦻','audifono sordera hipoacusia otorrino'],
+    ['👃','nariz olfato otorrino rinitis sinusitis'],
+    ['👅','lengua gusto oral cavidad'],
+    ['👄','boca labios oral estomatologia'],
+    ['🫦','labio mucosa oral'],
+    ['💪','musculo muscular biceps miopatia fuerza rehabilitacion'],
+    ['🦵','pierna extremidad inferior rodilla'],
+    ['🦶','pie podologia pie diabetico'],
+    ['🤚','mano extremidad superior'],
+    ['🖐️','mano dedos palma piel dermatologia'],
+    ['🩸','sangre hematologia hemorragia transfusion anemia'],
+    ['🧬','adn genetica gen cromosoma hereditario mutacion'],
+    ['🦠','microbio bacteria virus germen infeccion patogeno'],
+    ['🅰️','grupo sanguineo a hemotipo transfusion'],
+    ['🅱️','grupo sanguineo b hemotipo transfusion'],
+    ['🆎','grupo sanguineo ab hemotipo transfusion'],
+    ['🅾️','grupo sanguineo o hemotipo donante universal'],
+  ]},
+  {n:'Clínica y material',it:[
+    ['🩺','estetoscopio exploracion consulta semiologia auscultacion'],
+    ['💊','pastilla farmaco medicamento farmacologia tratamiento dosis'],
+    ['💉','inyeccion jeringa vacuna insulina intravenoso'],
+    ['🩹','vendaje curacion herida aposito sutura'],
+    ['🩻','radiografia rayos x imagen radiologia torax'],
+    ['🌡️','termometro fiebre temperatura febril'],
+    ['🩼','muleta rehabilitacion traumatologia marcha'],
+    ['🦽','silla de ruedas discapacidad movilidad'],
+    ['🦼','silla motorizada discapacidad'],
+    ['🦯','baston ciego invidente ceguera'],
+    ['⚕️','medicina simbolo salud sanitario'],
+    ['🏥','hospital clinica urgencias ingreso planta'],
+    ['🚑','ambulancia emergencia urgencias traslado'],
+    ['🧑‍⚕️','medico sanitario doctor enfermeria personal'],
+    ['👨‍⚕️','medico doctor sanitario'],
+    ['👩‍⚕️','medica doctora enfermera sanitaria'],
+    ['😷','mascarilla proteccion contagio epi aislamiento'],
+    ['🧤','guantes epi asepsia esteril proteccion'],
+    ['🥽','gafas proteccion epi salpicadura'],
+    ['🧼','jabon higiene lavado de manos asepsia antisepsia'],
+    ['🛌','cama reposo hospitalizacion ingreso encamado'],
+    ['🫂','apoyo cuidados paliativos acompanamiento duelo'],
+  ]},
+  {n:'Laboratorio',it:[
+    ['🧪','tubo de ensayo laboratorio muestra analitica bioquimica'],
+    ['🧫','placa petri cultivo microbiologia antibiograma'],
+    ['🔬','microscopio histologia patologia anatomia patologica citologia'],
+    ['🔭','observacion seguimiento'],
+    ['⚗️','quimica bioquimica reaccion metabolismo'],
+    ['🧴','piel dermatologia crema locion topico emoliente'],
+    ['💧','gota liquido suero hidratacion electrolitos'],
+    ['🧊','hielo frio crioterapia hipotermia'],
+  ]},
+  {n:'Síntomas',it:[
+    ['🤒','fiebre febril enfermo sindrome febril'],
+    ['🤕','golpe trauma herida cefalea tce contusion'],
+    ['🤢','nausea asco malestar'],
+    ['🤮','vomito emesis gastroenteritis'],
+    ['🤧','estornudo alergia resfriado rinitis catarro'],
+    ['🥴','mareo vertigo intoxicacion embriaguez'],
+    ['😵','desmayo sincope inconsciencia coma'],
+    ['🥵','calor hipertermia sofoco golpe de calor'],
+    ['🥶','frio hipotermia escalofrio tiritona'],
+    ['😰','ansiedad angustia sudoracion disnea panico'],
+    ['😴','sueño somnolencia insomnio apnea'],
+    ['😖','dolor malestar algia'],
+  ]},
+  {n:'Materno-infantil',it:[
+    ['🤰','embarazo gestante obstetricia parto'],
+    ['🫄','embarazo gestacion obstetricia'],
+    ['🫃','embarazo gestacion'],
+    ['👶','bebe neonato pediatria recien nacido lactante'],
+    ['🍼','lactancia biberon alimentacion infantil'],
+    ['♀️','femenino mujer ginecologia'],
+    ['♂️','masculino hombre urologia andrologia'],
+  ]},
+  {n:'Microbiología y vectores',it:[
+    ['🦟','mosquito vector dengue malaria paludismo zika'],
+    ['🐀','rata roedor leptospirosis zoonosis hantavirus'],
+    ['🦇','murcielago rabia zoonosis coronavirus'],
+    ['🐍','serpiente ofidico veneno mordedura antiveneno'],
+    ['🕷️','araña aracnido veneno picadura loxosceles'],
+    ['🦂','escorpion alacran veneno picadura'],
+    ['🐕','perro rabia mordedura zoonosis'],
+    ['🐈','gato toxoplasmosis aranazo bartonella'],
+    ['🪱','gusano parasito helminto lombriz parasitosis'],
+    ['🍄','hongo micosis fungico candida aspergillus'],
+  ]},
+  {n:'Riesgo y nutrición',it:[
+    ['🥗','dieta ensalada nutricion alimentacion'],
+    ['🧂','sal sodio hipertension dieta hiposodica'],
+    ['🍬','azucar glucosa diabetes dulce glucemia'],
+    ['🍺','alcohol etanol hepatopatia cirrosis'],
+    ['🚬','tabaco fumar cigarrillo epoc tabaquismo'],
+    ['🍎','fruta dieta saludable vitamina'],
+    ['🥤','refresco azucar bebida'],
+    ['⚖️','peso balanza imc obesidad sobrepeso'],
+    ['🏃','ejercicio actividad fisica deporte rehabilitacion'],
+  ]},
+  {n:'Estudio',it:[
+    ['📋','lista protocolo checklist historia clinica'],
+    ['📄','documento hoja nota informe'],
+    ['📁','carpeta archivo tema'],
+    ['🗂','archivador organizacion clasificar'],
+    ['🗃','fichero registro'],
+    ['📚','libros bibliografia estudio manual'],
+    ['📖','libro lectura capitulo'],
+    ['📑','separador indice seccion'],
+    ['📝','apunte nota escribir resumen'],
+    ['✏️','lapiz editar corregir'],
+    ['🔖','marcador guardar'],
+    ['📌','chincheta importante fijar'],
+    ['📍','ubicacion localizacion topografia'],
+    ['🧩','pieza integrar sindrome asociacion'],
+    ['💡','idea concepto clave truco'],
+    ['🎯','objetivo meta diana enfoque'],
+    ['🏆','logro examen aprobado mir'],
+    ['⭐','favorito destacado importante'],
+    ['✅','hecho completado correcto estudiado'],
+    ['🔥','importante urgente alto rendimiento'],
+    ['⚡','rapido flash repaso'],
+    ['📊','grafico estadistica datos epidemiologia'],
+    ['📈','aumento subida elevado'],
+    ['📉','descenso bajada disminuido'],
+    ['🧮','calculo dosis formula score escala'],
+    ['⏱️','tiempo cronometro ventana terapeutica'],
+    ['⏳','pronostico evolucion tiempo cronico'],
+    ['🔄','ciclo recambio metabolismo recurrencia'],
+    ['💤','apnea sueño descanso ronquido'],
+    ['📅','calendario fecha seguimiento'],
+    ['🗓️','agenda planificacion cronograma'],
+    ['🔑','clave concepto fundamental'],
+    ['🔐','seguro privado confidencial'],
+  ]},
+  {n:'Alertas y colores',it:[
+    ['⚠️','alerta precaucion cuidado contraindicacion'],
+    ['🚨','urgencia emergencia critico grave'],
+    ['❗','importante atencion'],
+    ['❓','duda pregunta diagnostico diferencial'],
+    ['🚫','contraindicado prohibido no administrar'],
+    ['⛔','contraindicacion absoluta prohibido'],
+    ['☠️','mortalidad letal toxico veneno intoxicacion'],
+    ['🆘','emergencia socorro parada rcp'],
+    ['➕','positivo mas aumento'],
+    ['➖','negativo menos descenso'],
+    ['🔴','rojo grave critico triaje'],
+    ['🟠','naranja moderado triaje'],
+    ['🟡','amarillo leve precaucion triaje'],
+    ['🟢','verde estable normal triaje'],
+    ['🔵','azul cianosis'],
+    ['🟣','morado violaceo'],
+    ['⚫','negro necrosis'],
+    ['⚪','blanco palidez'],
+    ['❤️','rojo corazon'],
+    ['🧡','naranja'],
+    ['💛','amarillo ictericia'],
+    ['💚','verde'],
+    ['💙','azul'],
+    ['💜','morado'],
+    ['🖤','negro'],
+    ['🤍','blanco'],
+  ]},
+];
+/* lista plana (compatibilidad con cualquier uso previo) */
+const EMOJIS=EMOJI_CATS.flatMap(c=>c.it.map(x=>x[0]));
 
 /* ═══════════════════════════════════════════════════════
    ICON SYSTEM — Lucide (una sola familia de línea)
@@ -2836,7 +3032,13 @@ function openOverlay(id){
   _dialogActivate(el);
   setTimeout(()=>{
     if(el._openToken!==openToken||!el.classList.contains('open')) return;
-    if(typeof twemoji!=='undefined')twemoji.parse(el,{folder:'svg',ext:'.svg',base:'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/'})
+    /* FASE 35: usar parseEmoji, que RESPETA el ajuste de estilo de emoji. Antes
+       se llamaba a twemoji.parse directamente, sin la guarda: aunque el usuario
+       tuviera "emoji nativo" (el valor por defecto), abrir cualquier editor
+       convertia todos sus emojis en <img> descargadas del CDN — medido: 14 al
+       abrir "nueva carpeta", 13 en "nuevo tema". En Windows con red lenta o
+       antivirus inspeccionando HTTPS, eso es el retardo al abrir que se nota. */
+    parseEmoji(el);
   },60);
 }
 function closeOverlay(id){
@@ -4974,17 +5176,37 @@ function downloadAppHTML(){
    EMOJI PICKER
    ═══════════════════════════════════════════════════════ */
 let _emojiTarget=null;
-function renderEmojiGrid(){
+/* FASE 36: rejilla por categorías con búsqueda en español. Con un catálogo
+   grande, una cuadrícula plana es inservible; buscar "riñón" o "fiebre" lleva
+   al emoji en un gesto. */
+function renderEmojiGrid(q){
   const grid=document.getElementById('emoji-grid');
   if(!grid) return;
   updateEmojiStyleUI();
-  grid.innerHTML=EMOJIS.map(e=>`<button class="emoji-btn" onclick="selectEmoji('${e}')">${e}</button>`).join('');
+  const nq=normalizeText(q||'').trim();
+  let html='',total=0;
+  for(const cat of EMOJI_CATS){
+    const items=nq
+      ? cat.it.filter(([e,k])=>normalizeText(k).includes(nq)||normalizeText(cat.n).includes(nq))
+      : cat.it;
+    if(!items.length) continue;
+    total+=items.length;
+    html+=`<div class="emoji-cat">${h(cat.n)}</div><div class="emoji-row">`+
+      items.map(([e,k])=>`<button class="emoji-btn" title="${h(k.split(' ').slice(0,3).join(', '))}" onclick="selectEmoji('${e}')">${e}</button>`).join('')+
+      `</div>`;
+  }
+  if(!total) html=`<div class="emoji-empty">Sin resultados para "${h(q||'')}"</div>`;
+  grid.innerHTML=html;
   parseEmoji(grid);
 }
+const onEmojiSearch=debounce(v=>renderEmojiGrid(v),120);
 function openEmojiPicker(targetInputId){
   _emojiTarget=targetInputId;
-  renderEmojiGrid();
+  const s=document.getElementById('emoji-search');
+  if(s) s.value='';
+  renderEmojiGrid('');
   openOverlay('emoji-overlay');
+  setTimeout(()=>{const el=document.getElementById('emoji-search');if(el&&window.matchMedia('(min-width:760px)').matches)el.focus();},120);
 }
 function selectEmoji(emoji){
   if(_emojiTarget){
