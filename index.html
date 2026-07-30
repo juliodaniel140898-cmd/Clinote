@@ -566,16 +566,19 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .frame-wrap::after{
   content:'';position:absolute;inset:0;background:var(--surface);
   border-radius:var(--r);display:flex;align-items:center;justify-content:center;
-  opacity:1;pointer-events:none;transition:opacity .25s;
+  opacity:1;pointer-events:none;transition:opacity .1s; /* FASE 34: el velo retenia contenido YA listo 250ms en cada apertura */
 }
 .frame-wrap.loaded::after{opacity:0;pointer-events:none;}
 .frame-wrap::before{
   content:'';position:absolute;top:50%;left:50%;z-index:1;
   width:28px;height:28px;margin:-14px 0 0 -14px;
   border:3px solid var(--border);border-top-color:var(--accent);
-  border-radius:50%;animation:spin .7s linear infinite;
-  opacity:1;transition:opacity .2s;
+  border-radius:50%;
+  /* FASE 34: aparece a los 150ms — en cargas rapidas ni se ve (sin parpadeo) */
+  opacity:0;transition:opacity .2s;
+  animation:spin .7s linear infinite,frameSpinIn .01s linear .15s 1 forwards;
 }
+@keyframes frameSpinIn{to{opacity:1}}
 /* FASE 24: opacity:0 NO detiene una animación infinita — el spinner seguía
    girando (y componiendo un frame) para siempre detrás de cada tema cargado.
    animation:none corta el tick; visibility:hidden lo saca del compositor. */
@@ -2463,7 +2466,7 @@ function saveState(){
   STATE.updatedAt=Date.now();
   _savePending=true;
   clearTimeout(_saveTimer);
-  _saveTimer=setTimeout(flushState,400);
+  _saveTimer=setTimeout(()=>{ (window.requestIdleCallback||((f)=>setTimeout(f,0)))(()=>flushState(),{timeout:2000}); },400); /* FASE 34: fuera de la ventana de animacion */
   triggerAutoExport();
   triggerSbSync();
 }
@@ -3872,7 +3875,9 @@ function toggleTopicExpand(id,sourceEl){
     collapseEl.classList.add('open');
     if(topic.html){
       const fr=collapseEl.querySelector('.inline-frame');
-      if(fr) _loadInlineFrame(fr);
+      /* FASE 34: diferir un frame la inyeccion del srcdoc — el tap pinta la
+         apertura de la tarjeta primero; el spinner cubre la espera */
+      if(fr) requestAnimationFrame(()=>requestAnimationFrame(()=>_loadInlineFrame(fr)));
     }
     sizeInlineFrames(card);
     parseEmoji(card);
