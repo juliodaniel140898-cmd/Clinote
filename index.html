@@ -2230,7 +2230,7 @@ function normalizeStateShape(p){
    saveState() vaciaba el cache entero, asi que un cambio de metadatos
    (favorito, estudiado, reordenar) obligaba a la siguiente busqueda a volver a
    extraer el texto del HTML COMPLETO de todos los temas (stripHtml). */
-function touch(o){if(o&&typeof o==='object'){o.updatedAt=Date.now();if(o.id)_searchCache.delete(o.id);}return o;}
+function touch(o){if(o&&typeof o==='object'){o.updatedAt=Date.now();if(o.id){_searchCache.delete(o.id);if(typeof _stripCache!=='undefined')_stripCache.delete(o.id);}}return o;}
 /* Marca de tiempo efectiva de un elemento: updatedAt > createdAt > 0.
    Datos antiguos sin updatedAt cuentan como los más viejos, así cualquier
    edición explícita (que sí sella updatedAt) gana sobre ellos. */
@@ -2606,6 +2606,39 @@ function buildSnippet(rawText,terms,maxLen=160){
 /* FASE 8: Multi-term AND search. Returns [{topic,score,field,snippet}] ranked
    by field score (Title=100 > Tag/Mnemo=60 > Section=40 > Flashcard=30 > Content=10),
    capped at 50 results. */
+/* FASE 32: cache de texto por tema para el buscador. Antes, CADA tecla
+   rehacia stripHtml (72KB de HTML por tema) + 5 normalizaciones NFD por tema
+   matcheado: O(temas x HTML) por pulsacion (medido: 12-22ms por tecla con 45
+   temas; 79-95ms con CPU 4x = tirones al teclear). La entrada se auto-invalida
+   comparando updatedAt (touch() lo sella en toda mutacion real). */
+const _stripCache=new Map();
+function _topicSearchParts(t){
+  let e=_stripCache.get(t.id);
+  if(!e||e.up!==t.updatedAt){
+    const raw=stripHtml(t.html||'');
+    e={up:t.updatedAt,raw,norm:normalizeText(raw),
+       tn:normalizeText(t.title||''),
+       gn:normalizeText((t.tags||[]).join(' ')),
+       mn:normalizeText(t.mnemo||''),
+       sn:normalizeText((t.sections||[]).map(s=>s.h+' '+s.b).join(' ')),
+       fn:normalizeText((t.flashcards||[]).map(f=>f.q+' '+f.a).join(' '))};
+    _stripCache.set(t.id,e);
+  }
+  return e;
+}
+/* FASE 32: precalienta los caches de busqueda en huecos de inactividad para
+   que la PRIMERA tecla no pague el pico en frio (medido: 43-53ms de golpe). */
+function _warmSearchCache(){
+  const pend=activeTopics().filter(t=>!_searchCache.has(t.id)||!_stripCache.has(t.id));
+  if(!pend.length) return;
+  const idle=window.requestIdleCallback||((f)=>setTimeout(f,200));
+  const step=()=>{
+    const chunk=pend.splice(0,5);
+    chunk.forEach(t=>{try{topicSearchString(t);_topicSearchParts(t);}catch(_){}});
+    if(pend.length) idle(step);
+  };
+  idle(step);
+}
 function searchTopics(q){
   const terms=q.split(/\s+/).filter(Boolean);
   if(!terms.length) return [];
@@ -2614,28 +2647,31 @@ function searchTopics(q){
     const full=topicSearchString(t);
     if(!terms.every(tm=>full.includes(tm))) continue;
     const ft=terms[0];
-    const titleNorm=normalizeText(t.title||'');
-    const tagsNorm=normalizeText((t.tags||[]).join(' '));
-    const mnemoNorm=normalizeText(t.mnemo||'');
-    const sectionsNorm=normalizeText((t.sections||[]).map(s=>s.h+' '+s.b).join(' '));
-    const flashNorm=normalizeText((t.flashcards||[]).map(f=>f.q+' '+f.a).join(' '));
+    const e=_topicSearchParts(t);
     let score=0,field='',snippet='';
-    if(titleNorm.includes(ft)){
+    if(e.tn.includes(ft)){
       score=100;field='Título';snippet=buildSnippet(t.title||'',terms);
-    }else if(tagsNorm.includes(ft)){
+    }else if(e.gn.includes(ft)){
       score=60;field='Tag';snippet=buildSnippet((t.tags||[]).join(', '),terms);
-    }else if(mnemoNorm.includes(ft)){
+    }else if(e.mn.includes(ft)){
       score=60;field='Mnemotecnia';snippet=buildSnippet(t.mnemo||'',terms);
-    }else if(sectionsNorm.includes(ft)){
+    }else if(e.sn.includes(ft)){
       score=40;field='Sección';
       const ms=(t.sections||[]).find(s=>normalizeText(s.h+' '+s.b).includes(ft));
       snippet=buildSnippet(ms?ms.h+': '+ms.b:'',terms);
-    }else if(flashNorm.includes(ft)){
+    }else if(e.fn.includes(ft)){
       score=30;field='Flashcard';
       const mf=(t.flashcards||[]).find(f=>normalizeText(f.q+' '+f.a).includes(ft));
       snippet=buildSnippet(mf?mf.q+' · '+mf.a:'',terms);
     }else{
-      score=10;field='Contenido';snippet=buildSnippet(stripHtml(t.html||''),terms);
+      score=10;field='Contenido';
+      /* localizar el termino en el texto cacheado y pasar a buildSnippet SOLO
+         una ventana (~320 chars) en vez del documento entero: buildSnippet
+         normaliza (NFD) todo lo que recibe */
+      let pos=e.norm.length;
+      for(const tm of terms){const i=e.norm.indexOf(tm);if(i>=0&&i<pos)pos=i;}
+      if(pos===e.norm.length)pos=0;
+      snippet=buildSnippet(e.raw.slice(Math.max(0,pos-60),pos+260),terms);
     }
     results.push({topic:t,score,field,snippet});
   }
@@ -2652,6 +2688,12 @@ function renderSearchResults(q){
   fl.style.display='none';
   sr.style.display='';
   const results=searchTopics(q);
+  /* FASE 32: si nada visible cambio (mismos resultados, mismos snippets), no
+     reconstruir el DOM — el rebuild innerHTML + layout de 45 resultados era el
+     coste restante por tecla (longtasks de 55-106ms con CPU 4x). */
+  const sig=results.map(r=>r.topic.id+'|'+r.field+'|'+r.snippet).join('')+''+q;
+  if(sr.dataset.sig===sig) return;
+  sr.dataset.sig=sig;
   if(!results.length){
     sr.innerHTML=`<div class="search-results-empty">
       <div class="sr-empty-icon">${icon('search')}</div>
@@ -3432,7 +3474,7 @@ function _doRender(){
 
   /* FASE 8: search results replace tree */
   if(q){renderSearchResults(q);return;}
-  {const sr=document.getElementById('search-results');if(sr){sr.style.display='none';sr.innerHTML='';}}
+  {const sr=document.getElementById('search-results');if(sr){sr.style.display='none';sr.innerHTML='';delete sr.dataset.sig;}}
   container.style.display='';
 
   /* always show root-level folders */
@@ -5465,7 +5507,7 @@ async function sbPullSilent(){
   /* FASE 11: primer arranque sin datos locales → descargar directo (rápido). */
   if(localEmpty){
     STATE=remote;
-    try{_searchCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){}
+    try{_searchCache.clear();_stripCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){} try{_warmSearchCache();}catch(_){}
     render();
     return;
   }
@@ -5476,7 +5518,7 @@ async function sbPullSilent(){
   STATE=mergeStates(STATE,remote);
   /* Persistir sin saveState() para no re-sellar updatedAt global (preservamos el
      max de ambos). _searchCache se limpia porque el contenido pudo cambiar. */
-  try{_searchCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){}
+  try{_searchCache.clear();_stripCache.clear();localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}catch(_){} try{_warmSearchCache();}catch(_){}
   render();
   /* Empujar el resultado fusionado para que la nube converja con la unión.
      Solo si la fusión cambió algo respecto a lo que teníamos o trajo novedades. */
@@ -5903,6 +5945,9 @@ async function init(){
   });
   /* Parse all emojis */
   parseEmojiDebounced();
+  /* FASE 32: precalienta el cache de busqueda en idle (la 1a tecla en frio
+     pagaba 43-53ms de stripHtml+NFD de todos los temas de golpe) */
+  try{ _warmSearchCache(); }catch(_){}
   /* Auth (al final: puede esperar a la red sin bloquear nada de lo anterior) */
   try{ await initAuth(); }catch(err){ console.warn('[Clinote] initAuth failed:',err); }
 }
