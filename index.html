@@ -3447,43 +3447,16 @@ function _doRender(){
 
   let html='';
 
-  /* favorites section */
-  const favTopics=activeTopics().filter(t=>t.favorite);
-  if(favTopics.length&&!q&&!folderFilter){
-    html+=`<div class="folder-card" style="--folder-color:#fbbf24">
-      <div class="folder-strip"></div>
-      <div class="folder-head" onclick="toggleFolder('__fav__')">
-        <div class="folder-emoji">⭐</div>
-        <div class="folder-info"><div class="folder-name">Favoritos</div><div class="folder-meta">${favTopics.length} tema${favTopics.length!==1?'s':''}</div></div>
-        <div class="folder-arrow ${expandedTopics['__fav__']?'open':''}">${icon('chevron-right')}</div>
-      </div>
-      ${expandedTopics['__fav__']?`<div class="folder-body">${favTopics.map(t=>renderTopic(t,'__fav__')).join('')}</div>`:''}
-    </div>`;
-  }
+  /* favorites section (FASE 31: extraida a helper direccionable) */
+  html+=_favCardHTML(q);
 
   /* render each folder (root-level) */
   visible.forEach(folder=>{
     html+=renderFolder(folder,q,null);
   });
 
-  /* render orphan topics (no folder, at root level) */
-  {
-    const orphans=getTopicsInFolder(null).filter(t=>{
-      if(!q) return true;
-      return topicSearchString(t).includes(q);
-    });
-    if(orphans.length){
-      html+=`<div class="folder-card" style="--folder-color:#7a8399">
-        <div class="folder-strip"></div>
-        <div class="folder-head" onclick="toggleFolder('null')">
-          <div class="folder-emoji">📋</div>
-          <div class="folder-info"><div class="folder-name">Sin carpeta</div><div class="folder-meta">${orphans.length} tema${orphans.length!==1?'s':''}</div></div>
-          <div class="folder-arrow ${expandedTopics['null']?'open':''}">${icon('chevron-right')}</div>
-        </div>
-        ${expandedTopics['null']?`<div class="folder-body">${orphans.map(t=>renderTopic(t,null)).join('')}</div>`:''}
-      </div>`;
-    }
-  }
+  /* render orphan topics (FASE 31: extraida a helper direccionable) */
+  html+=_orphansCardHTML(q);
 
   if(!html){
     html=`<div class="empty-state">
@@ -3847,10 +3820,86 @@ function toggleTopicExpand(id,sourceEl){
   }
 }
 
+/* FASE 31: tarjetas sinteticas extraidas de _doRender para poder reconstruirlas
+   de forma aislada (llevan data-folder-id para ser direccionables). */
+function _favCardHTML(q){
+  const favTopics=activeTopics().filter(t=>t.favorite);
+  if(!favTopics.length||q||folderFilter) return '';
+  return `<div class="folder-card" style="--folder-color:#fbbf24" data-folder-id="__fav__">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('__fav__')">
+      <div class="folder-emoji">⭐</div>
+      <div class="folder-info"><div class="folder-name">Favoritos</div><div class="folder-meta">${favTopics.length} tema${favTopics.length!==1?'s':''}</div></div>
+      <div class="folder-arrow ${expandedTopics['__fav__']?'open':''}">${icon('chevron-right')}</div>
+    </div>
+    ${expandedTopics['__fav__']?`<div class="folder-body">${favTopics.map(t=>renderTopic(t,'__fav__')).join('')}</div>`:''}
+  </div>`;
+}
+function _orphansCardHTML(q){
+  const orphans=getTopicsInFolder(null).filter(t=>{
+    if(!q) return true;
+    return topicSearchString(t).includes(q);
+  });
+  if(!orphans.length) return '';
+  return `<div class="folder-card" style="--folder-color:#7a8399" data-folder-id="null">
+    <div class="folder-strip"></div>
+    <div class="folder-head" onclick="toggleFolder('null')">
+      <div class="folder-emoji">📋</div>
+      <div class="folder-info"><div class="folder-name">Sin carpeta</div><div class="folder-meta">${orphans.length} tema${orphans.length!==1?'s':''}</div></div>
+      <div class="folder-arrow ${expandedTopics['null']?'open':''}">${icon('chevron-right')}</div>
+    </div>
+    ${expandedTopics['null']?`<div class="folder-body">${orphans.map(t=>renderTopic(t,null)).join('')}</div>`:''}
+  </div>`;
+}
+/* FASE 31: re-renderiza SOLO una tarjeta de carpeta, in situ. Un render()
+   completo reconstruye #folder-list entero y — como mover o recrear un iframe
+   siempre recarga su documento — destruia y recargaba el iframe del tema que
+   el usuario estaba leyendo en OTRA carpeta (medido: ~90-250ms de hueco sin
+   contenido + 157-312ms de recarga por cada toque en favorito/carpeta).
+   Devuelve true si pudo hacer el reemplazo acotado. */
+function _renderFolderCardPartial(key){
+  const q=normalizeText(document.getElementById('search')?.value||'');
+  if(q) return false; /* en busqueda el arbol es otro: camino completo */
+  const container=document.getElementById('folder-list');
+  const card=container?.querySelector(`.folder-card[data-folder-id="${CSS.escape(String(key))}"]`);
+  let html;
+  if(key==='__fav__') html=_favCardHTML('');
+  else if(key==='null') html=_orphansCardHTML('');
+  else{
+    const folder=activeFolders().find(f=>f.id===key);
+    if(!folder) return false;
+    html=renderFolder(folder,'',folder.parentId||null);
+  }
+  const wire=()=>{
+    const nc=container.querySelector(`.folder-card[data-folder-id="${CSS.escape(String(key))}"]`);
+    if(!nc) return;
+    nc.querySelectorAll('.inline-frame[data-tid]').forEach(observeInlineFrame);
+    attachSwipe();
+    if(SORT_MODE) attachSort();
+    parseEmoji(nc);
+    hydrateIcons(nc);
+  };
+  if(!card){
+    if(!html) return true; /* no existia y sigue sin existir */
+    if(container.querySelector('.empty-state')) return false; /* estado vacio: arbol completo */
+    /* la tarjeta debe APARECER: insercion acotada en su posicion canonica
+       (favoritos arriba, sin-carpeta abajo) sin reconstruir el arbol */
+    if(key==='__fav__') container.insertAdjacentHTML('afterbegin',html);
+    else if(key==='null') container.insertAdjacentHTML('beforeend',html);
+    else return false;
+    wire();
+    return true;
+  }
+  card.querySelectorAll('.inline-frame[data-tid]').forEach(fr=>_cancelFrameLoad(fr,'rerender'));
+  if(!html){ card.remove(); return true; }
+  card.outerHTML=html;
+  wire();
+  return true;
+}
 function toggleFolder(folderId){
   const key=folderId==='null'?'null':folderId;
   expandedTopics[key]=!expandedTopics[key];
-  render();
+  if(!_renderFolderCardPartial(key)) render();
 }
 function expandAllFolders(open){
   activeFolders().forEach(f=>{expandedTopics[f.id]=open});
@@ -3861,9 +3910,27 @@ function toggleFavorite(topicId){
   const t=activeTopics().find(t=>t.id===topicId);
   if(!t) return;
   t.favorite=!t.favorite;touch(t);saveState();
-  /* El tema puede existir en dos secciones; un render único mantiene ambas
-     representaciones sincronizadas y evita badges/iframes obsoletos. */
-  render();
+  /* FASE 31: parcheo in situ en vez de render() completo. El render global
+     destruia y recargaba el iframe del tema abierto (~300ms de parpadeo al
+     marcar favorito mientras se lee otro tema). El badge se parchea en TODAS
+     las copias visibles (carpeta + seccion Favoritos) y solo se reconstruye
+     la tarjeta de Favoritos, que es la unica cuya estructura cambia. */
+  const q=normalizeText(document.getElementById('search')?.value||'');
+  if(q){ render(); }
+  else{
+    document.querySelectorAll(`[data-topic-id="${CSS.escape(topicId)}"] .topic-main`).forEach(main=>{
+      const badge=main.querySelector('.fav-badge');
+      if(t.favorite&&!badge){
+        const anchor=main.querySelector('.studied-badge')||main.querySelector('.topic-arrow');
+        const span=document.createElement('span');
+        span.className='fav-badge ic-fill';
+        span.innerHTML=icon('star');
+        if(anchor) main.insertBefore(span,anchor); else main.appendChild(span);
+      }else if(!t.favorite&&badge){ badge.remove(); }
+    });
+    if(!_renderFolderCardPartial('__fav__')) render();
+    renderStats();
+  }
   toast(t.favorite?'Añadido a favoritos':'Quitado de favoritos',t.favorite?'fav':'unfav');
 }
 
