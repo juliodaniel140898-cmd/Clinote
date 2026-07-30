@@ -684,19 +684,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 }
 
 /* ── AUTH CARD ── */
+/* FASE 33: la pantalla de login quemaba un NUCLEO ENTERO en reposo (medido:
+   102% CPU a 16fps). Dos causas que habia que atacar juntas: (1) el
+   backdrop-filter de viewport completo — con el presente, CUALQUIER animacion
+   re-desenfoca la pantalla entera (~62ms/frame); el fondo ya es un gradiente
+   opaco .94, la perdida visual es minima. (2) las animaciones infinitas: se
+   hacen finitas (la intro sigue igual de vistosa; tras unos ciclos la pantalla
+   queda estatica y la CPU baja a ~0.7%). Al reabrir el login (display:none →
+   flex) las animaciones se reinician solas. */
 #auth-overlay{
   display:none;position:fixed;inset:0;z-index:300;overflow-x:hidden;overflow-y:auto;
   background:
     radial-gradient(circle at 50% 0%,rgba(79,156,255,.28),transparent 34%),
     linear-gradient(135deg,rgba(9,13,22,.94),rgba(20,27,42,.9) 45%,rgba(7,10,18,.96));
-  backdrop-filter:blur(18px) saturate(1.35);
-  -webkit-backdrop-filter:blur(18px) saturate(1.35);
   align-items:center;justify-content:center;padding:18px;
 }
 #auth-overlay::before{
   content:"";position:absolute;inset:-35%;pointer-events:none;
   background:conic-gradient(from 180deg at 50% 50%,rgba(79,156,255,.16),rgba(45,212,191,.08),rgba(167,139,250,.14),rgba(79,156,255,.16));
-  filter:blur(42px);opacity:.72;animation:authAura 14s linear infinite;
+  filter:blur(42px);opacity:.72;animation:authAura 14s linear 2;
 }
 #auth-overlay::after{
   content:"";position:absolute;inset:0;pointer-events:none;opacity:.16;
@@ -715,7 +721,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .auth-card::before{
   content:"";position:absolute;inset:0;pointer-events:none;
   background:linear-gradient(120deg,transparent 0%,rgba(255,255,255,.08) 24%,transparent 42%);
-  transform:translateX(-120%);animation:authSheen 5.8s ease-in-out infinite;
+  transform:translateX(-120%);animation:authSheen 5.8s ease-in-out 3; /* FASE 33: finita */
 }
 .auth-hero{
   position:relative;min-height:520px;padding:32px;display:flex;flex-direction:column;justify-content:space-between;
@@ -732,7 +738,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .auth-brand-logo{
   width:56px;height:56px;border-radius:18px;display:grid;place-items:center;color:#fff;font-size:1.55em;font-weight:950;letter-spacing:-1px;
   background:linear-gradient(135deg,#62b0ff,#2563eb 58%,#2dd4bf);box-shadow:0 16px 40px rgba(79,156,255,.36),0 0 0 1px rgba(255,255,255,.2) inset;
-  animation:logoFloat 4.4s ease-in-out infinite;
+  animation:logoFloat 4.4s ease-in-out 4; /* FASE 33: finita */
 }
 .auth-wordmark{font-weight:950;font-size:1.18em;letter-spacing:-.3px}
 .auth-tagline{color:rgba(232,234,237,.7);font-size:.82em;font-weight:700;margin-top:1px}
@@ -1085,7 +1091,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,
 .home-hero::before{
   content:"";position:absolute;inset:0;pointer-events:none;opacity:.42;
   background:linear-gradient(120deg,transparent,rgba(255,255,255,.075),transparent);
-  transform:translateX(-120%);animation:homeSheen 7s ease-in-out infinite;
+  transform:translateX(-120%);animation:homeSheen 7s ease-in-out 3; /* FASE 33: era la unica animacion infinita viva tras el login — 11% de CPU sostenido en TODAS las vistas (medido); 3 ciclos y a dormir */
+}
+body.ov-fs-open .home-hero::before{animation-play-state:paused;
+
 }
 .home-kicker{font-size:.72em;text-transform:uppercase;letter-spacing:.8px;color:var(--accent);font-weight:900;margin-bottom:6px}
 .home-title{font-size:1.42em;line-height:1.08;font-weight:950;letter-spacing:0;margin-bottom:8px}
@@ -2794,6 +2803,16 @@ function _dialogDeactivate(){
   const prev=_focusStack.pop();
   if(prev&&document.contains(prev)&&typeof prev.focus==='function') setTimeout(()=>{try{prev.focus()}catch(_){}}, 0);
 }
+/* FASE 33: bajo un overlay a pantalla completa el arbol de fondo seguia
+   pintando (medido: 11-12% de CPU mientras el usuario LEE, por la animacion
+   del hero corriendo detras de la hoja opaca). Una clase en <body> la pausa;
+   con solo eso la CPU en reposo bajo el lector cae a ~0.6-0.8% (medido). */
+const _FS_OVERLAYS=['reader-overlay','preview-overlay','study-overlay'];
+function _syncFsOverlayClass(){
+  const any=_FS_OVERLAYS.some(i=>{const o=document.getElementById(i);return o&&o.classList.contains('open');})
+    ||(()=>{const a=document.getElementById('auth-overlay');return a&&a.style.display!=='none'&&a.style.display!=='';})();
+  document.body.classList.toggle('ov-fs-open',any);
+}
 function openOverlay(id){
   const el=document.getElementById(id);
   if(!el) return;
@@ -2809,6 +2828,7 @@ function openOverlay(id){
     if(el._openToken!==openToken) return;
     el.classList.add('open');
     _syncScrollLock();
+    _syncFsOverlayClass();
   });
   _dialogActivate(el);
   setTimeout(()=>{
@@ -2829,6 +2849,7 @@ function closeOverlay(id){
   }
   el.classList.remove('open');
   _syncScrollLock();
+  _syncFsOverlayClass();
   _dialogDeactivate();
   if(el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer=setTimeout(()=>{
@@ -5276,10 +5297,11 @@ function showAuthScreen(){
   document.getElementById('auth-overlay').style.display='flex';
   document.getElementById('auth-overlay').classList.add('open');
   authTab('login');
+  _syncFsOverlayClass();
 }
 function hideAuthScreen(){
   document.getElementById('auth-overlay').classList.remove('open');
-  setTimeout(()=>document.getElementById('auth-overlay').style.display='none',300);
+  setTimeout(()=>{document.getElementById('auth-overlay').style.display='none';_syncFsOverlayClass();},300);
 }
 function skipAuth(){
   window._authSkipped=true; /* FASE 30: initAuth no debe re-mostrar el login */
