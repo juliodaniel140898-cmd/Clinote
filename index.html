@@ -1315,7 +1315,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .folder-card,.topic-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
 .folder-card,.topic-card{transition:transform var(--t-base) var(--ease-out),border-color var(--t-fast),box-shadow var(--t-base),background var(--t-fast)}
 .folder-card:hover,.topic-card:hover{transform:translateY(-2px);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 18px 42px rgba(0,0,0,.24)}.topic-card.open{box-shadow:0 20px 54px rgba(0,0,0,.26)}
-.sheet,.confirm-sheet{border:1px solid color-mix(in srgb,var(--border2) 74%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),var(--shadow-lg);backdrop-filter:blur(28px) saturate(135%);-webkit-backdrop-filter:blur(28px) saturate(135%)}
+/* FASE 37: .sheet y .confirm-sheet tienen background:var(--surface), que es
+   OPACO: su backdrop-filter difuminaba un fondo que nunca llega a verse. A
+   2560x1440 ese pase cuesta un blur de ~1 Mpx por frame durante toda la
+   animacion de apertura, apilado ademas sobre el blur del .overlay.
+   Verificado por diff de pixeles decodificado a 2560x1440: quitarlo cambia
+   7 px de 3.686.400 (0,0002%) — el borde semitransparente de 1px. */
+.sheet,.confirm-sheet{border:1px solid color-mix(in srgb,var(--border2) 74%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),var(--shadow-lg)}
 .overlay{background:rgba(4,7,13,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-fast),background var(--t-fast)}input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(79,156,255,.11)}
 .fab{box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 16px 38px rgba(37,99,235,.38)}
@@ -2212,7 +2218,7 @@ input,textarea,select{transition:border-color var(--t-fast),box-shadow var(--t-f
    ═══════════════════════════════════════════════════════ */
 const SB_URL='https://veihcyqbuftioazodajp.supabase.co';
 const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaWhjeXFidWZ0aW9hem9kYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMzUxOTgsImV4cCI6MjA5NTkxMTE5OH0.X-wEdMNYSHNi1bC21zQ92x9TslKbE9coFZaPAhWc4vQ';
-const APP_VERSION='v8.25';
+const APP_VERSION='v8.26';
 const STORAGE_KEY='clinote-v2';
 const STORAGE_LEGACY=['medstudy_study_hub_v1','medstudy_medical_v1','medstudy_state_v1','medstudy_topics_v1'];
 const EMERGENCY_KEY='medstudy_emergency_backup';
